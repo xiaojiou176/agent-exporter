@@ -12,7 +12,7 @@
 ## Current Truth
 
 - This repo is a **Rust CLI-first exporter**.
-- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index**.
+- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search**.
 - The repository is designed to grow into multiple connectors later, but not all at once.
 - Current export semantics stay aligned with CodexMonitor:
   - `thread/read` primary
@@ -40,9 +40,10 @@
   - `publish archive-index --workspace-root <repo>`
   - scans workspace conversations for existing HTML transcript exports
   - writes one static `index.html` with relative links
-  - does not add search / semantic indexing / hosted publish
+  - now supports local metadata search inside that static index
+  - does not add semantic retrieval / hosted publish
 - Current highest-value next step:
-  - search / index before broader platform layers
+  - semantic retrieval before broader platform layers
 - Current host-safety semantics:
   - the repo may spawn one direct app-server child
   - the repo may only terminate that directly owned child handle

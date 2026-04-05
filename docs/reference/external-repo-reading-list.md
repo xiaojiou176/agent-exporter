@@ -236,6 +236,9 @@
    - local `publish archive-index` now generates one static index page
    - archive browsing still stays local-first and relative-link based
    - search / semantic index still remain later
+9. **Phase 8 local metadata search**
+   - archive index now supports local metadata search without leaving static local mode
+   - semantic retrieval still remains later
 
 ### 明确未采纳
 

@@ -44,6 +44,7 @@
 - shared JSON export
 - shared HTML export
 - workspace conversations archive index
+- local archive metadata search
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -52,7 +53,7 @@
 
 当前阶段**还没有**完成的是：
 
-- search / index / semantic retrieval
+- semantic retrieval
 - 多 agent archive 平台化
 
 ---
@@ -67,7 +68,8 @@
 
 ### 当前不做
 
-- Search / index / knowledge base
+- semantic retrieval / embeddings / vector index
+- hosted / remote search
 - hosted / remote publish
 - GUI / Web UI
 - 远程服务
@@ -87,7 +89,8 @@
 6. **现在已经落地：shared JSON export via `--format json`**
 7. **现在已经落地：shared HTML export via `--format html`**
 8. **现在已经落地：workspace conversations archive index via `publish archive-index`**
-9. **当前最高优先级：search / index，但不能直接膨胀成平台壳**
+9. **现在已经落地：local archive metadata search**
+10. **当前最高优先级：semantic retrieval，但不能直接膨胀成平台壳**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -168,7 +171,8 @@ cargo run -- export codex \
   - 扫描 `<repo>/.agents/Conversations` 里已经导出的 HTML transcript
   - 生成一个本地可打开的 `index.html`
   - 使用相对链接串起 transcript 页面
-  - 不做搜索、分页、gist、web publish
+  - 现在已内置本地 metadata search
+  - 不做 semantic retrieval、分页、gist、web publish
 
 ### Source contract
 
@@ -298,7 +302,7 @@ codex app-server
 
 后续文档和实现会继续沿着这条线推进：
 
-1. search / index / multi-agent archive 平台化
+1. semantic retrieval / multi-agent archive 平台化
 
 ---
 

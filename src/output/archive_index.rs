@@ -37,10 +37,17 @@ pub fn render_archive_index_document(
             "        <div><dt>HTML transcripts</dt><dd><code>{entry_count}</code></dd></div>\n",
             "      </dl>\n",
             "    </header>\n",
+            "    <section class=\"search-bar\" aria-label=\"archive search\">\n",
+            "      <label class=\"search-label\" for=\"archive-search\">Search archive</label>\n",
+            "      <input id=\"archive-search\" class=\"search-input\" type=\"search\" placeholder=\"Search title, connector, thread id, completeness...\" autocomplete=\"off\">\n",
+            "      <p id=\"archive-search-status\" class=\"search-status\">Showing <strong>{entry_count}</strong> transcripts.</p>\n",
+            "    </section>\n",
             "    <section class=\"card-grid\">\n",
             "{body}\n",
             "    </section>\n",
+            "    <p id=\"archive-empty-result\" class=\"empty-result\" hidden>No transcripts matched the current search.</p>\n",
             "  </main>\n",
+            "  <script>\n{script}\n  </script>\n",
             "</body>\n",
             "</html>\n"
         ),
@@ -49,6 +56,7 @@ pub fn render_archive_index_document(
         entry_count = entries.len(),
         body = body,
         style = archive_index_style(),
+        script = archive_index_script(),
     )
 }
 
@@ -84,10 +92,20 @@ fn render_entry(entry: &ArchiveIndexEntry) -> String {
             )
         })
         .unwrap_or_default();
+    let searchable_text = [
+        entry.title.as_str(),
+        entry.connector.as_deref().unwrap_or(""),
+        entry.thread_id.as_deref().unwrap_or(""),
+        entry.completeness.as_deref().unwrap_or(""),
+        entry.source_kind.as_deref().unwrap_or(""),
+        entry.file_name.as_str(),
+    ]
+    .join(" ")
+    .to_lowercase();
 
     format!(
         concat!(
-            "<article class=\"entry-card\">",
+            "<article class=\"entry-card\" data-search-text=\"{searchable_text}\">",
             "<p class=\"eyebrow\">HTML transcript</p>",
             "<h2>{title}</h2>",
             "<div class=\"chip-row\">{chips}</div>",
@@ -103,6 +121,7 @@ fn render_entry(entry: &ArchiveIndexEntry) -> String {
         exported_line = exported_line,
         file_name = escape_html(&entry.file_name),
         href = escape_html(&entry.relative_href),
+        searchable_text = escape_html(&searchable_text),
     )
 }
 
@@ -257,6 +276,42 @@ fn archive_index_style() -> &'static str {
       background: rgba(255, 255, 255, 0.95);
     }
 
+    .search-bar {
+      display: grid;
+      gap: 10px;
+      margin: 0 0 18px;
+      padding: 18px 20px;
+      border-radius: 18px;
+      border: 1px solid rgba(212, 198, 178, 0.95);
+      background: rgba(255, 251, 244, 0.85);
+      box-shadow: var(--shadow);
+    }
+
+    .search-label {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(155, 91, 35, 0.25);
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 14px;
+    }
+
+    .search-status,
+    .empty-result {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
     @media (max-width: 720px) {
       .page-shell {
         width: min(100vw - 20px, 1080px);
@@ -269,6 +324,30 @@ fn archive_index_style() -> &'static str {
         border-radius: 20px;
         padding: 18px;
       }
+    }"#
+}
+
+fn archive_index_script() -> &'static str {
+    r#"    const input = document.getElementById('archive-search');
+    const status = document.getElementById('archive-search-status');
+    const empty = document.getElementById('archive-empty-result');
+    const cards = Array.from(document.querySelectorAll('.entry-card'));
+
+    if (input && status && empty) {
+      const update = () => {
+        const query = input.value.trim().toLowerCase();
+        let visible = 0;
+        for (const card of cards) {
+          const haystack = (card.getAttribute('data-search-text') || '').toLowerCase();
+          const match = !query || haystack.includes(query);
+          card.hidden = !match;
+          if (match) visible += 1;
+        }
+        status.innerHTML = `Showing <strong>${visible}</strong> transcript${visible === 1 ? '' : 's'}.`;
+        empty.hidden = visible !== 0;
+      };
+      input.addEventListener('input', update);
+      update();
     }"#
 }
 
@@ -304,5 +383,13 @@ mod tests {
     fn render_archive_index_document_handles_empty_state() {
         let html = render_archive_index_document("Demo archive", "2026-04-05T00:00:00Z", &[]);
         assert!(html.contains("还没有 HTML transcript exports"));
+    }
+
+    #[test]
+    fn render_archive_index_document_embeds_search_ui() {
+        let html = render_archive_index_document("Demo archive", "2026-04-05T00:00:00Z", &[]);
+        assert!(html.contains("archive-search"));
+        assert!(html.contains("data-search-text"));
+        assert!(html.contains("No transcripts matched the current search."));
     }
 }

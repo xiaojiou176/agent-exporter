@@ -6,7 +6,7 @@
 
 ## Current Phase Snapshot
 
-当前这套文档已经进入 **Phase 7 archive index landed**。
+当前这套文档已经进入 **Phase 8 metadata search landed**。
 
 你可以先把它理解成：这套文档现在要同时解释“正门、侧门、以及第二种输出格式”，但不能把它们说成同一种真相。
 
@@ -16,8 +16,9 @@
 - `--format json` 已经 landed，证明 shared transcript/core/output abstraction 能接第二种结构化输出
 - `--format html` 已经 landed，证明同一份 transcript 也能输出成静态可读页面
 - `publish archive-index` 已经 landed，证明这些页面已经可以本地浏览和静态发布
+- `publish archive-index` 现在已经自带本地 metadata search
 - `local` 和 `claude-code` 当前都按 **degraded** 理解，不能冒充 canonical parity
-- 当前最值钱的工作是 search / index，而不是 hosted / 平台壳
+- 当前最值钱的工作是 semantic retrieval，而不是 hosted / 平台壳
 
 ## Read Order
 

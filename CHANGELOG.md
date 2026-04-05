@@ -38,6 +38,8 @@ The format is based on Keep a Changelog.
 - HTML renderer unit tests and HTML writer conflict-suffix coverage
 - Local `publish archive-index` command for workspace conversations
 - Archive index unit tests and publish CLI integration tests
+- Local metadata search inside archive index
+- Archive index search UI unit coverage
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder
@@ -46,4 +48,5 @@ The format is based on Keep a Changelog.
 - README / blueprint order now place Claude Code connector ahead of JSON / HTML follow-ups
 - CLI export surface now keeps Markdown as the default while exposing `--format markdown|json|html`
 - CLI now also exposes `publish archive-index --workspace-root <repo>`
+- Archive index now includes local metadata search without adding a hosted search layer
 - Codex / Claude connector summaries now describe the shared archive transcript contract instead of a Markdown-only contract

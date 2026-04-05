@@ -155,9 +155,20 @@
 
 ### Phase 8
 
+已落地：
+
+- local metadata search / index
+
+原因：
+
+- 现在已经能在 archive index 上做本地 metadata search
+- 但仍然没有进入 semantic retrieval / embeddings / vector 层
+
+### Phase 9
+
 再做：
 
-- search / index / semantic retrieval
+- semantic retrieval
 
 ---
 
@@ -261,4 +272,6 @@ src/
 - Markdown export 已落地
 - JSON export 已落地
 - HTML export 已落地
+- archive index 已落地
+- local metadata search 已落地
 - 未来扩展边界仍然保持收口
