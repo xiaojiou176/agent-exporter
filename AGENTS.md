@@ -25,8 +25,9 @@
    - `output/`：负责 Markdown / JSON / HTML
 
 4. **先小后大**
-   - v1 只做 Codex
-   - v1 不做 search/index/MCP server
+   - 继续坚持 local-first CLI，不往 hosted / platform shell 膨胀
+   - 当前已 landed 的 local archive index / metadata search / semantic retrieval / hybrid retrieval 继续保留，不回退成“future plan”
+   - 当前仍不做 hosted search/index/MCP server
    - v1 不做 GUI
    - v1 不做多 connector 并行上线
 

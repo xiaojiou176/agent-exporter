@@ -216,14 +216,6 @@ agent-exporter publish archive-index --workspace-root <repo-root>
 agent-exporter export codex --source app-server --thread-id <id> --destination workspace-conversations --workspace-root <repo-root>
 ```
 
-未来扩展：
-
-```bash
-agent-exporter export claude-code --session-path <path>
-```
-
----
-
 ## 状态语义
 
 当前 v1 已落地两层状态语义：
