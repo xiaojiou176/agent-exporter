@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 use chrono::{DateTime, Local};
@@ -10,6 +10,34 @@ use crate::output::markdown::RenderedArchivePart;
 
 const DEFAULT_EXPORT_STEM: &str = "agent-exporter-thread";
 const MAX_THREAD_DISPLAY_NAME_FILENAME_CHARS: usize = 48;
+// HOST_SAFETY_RULES_BEGIN
+const BLOCKED_APP_SERVER_COMMANDS: &[&str] = &[
+    "bash",
+    "cmd",
+    "cmd.exe",
+    "fish",
+    "kill",
+    "killall",
+    "open",
+    "osascript",
+    "pkill",
+    "powershell",
+    "pwsh",
+    "sh",
+    "zsh",
+];
+const BLOCKED_APP_SERVER_ARG_PATTERNS: &[&str] = &[
+    "aevt,apwn",
+    "force quit",
+    "kaeshowapplicationwindow",
+    "killall",
+    "loginwindow",
+    "pkill",
+    "showforcequitpanel",
+    "system events",
+];
+const BLOCKED_INLINE_EVAL_FLAGS: &[&str] = &["-c", "-e", "-m", "-r"];
+// HOST_SAFETY_RULES_END
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ExportSelector {
@@ -58,6 +86,65 @@ impl AppServerLaunchConfig {
             self.args.clone()
         }
     }
+
+    pub fn validate_host_safety(&self) -> Result<()> {
+        let trimmed_command = self.command.trim();
+        if trimmed_command.is_empty() {
+            bail!("app-server command cannot be empty");
+        }
+
+        let command_name = app_server_command_name(trimmed_command);
+        if BLOCKED_APP_SERVER_COMMANDS.contains(&command_name.as_str()) {
+            bail!(
+                "app-server override refuses to launch host-control utility `{}`; use a direct repo-owned app-server executable instead",
+                trimmed_command
+            );
+        }
+
+        if uses_inline_eval(&command_name, &self.args) {
+            bail!(
+                "app-server override refuses inline-eval launcher `{}`; pass a direct script or executable path instead",
+                trimmed_command
+            );
+        }
+
+        for arg in &self.args {
+            let normalized = arg.trim().to_ascii_lowercase();
+            if let Some(pattern) = BLOCKED_APP_SERVER_ARG_PATTERNS
+                .iter()
+                .find(|pattern| normalized.contains(**pattern))
+            {
+                bail!(
+                    "app-server override rejects unsafe argument pattern `{}` in `{}`",
+                    pattern,
+                    arg
+                );
+            }
+        }
+
+        Ok(())
+    }
+}
+
+fn app_server_command_name(command: &str) -> String {
+    Path::new(command)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or(command)
+        .trim()
+        .to_ascii_lowercase()
+}
+
+fn uses_inline_eval(command_name: &str, args: &[String]) -> bool {
+    let Some(first_arg) = args.first().map(|arg| arg.trim()) else {
+        return false;
+    };
+    if !BLOCKED_INLINE_EVAL_FLAGS.contains(&first_arg) {
+        return false;
+    }
+
+    command_name.starts_with("python")
+        || matches!(command_name, "node" | "nodejs" | "perl" | "php" | "ruby")
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -623,5 +710,8 @@ mod tests {
         let config = AppServerLaunchConfig::default();
         assert_eq!(config.command, "codex");
         assert_eq!(config.resolved_args(), vec!["app-server"]);
+        config
+            .validate_host_safety()
+            .expect("default codex launcher should stay allowed");
     }
 }

@@ -66,11 +66,13 @@ struct CodexExportArgs {
     /// Workspace root required when destination is workspace-conversations.
     #[arg(long)]
     workspace_root: Option<PathBuf>,
-    /// Override the command used to launch the local Codex app-server.
+    /// Override the direct executable used to launch the local Codex app-server.
+    /// Host-control utilities and shell-style launchers are rejected.
     #[arg(long, default_value = "codex")]
     app_server_command: String,
     /// Additional args passed to the app-server command. When omitted and the command is the
-    /// default `codex`, the CLI automatically uses `codex app-server`.
+    /// default `codex`, the CLI automatically uses `codex app-server`. Inline-eval interpreter
+    /// flags such as `python -c` are rejected.
     #[arg(long = "app-server-arg")]
     app_server_args: Vec<String>,
 }
@@ -144,16 +146,19 @@ impl CodexExportArgs {
             }
         };
 
+        let app_server = AppServerLaunchConfig {
+            command: self.app_server_command,
+            args: self.app_server_args,
+        };
+        app_server.validate_host_safety()?;
+
         Ok(ExportRequest {
             connector: ConnectorKind::Codex,
             source,
             selector,
             format: OutputFormat::Markdown,
             output_target: self.destination.into_output_target(self.workspace_root)?,
-            app_server: AppServerLaunchConfig {
-                command: self.app_server_command,
-                args: self.app_server_args,
-            },
+            app_server,
             codex_home: self.codex_home,
         })
     }

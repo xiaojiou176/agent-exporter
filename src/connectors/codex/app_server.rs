@@ -40,6 +40,7 @@ pub struct AppServerClient {
 
 impl AppServerClient {
     pub fn spawn(config: &AppServerLaunchConfig) -> Result<Self> {
+        config.validate_host_safety()?;
         let mut command = Command::new(&config.command);
         command
             .args(config.resolved_args())
@@ -201,6 +202,8 @@ impl AppServerClient {
 
 impl Drop for AppServerClient {
     fn drop(&mut self) {
+        // This repo only ever terminates the exact child process it spawned for the app-server.
+        // Do not widen this into PID-based, process-group, or desktop-wide cleanup.
         let _ = self.child.kill();
         let _ = self.child.wait();
     }

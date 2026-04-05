@@ -7,6 +7,7 @@
 3. `docs/README.md`
 4. `docs/adr/ADR-0001-source-layering.md`
 5. `docs/adr/ADR-0002-codex-first-delivery.md`
+6. `docs/reference/host-safety-contract.md`
 
 ## Current Truth
 
@@ -29,6 +30,10 @@
   - local session-file import into the shared archive core
   - result is `degraded`
   - Claude Phase 3 is a second-connector proof, not a second Markdown dialect
+- Current host-safety semantics:
+  - the repo may spawn one direct app-server child
+  - the repo may only terminate that directly owned child handle
+  - host-control utilities, shell launchers, desktop automation, and inline-eval launcher overrides are rejected
 
 ## Current Document Surfaces
 
@@ -48,3 +53,5 @@ cargo run -- export codex --thread-id <thread-id>
 cargo run -- export codex --source local --thread-id <thread-id>
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl
 ```
+
+`cargo test` now also acts as the repo's host-safety gate.

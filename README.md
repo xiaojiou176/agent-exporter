@@ -9,6 +9,20 @@
 
 但仓库从第一天开始就按“未来会接 Claude Code 和其他本地 CLI”来设计，所以不会把 Codex 的私有读取逻辑写死在整个项目里。
 
+## Host Safety
+
+这个仓会启动一个本地 app-server 子进程，但它不是桌面自动化器，也不是宿主机清理脚本。
+
+当前硬边界是：
+
+- 只允许管理 repo 直接 spawn 的 app-server child
+- 不允许 `killall`、`pkill`、`kill -9`、`process.kill(...)`、`os.kill(...)`、`killpg(...)`
+- 不允许 `osascript`、`System Events`、`AppleEvent`、`loginwindow`、`showForceQuitPanel`
+- 不允许 `detached` background runner 或 `.unref()` 这类“放出去就不认账”的模式
+- `--app-server-command` 只接受 direct executable / repo-owned test double，不接受 shell launcher、host-control utility、inline-eval 入口
+
+更完整的约束见 [docs/reference/host-safety-contract.md](./docs/reference/host-safety-contract.md)。
+
 ---
 
 ## 当前定位
@@ -213,10 +227,11 @@ codex app-server
 3. [docs/README.md](./docs/README.md)
 4. [docs/adr/ADR-0001-source-layering.md](./docs/adr/ADR-0001-source-layering.md)
 5. [docs/adr/ADR-0002-codex-first-delivery.md](./docs/adr/ADR-0002-codex-first-delivery.md)
-6. [docs/reference/codexmonitor-export-contract.md](./docs/reference/codexmonitor-export-contract.md)
-7. [docs/reference/codex-upstream-reading-list.md](./docs/reference/codex-upstream-reading-list.md)
-8. [docs/reference/external-repo-reading-list.md](./docs/reference/external-repo-reading-list.md)
-9. [docs/reference/codex-thread-archive-blueprint.md](./docs/reference/codex-thread-archive-blueprint.md)
+6. [docs/reference/host-safety-contract.md](./docs/reference/host-safety-contract.md)
+7. [docs/reference/codexmonitor-export-contract.md](./docs/reference/codexmonitor-export-contract.md)
+8. [docs/reference/codex-upstream-reading-list.md](./docs/reference/codex-upstream-reading-list.md)
+9. [docs/reference/external-repo-reading-list.md](./docs/reference/external-repo-reading-list.md)
+10. [docs/reference/codex-thread-archive-blueprint.md](./docs/reference/codex-thread-archive-blueprint.md)
 
 ---
 
@@ -259,6 +274,8 @@ cargo run -- export codex --thread-id <thread-id>
 cargo run -- export codex --source local --thread-id <thread-id>
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl
 ```
+
+`cargo test` 现在也承担 host safety gate: 如果运行时代码里重新出现危险宿主机原语，测试会直接失败。
 
 ---
 

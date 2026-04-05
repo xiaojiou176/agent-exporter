@@ -34,6 +34,11 @@
    - connector 边界要预留
    - 但不要为了未来十个 connector，把今天的实现搞得过重
 
+6. **Host Safety 是硬边界**
+   - 这个仓只允许管理自己直接 spawn 的 app-server child。
+   - 禁止引入 `killall`、`pkill`、`kill -9`、`process.kill(...)`、`os.kill(...)`、`killpg(...)`、`osascript`、`System Events`、`AppleEvent`、`loginwindow`、`showForceQuitPanel`、`detached: true`、`.unref()`
+   - `--app-server-command` 只允许 direct executable / repo-owned test double；host-control utility、shell launcher、inline-eval 入口一律拒绝。
+
 ---
 
 ## Read Order
@@ -43,10 +48,11 @@
 3. `docs/README.md`
 4. `docs/adr/ADR-0001-source-layering.md`
 5. `docs/adr/ADR-0002-codex-first-delivery.md`
-6. `docs/reference/codexmonitor-export-contract.md`
-7. `docs/reference/codex-upstream-reading-list.md`
-8. `docs/reference/external-repo-reading-list.md`
-9. `docs/reference/codex-thread-archive-blueprint.md`
+6. `docs/reference/host-safety-contract.md`
+7. `docs/reference/codexmonitor-export-contract.md`
+8. `docs/reference/codex-upstream-reading-list.md`
+9. `docs/reference/external-repo-reading-list.md`
+10. `docs/reference/codex-thread-archive-blueprint.md`
 
 ---
 
@@ -86,3 +92,7 @@ cargo run -- export codex --thread-id <thread-id>
 cargo run -- export codex --source local --thread-id <thread-id>
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl
 ```
+
+说明：
+
+- `cargo test` 现在也承担 host safety gate，会拦截危险宿主机原语回流到运行时代码里。
