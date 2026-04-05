@@ -83,6 +83,19 @@ fn claude_code_export_writes_degraded_markdown_with_shared_skeleton() {
     assert!(content.contains("## 用户"));
     assert!(content.contains("## 助手"));
     assert!(content.contains("### 工具"));
+    assert_eq!(
+        content.matches("# 第").count(),
+        2,
+        "queue/progress should not create extra rounds"
+    );
+    assert!(content.contains("#### File changes (completed)"));
+    assert!(content.contains("- `/tmp/claude-demo/hello.py` [write]"));
+    assert!(content.contains("#### Command: python -m pytest tests/ (completed)"));
+    assert!(content.contains("```text\n2 passed\n```"));
+    assert!(!content.contains("Dynamic tool: Write"));
+    assert!(!content.contains("Dynamic tool: Bash"));
+    assert!(!content.contains("queue-operation"));
+    assert!(!content.contains("progress"));
 }
 
 #[test]
@@ -103,4 +116,26 @@ fn claude_code_export_supports_wrapped_json_loglines() {
     let content = fs::read_to_string(&paths[0]).expect("markdown content");
     assert!(content.contains("Summarize the repository state"));
     assert!(content.contains("Glob"));
+}
+
+#[test]
+fn claude_code_summary_is_used_as_preview_fallback_without_leaking_progress_noise() {
+    let workspace = tempdir().expect("workspace");
+    build_claude_command(
+        &fixture_path("claude_session_summary_only.jsonl"),
+        workspace.path(),
+    )
+    .assert()
+    .success()
+    .stdout(predicate::str::contains("Connector    : claude-code"))
+    .stdout(predicate::str::contains("Completeness : degraded"));
+
+    let paths = exported_markdown_paths(workspace.path());
+    assert_eq!(paths.len(), 1);
+
+    let content = fs::read_to_string(&paths[0]).expect("markdown content");
+    assert!(content.contains("Continuation summary: user was refining calculator behaviors."));
+    assert!(content.contains("I picked up the previous context and I'm ready to continue."));
+    assert!(!content.contains("queue-operation"));
+    assert!(!content.contains("progress"));
 }

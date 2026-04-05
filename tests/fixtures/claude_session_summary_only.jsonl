@@ -1,0 +1,4 @@
+{"type":"summary","summary":"Continuation summary: user was refining calculator behaviors.","sessionId":"claude-summary-only"}
+{"type":"queue-operation","operation":"enqueue","timestamp":"2026-04-05T08:00:00.000Z","sessionId":"claude-summary-only"}
+{"type":"progress","timestamp":"2026-04-05T08:00:01.000Z","sessionId":"claude-summary-only","cwd":"/tmp/claude-summary","uuid":"progress-1","parentUuid":null,"toolUseID":null,"parentToolUseID":null,"isSidechain":false,"userType":"external","version":"1.0.0","gitBranch":"main","data":{"stage":"restoring"}}
+{"type":"assistant","timestamp":"2026-04-05T08:00:02.000Z","sessionId":"claude-summary-only","cwd":"/tmp/claude-summary","uuid":"assistant-1","message":{"role":"assistant","content":[{"type":"text","text":"I picked up the previous context and I'm ready to continue."}]}}

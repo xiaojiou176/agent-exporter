@@ -6,7 +6,7 @@
 
 ## Current Phase Snapshot
 
-当前这套文档已经进入 **Phase 3 second-connector proof**。
+当前这套文档已经进入 **Phase 4 Claude replay hardening**。
 
 你可以先把它理解成：这套文档现在要同时解释“正门”和“侧门”，但不能把两者说反。
 
@@ -14,6 +14,7 @@
 - Codex `local direct-read` 已经 landed，属于第二条已落地入口
 - `Claude Code` 最小 `--session-path` connector 已 landed，证明架构能接第二个来源
 - `local` 和 `claude-code` 当前都按 **degraded** 理解，不能冒充 canonical parity
+- 当前最值钱的工作不是 renderer，而是 Claude replay fidelity 提升
 
 ## Read Order
 

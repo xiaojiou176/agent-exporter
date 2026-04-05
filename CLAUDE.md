@@ -30,6 +30,8 @@
   - local session-file import into the shared archive core
   - result is `degraded`
   - Claude Phase 3 is a second-connector proof, not a second Markdown dialect
+- Current highest-value next step:
+  - Claude replay hardening / fidelity pass before JSON / HTML renderer work
 - Current host-safety semantics:
   - the repo may spawn one direct app-server child
   - the repo may only terminate that directly owned child handle

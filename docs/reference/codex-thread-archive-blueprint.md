@@ -111,10 +111,20 @@
 
 ### Phase 4
 
+先做：
+
+- Claude replay hardening / fidelity 提升
+
+原因：
+
+- second connector 已 landed，但 replay fidelity 仍有提升空间
+- 先把 Claude 语义打稳，再进入展示层更安全
+
+### Phase 5
+
 再做：
 
 - JSON / HTML renderer
-- Claude replay hardening / fidelity 提升
 
 ---
 

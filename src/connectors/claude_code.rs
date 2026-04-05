@@ -8,8 +8,8 @@ use serde_json::{Map, Value};
 
 use crate::core::archive::{
     ArchiveCompleteness, ArchiveRound, ArchiveThreadStatus, ArchiveToolCall, ArchiveTranscript,
-    ArchiveTurnItem, ArchiveTurnStatus, ConnectorSourceKind, DynamicToolCallRecord, ExportRequest,
-    ExportSelector, ExportSource,
+    ArchiveTurnItem, ArchiveTurnStatus, CommandExecutionRecord, ConnectorSourceKind,
+    DynamicToolCallRecord, ExportRequest, ExportSelector, ExportSource, FileChangeRecord,
 };
 use crate::model::{ConnectorDefinition, ConnectorKind, SupportStage};
 
@@ -137,10 +137,30 @@ struct ClaudeReplay {
     next_item_index: usize,
     thread_id: Option<String>,
     preview: Option<String>,
+    preview_from_summary: bool,
     cwd: Option<PathBuf>,
     created_at: Option<i64>,
     updated_at: Option<i64>,
-    tool_names: HashMap<String, String>,
+    pending_tool_uses: HashMap<String, PendingClaudeToolUse>,
+    pending_tool_order: Vec<String>,
+}
+
+enum PendingClaudeToolUse {
+    Command {
+        id: String,
+        command: String,
+        cwd: Option<PathBuf>,
+    },
+    FileChange {
+        id: String,
+        path: String,
+        kind: String,
+    },
+    Dynamic {
+        id: String,
+        tool: String,
+        content_items: Vec<String>,
+    },
 }
 
 impl ClaudeReplay {
@@ -162,12 +182,14 @@ impl ClaudeReplay {
         match get_string(record, "type").as_str() {
             "user" => self.handle_user_entry(record),
             "assistant" => self.handle_assistant_entry(record),
-            "summary" | "queue-operation" | "progress" => {}
+            "summary" => self.handle_summary_entry(record),
+            "queue-operation" | "progress" => {}
             _ => {}
         }
     }
 
     fn finish(mut self) -> ClaudeReplayResult {
+        self.flush_pending_tool_uses();
         self.finish_current_round();
         ClaudeReplayResult {
             thread_id: self.thread_id,
@@ -202,6 +224,16 @@ impl ClaudeReplay {
         }
     }
 
+    fn handle_summary_entry(&mut self, record: &Map<String, Value>) {
+        if self.preview.is_some() {
+            return;
+        }
+        if let Some(summary) = optional_string(record, "summary") {
+            self.preview = Some(summary);
+            self.preview_from_summary = true;
+        }
+    }
+
     fn handle_user_entry(&mut self, record: &Map<String, Value>) {
         let Some(message) = record.get("message").and_then(Value::as_object) else {
             return;
@@ -212,9 +244,11 @@ impl ClaudeReplay {
         let tool_results = extract_tool_results(content);
 
         if !prompt_text.is_empty() {
+            self.flush_pending_tool_uses();
             self.start_new_round(record);
-            if self.preview.is_none() {
+            if self.preview.is_none() || self.preview_from_summary {
                 self.preview = Some(prompt_text.clone());
+                self.preview_from_summary = false;
             }
             let item_id =
                 optional_string(record, "uuid").unwrap_or_else(|| self.next_item_id("user"));
@@ -275,8 +309,7 @@ impl ClaudeReplay {
                             }
                         }
                         "tool_use" => {
-                            let tool_call = self.map_tool_use(item);
-                            self.push_item(ArchiveTurnItem::ToolCall(tool_call));
+                            self.register_tool_use(item);
                         }
                         _ => {}
                     }
@@ -286,52 +319,119 @@ impl ClaudeReplay {
         }
     }
 
-    fn map_tool_use(&mut self, item: &Map<String, Value>) -> ArchiveToolCall {
+    fn register_tool_use(&mut self, item: &Map<String, Value>) {
         let id = optional_string(item, "id").unwrap_or_else(|| self.next_item_id("tool-use"));
         let tool = optional_string(item, "name").unwrap_or_else(|| "tool_use".to_string());
-        self.tool_names.insert(id.clone(), tool.clone());
+        let pending = match tool.as_str() {
+            "Bash" => PendingClaudeToolUse::Command {
+                id: id.clone(),
+                command: item
+                    .get("input")
+                    .and_then(Value::as_object)
+                    .and_then(|input| optional_string(input, "command"))
+                    .unwrap_or_default(),
+                cwd: self.cwd.clone(),
+            },
+            "Write" | "Edit" | "MultiEdit" => PendingClaudeToolUse::FileChange {
+                id: id.clone(),
+                path: item
+                    .get("input")
+                    .and_then(Value::as_object)
+                    .and_then(|input| optional_string(input, "file_path"))
+                    .unwrap_or_default(),
+                kind: tool.to_ascii_lowercase(),
+            },
+            _ => {
+                let mut content_items = vec![format!("tool_use_id: `{id}`")];
+                if let Some(input) = item.get("input") {
+                    content_items.push(code_fence("json", &stringify_json(input)));
+                }
+                PendingClaudeToolUse::Dynamic {
+                    id: id.clone(),
+                    tool,
+                    content_items,
+                }
+            }
+        };
 
-        let mut content_items = Vec::new();
-        content_items.push(format!("tool_use_id: `{id}`"));
-        if let Some(input) = item.get("input") {
-            content_items.push(code_fence("json", &stringify_json(input)));
-        }
-
-        ArchiveToolCall::DynamicToolCall(DynamicToolCallRecord {
-            id,
-            tool,
-            status: Some("called".to_string()),
-            content_items,
-            success: None,
-        })
+        self.pending_tool_order.push(id.clone());
+        self.pending_tool_uses.insert(id, pending);
     }
 
     fn map_tool_result(&mut self, item: Map<String, Value>) -> ArchiveToolCall {
         let tool_use_id = optional_string(&item, "tool_use_id");
-        let tool = tool_use_id
-            .as_deref()
-            .and_then(|id| self.tool_names.get(id))
-            .cloned()
-            .unwrap_or_else(|| "tool_result".to_string());
-        let id = self.next_item_id("tool-result");
+        let is_error = item
+            .get("is_error")
+            .and_then(Value::as_bool)
+            .unwrap_or(false);
+        let result_status = if is_error { "error" } else { "completed" }.to_string();
+        let rendered_content = item.get("content").map(render_content_value);
 
+        if let Some(tool_use_id) = tool_use_id.clone() {
+            if let Some(index) = self
+                .pending_tool_order
+                .iter()
+                .position(|id| id == &tool_use_id)
+            {
+                self.pending_tool_order.remove(index);
+            }
+            if let Some(pending) = self.pending_tool_uses.remove(&tool_use_id) {
+                return match pending {
+                    PendingClaudeToolUse::Command { id, command, cwd } => {
+                        ArchiveToolCall::CommandExecution(CommandExecutionRecord {
+                            id,
+                            command,
+                            cwd,
+                            status: Some(result_status),
+                            aggregated_output: rendered_content,
+                            exit_code: None,
+                        })
+                    }
+                    PendingClaudeToolUse::FileChange { id, path, kind } => {
+                        ArchiveToolCall::FileChange {
+                            id,
+                            status: Some(result_status),
+                            changes: vec![FileChangeRecord {
+                                path,
+                                kind: Some(kind),
+                                diff: None,
+                            }],
+                        }
+                    }
+                    PendingClaudeToolUse::Dynamic {
+                        id,
+                        tool,
+                        mut content_items,
+                    } => {
+                        if let Some(content) = rendered_content {
+                            content_items.push(content);
+                        }
+                        ArchiveToolCall::DynamicToolCall(DynamicToolCallRecord {
+                            id,
+                            tool,
+                            status: Some(result_status),
+                            content_items,
+                            success: Some(!is_error),
+                        })
+                    }
+                };
+            }
+        }
+
+        let id = self.next_item_id("tool-result");
         let mut content_items = Vec::new();
         if let Some(tool_use_id) = tool_use_id {
             content_items.push(format!("tool_use_id: `{tool_use_id}`"));
         }
-        if let Some(content) = item.get("content") {
-            content_items.push(render_content_value(content));
+        if let Some(content) = rendered_content {
+            content_items.push(content);
         }
-
         ArchiveToolCall::DynamicToolCall(DynamicToolCallRecord {
             id,
-            tool,
-            status: Some("result".to_string()),
+            tool: "tool_result".to_string(),
+            status: Some(result_status),
             content_items,
-            success: item
-                .get("is_error")
-                .and_then(Value::as_bool)
-                .map(|flag| !flag),
+            success: Some(!is_error),
         })
     }
 
@@ -364,6 +464,50 @@ impl ClaudeReplay {
             if !round.items.is_empty() {
                 self.rounds.push(round);
             }
+        }
+    }
+
+    fn flush_pending_tool_uses(&mut self) {
+        let pending_ids = self.pending_tool_order.drain(..).collect::<Vec<_>>();
+        for pending_id in pending_ids {
+            let Some(pending) = self.pending_tool_uses.remove(&pending_id) else {
+                continue;
+            };
+            let tool_call = match pending {
+                PendingClaudeToolUse::Command { id, command, cwd } => {
+                    ArchiveToolCall::CommandExecution(CommandExecutionRecord {
+                        id,
+                        command,
+                        cwd,
+                        status: Some("called".to_string()),
+                        aggregated_output: None,
+                        exit_code: None,
+                    })
+                }
+                PendingClaudeToolUse::FileChange { id, path, kind } => {
+                    ArchiveToolCall::FileChange {
+                        id,
+                        status: Some("called".to_string()),
+                        changes: vec![FileChangeRecord {
+                            path,
+                            kind: Some(kind),
+                            diff: None,
+                        }],
+                    }
+                }
+                PendingClaudeToolUse::Dynamic {
+                    id,
+                    tool,
+                    content_items,
+                } => ArchiveToolCall::DynamicToolCall(DynamicToolCallRecord {
+                    id,
+                    tool,
+                    status: Some("called".to_string()),
+                    content_items,
+                    success: None,
+                }),
+            };
+            self.push_item(ArchiveTurnItem::ToolCall(tool_call));
         }
     }
 

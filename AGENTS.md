@@ -6,7 +6,7 @@
 
 - 当前目标：**Codex canonical transcript/archive 导出**
 - 未来目标：Claude Code、以及其他本地 CLI
-- 当前阶段：**Codex dual-source + Claude Code minimal Phase 3 已落地，默认 Codex 主路径仍是 app-server**
+- 当前阶段：**Codex dual-source + Claude Code minimal Phase 3 已落地，当前最高优先级是 Phase 4 Claude replay hardening；默认 Codex 主路径仍是 app-server**
 
 ---
 

@@ -76,7 +76,8 @@
 3. **v1 先做 Codex app-server source**
 4. **现在已经落地：typed archive core + Codex dual source (`app-server` + `local`) + Markdown export**
 5. **现在已经落地：Claude Code minimal `--session-path` second connector proof**
-6. **JSON / HTML、browse / index 继续留在后面**
+6. **当前最高优先级：继续做 Claude replay hardening / fidelity 提升**
+7. **JSON / HTML、browse / index 继续留在后面**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -256,8 +257,8 @@ codex app-server
 
 后续文档和实现会继续沿着这条线推进：
 
-1. JSON / HTML renderer
-2. Claude replay hardening / fidelity 提升
+1. Claude replay hardening / fidelity 提升
+2. JSON / HTML renderer
 3. 更丰富的 archive browsing / publishing 能力
 4. search / index / multi-agent archive 平台化
 
