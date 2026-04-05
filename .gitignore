@@ -1,0 +1,14 @@
+.agents/
+.agent/
+.codex/
+.claude/
+.serena/
+logs/
+cache/
+.cache/
+build/
+dist/
+.runtime-cache/
+target/
+.env
+.DS_Store

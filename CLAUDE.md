@@ -1,0 +1,38 @@
+# agent-exporter CLAUDE Guide
+
+## Quick Index
+
+1. `AGENTS.md`
+2. `README.md`
+3. `docs/README.md`
+4. `docs/adr/ADR-0001-source-layering.md`
+5. `docs/adr/ADR-0002-codex-first-delivery.md`
+
+## Current Truth
+
+- This repo is a **Rust CLI-first exporter**.
+- Current implementation delivery is **Codex-only v1 via app-server**.
+- The repository is designed to grow into multiple connectors later, but not all at once.
+- Current export semantics stay aligned with CodexMonitor:
+  - `thread/read` primary
+  - `thread/resume` fallback only
+  - fallback exports are `incomplete`
+  - Markdown stays round-based
+  - output target semantics remain explicit
+
+## Current Document Surfaces
+
+- `docs/reference/codexmonitor-export-contract.md`
+- `docs/reference/codex-upstream-reading-list.md`
+- `docs/reference/external-repo-reading-list.md`
+- `docs/reference/codex-thread-archive-blueprint.md`
+
+## Fast Commands
+
+```bash
+cargo fmt
+cargo test
+cargo run -- connectors
+cargo run -- scaffold
+cargo run -- export codex --thread-id <thread-id>
+```
