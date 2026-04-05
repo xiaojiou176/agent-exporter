@@ -47,6 +47,7 @@
 - local archive metadata search
 - semantic retrieval
 - persistent local semantic index
+- hybrid retrieval
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -55,7 +56,6 @@
 
 当前阶段**还没有**完成的是：
 
-- hybrid retrieval
 - 多 agent archive 平台化
 
 ---
@@ -70,8 +70,8 @@
 
 ### 当前不做
 
-- semantic retrieval / embeddings / vector index
 - hosted / remote search
+- hosted / remote semantic platform
 - hosted / remote publish
 - GUI / Web UI
 - 远程服务
@@ -94,7 +94,8 @@
 9. **现在已经落地：local archive metadata search**
 10. **现在已经落地：semantic retrieval via `search semantic`**
 11. **现在已经落地：persistent local semantic index reuse**
-12. **当前最高优先级：hybrid retrieval，但不能直接膨胀成平台壳**
+12. **现在已经落地：hybrid retrieval via `search hybrid`**
+13. **当前最高优先级：multi-agent archive 平台化，但不能直接膨胀成 hosted search / service**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -187,6 +188,16 @@ cargo run -- export codex \
   - 当前默认走本地模型目录
   - 如果本地模型文件不存在，命令会明确报错，不会退回关键词假装成语义检索
   - 会把 corpus embeddings 持久化到本地 sidecar index，并在相同模型资产的后续查询中复用
+
+### Hybrid retrieval contract
+
+当前还额外支持：
+
+- `search hybrid --workspace-root <repo> --query "<text>"`
+  - 会把 semantic score 和 lexical metadata score 组合成一个 explainable hybrid score
+  - 继续复用现有 persistent semantic index，不再重造第二条 semantic persistence 主链
+  - 不会静默改写 `search semantic` 的纯语义语义
+  - 仍然是本地 CLI retrieval，不是 hosted / remote semantic platform
 
 ### Source contract
 
@@ -316,8 +327,7 @@ codex app-server
 
 后续文档和实现会继续沿着这条线推进：
 
-1. hybrid retrieval
-2. multi-agent archive 平台化
+1. multi-agent archive 平台化
 
 ---
 
@@ -337,6 +347,7 @@ cargo run -- export codex --thread-id <thread-id> --format html
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format html
 cargo run -- publish archive-index --workspace-root /absolute/path/to/repo
 cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues"
+cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1"
 ```
 
 `cargo test` 现在也承担 host safety gate: 如果运行时代码里重新出现危险宿主机原语，测试会直接失败。

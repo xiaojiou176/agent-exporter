@@ -12,7 +12,7 @@
 ## Current Truth
 
 - This repo is a **Rust CLI-first exporter**.
-- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search + semantic retrieval**.
+- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search + semantic retrieval + hybrid retrieval**.
 - The repository is designed to grow into multiple connectors later, but not all at once.
 - Current export semantics stay aligned with CodexMonitor:
   - `thread/read` primary
@@ -47,8 +47,13 @@
   - uses embedding-based retrieval over the local archive corpus
   - requires local model assets for live retrieval
   - does not silently fall back to lexical search
+- Current hybrid retrieval semantics:
+  - `search hybrid --workspace-root <repo> --query "<text>"`
+  - blends semantic ranking with lexical metadata signals
+  - reuses the persistent semantic index from the semantic path
+  - does not mutate `search semantic` into a hidden hybrid command
 - Current highest-value next step:
-  - hybrid retrieval before broader platform layers
+  - multi-agent archive platformization before broader platform layers
 - Current host-safety semantics:
   - the repo may spawn one direct app-server child
   - the repo may only terminate that directly owned child handle
@@ -77,6 +82,7 @@ cargo run -- export codex --thread-id <thread-id> --format html
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format html
 cargo run -- publish archive-index --workspace-root /absolute/path/to/repo
 cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues"
+cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1"
 ```
 
 `cargo test` now also acts as the repo's host-safety gate.

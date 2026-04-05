@@ -2,13 +2,13 @@
 
 ## 当前贡献重点
 
-当前仓库已经从“只有骨架”进入“Codex dual-source + Claude second connector 已 landed”的阶段。
+当前仓库已经从“只有骨架”进入“Codex dual-source + Claude second connector + hybrid retrieval 已 landed”的阶段。
 
 所以最欢迎的贡献顺序是：
 
 1. 文档与实现继续保持同步
-2. 继续完善 export + archive index + metadata search + semantic retrieval + persistent semantic index 与 Codex / Claude 路径的回归验证
-3. hybrid retrieval
+2. 继续完善 export + archive index + metadata search + semantic retrieval + persistent semantic index + hybrid retrieval 与 Codex / Claude 路径的回归验证
+3. multi-agent archive 平台化
 4. 后续 connector 扩展
 
 不欢迎的顺序是：
@@ -35,6 +35,7 @@ cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl -
 cargo run -- export codex --thread-id <thread-id> --format html
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format html
 cargo run -- publish archive-index --workspace-root /absolute/path/to/repo
+cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1"
 ```
 
 ---

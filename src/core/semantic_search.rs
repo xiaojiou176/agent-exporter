@@ -21,6 +21,8 @@ const SPECIAL_TOKENS_JSON: &str = "special_tokens_map.json";
 const TOKENIZER_CONFIG_JSON: &str = "tokenizer_config.json";
 const DEFAULT_MODEL_DIR_NAME: &str = "all-MiniLM-L6-v2";
 const DEFAULT_EMBEDDER_DIMENSION: usize = 384;
+const HYBRID_SEMANTIC_WEIGHT: f32 = 0.7;
+const HYBRID_LEXICAL_WEIGHT: f32 = 0.3;
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SemanticSearchDocument {
@@ -37,6 +39,23 @@ pub struct SemanticSearchHit {
 #[derive(Clone, Debug, PartialEq)]
 pub struct SemanticSearchExecution {
     pub hits: Vec<SemanticSearchHit>,
+    pub index_path: PathBuf,
+    pub total_documents: usize,
+    pub reused_documents: usize,
+    pub embedded_documents: usize,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct HybridSearchHit {
+    pub entry: ArchiveIndexEntry,
+    pub hybrid_score: f32,
+    pub semantic_score: f32,
+    pub lexical_score: f32,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct HybridSearchExecution {
+    pub hits: Vec<HybridSearchHit>,
     pub index_path: PathBuf,
     pub total_documents: usize,
     pub reused_documents: usize,
@@ -233,6 +252,42 @@ pub fn semantic_search_with_persistent_index<E: SemanticEmbedder>(
     query: &str,
     top_k: usize,
 ) -> Result<SemanticSearchExecution> {
+    let prepared = prepare_persistent_index(embedder, workspace_root)?;
+    let query_embedding = embed_query(embedder, query)?;
+    let query_hits = rank_semantic_hits_from_index(&query_embedding, &prepared.documents, top_k)?;
+
+    Ok(SemanticSearchExecution {
+        hits: query_hits,
+        index_path: prepared.index_path,
+        total_documents: prepared.total_documents,
+        reused_documents: prepared.reused_documents,
+        embedded_documents: prepared.embedded_documents,
+    })
+}
+
+pub fn hybrid_search_with_persistent_index<E: SemanticEmbedder>(
+    embedder: &E,
+    workspace_root: &Path,
+    query: &str,
+    top_k: usize,
+) -> Result<HybridSearchExecution> {
+    let prepared = prepare_persistent_index(embedder, workspace_root)?;
+    let query_embedding = embed_query(embedder, query)?;
+    let query_hits = rank_hybrid_hits(query, &query_embedding, &prepared.documents, top_k)?;
+
+    Ok(HybridSearchExecution {
+        hits: query_hits,
+        index_path: prepared.index_path,
+        total_documents: prepared.total_documents,
+        reused_documents: prepared.reused_documents,
+        embedded_documents: prepared.embedded_documents,
+    })
+}
+
+fn prepare_persistent_index<E: SemanticEmbedder>(
+    embedder: &E,
+    workspace_root: &Path,
+) -> Result<PreparedPersistentIndex> {
     let documents = collect_semantic_documents(workspace_root)?;
     let index_path = resolve_semantic_index_path(workspace_root, embedder.id());
     let mut persisted =
@@ -303,20 +358,8 @@ pub fn semantic_search_with_persistent_index<E: SemanticEmbedder>(
     };
     write_semantic_index(&index_path, &index_file)?;
 
-    let query_embedding = embed_query(embedder, query)?;
-    let query_hits = rank_hits_from_embedding_refs(
-        &query_embedding,
-        indexed_documents.iter().map(|document| {
-            (
-                &document.entry,
-                document.embedding.as_deref().unwrap_or(&[]),
-            )
-        }),
-        top_k,
-    )?;
-
-    Ok(SemanticSearchExecution {
-        hits: query_hits,
+    Ok(PreparedPersistentIndex {
+        documents: indexed_documents,
         index_path,
         total_documents: documents.len(),
         reused_documents,
@@ -398,6 +441,124 @@ where
     Ok(hits)
 }
 
+fn rank_semantic_hits_from_index(
+    query_embedding: &[f32],
+    documents: &[IndexedSemanticDocument],
+    top_k: usize,
+) -> Result<Vec<SemanticSearchHit>> {
+    let mut hits = Vec::with_capacity(documents.len());
+
+    for document in documents {
+        let embedding = document.embedding.as_deref().ok_or_else(|| {
+            anyhow!(
+                "missing persisted embedding for `{}`",
+                document.entry.relative_href
+            )
+        })?;
+        if embedding.len() != query_embedding.len() {
+            bail!(
+                "embedding dimension mismatch: expected {}, got {}",
+                query_embedding.len(),
+                embedding.len()
+            );
+        }
+        hits.push(SemanticSearchHit {
+            entry: document.entry.clone(),
+            score: cosine_similarity(query_embedding, embedding),
+        });
+    }
+
+    sort_semantic_hits(&mut hits, top_k);
+    Ok(hits)
+}
+
+fn rank_hybrid_hits(
+    query: &str,
+    query_embedding: &[f32],
+    documents: &[IndexedSemanticDocument],
+    top_k: usize,
+) -> Result<Vec<HybridSearchHit>> {
+    let mut hits = Vec::with_capacity(documents.len());
+
+    for document in documents {
+        let embedding = document.embedding.as_deref().ok_or_else(|| {
+            anyhow!(
+                "missing persisted embedding for `{}`",
+                document.entry.relative_href
+            )
+        })?;
+        if embedding.len() != query_embedding.len() {
+            bail!(
+                "embedding dimension mismatch: expected {}, got {}",
+                query_embedding.len(),
+                embedding.len()
+            );
+        }
+
+        let semantic_score = cosine_similarity(query_embedding, embedding);
+        let lexical_score = lexical_metadata_score(&document.entry, query);
+        let hybrid_score = blend_hybrid_score(semantic_score, lexical_score);
+
+        hits.push(HybridSearchHit {
+            entry: document.entry.clone(),
+            hybrid_score,
+            semantic_score,
+            lexical_score,
+        });
+    }
+
+    hits.sort_by(|left, right| {
+        right
+            .hybrid_score
+            .partial_cmp(&left.hybrid_score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| left.entry.file_name.cmp(&right.entry.file_name))
+    });
+    hits.truncate(top_k.max(1));
+    Ok(hits)
+}
+
+fn lexical_metadata_score(entry: &ArchiveIndexEntry, query: &str) -> f32 {
+    let normalized_query = query.trim().to_lowercase();
+    if normalized_query.is_empty() {
+        return 0.0;
+    }
+
+    let searchable = [
+        entry.title.as_str(),
+        entry.connector.as_deref().unwrap_or(""),
+        entry.thread_id.as_deref().unwrap_or(""),
+        entry.completeness.as_deref().unwrap_or(""),
+        entry.source_kind.as_deref().unwrap_or(""),
+        entry.file_name.as_str(),
+    ]
+    .join(" ")
+    .to_lowercase();
+    let tokens = normalized_query
+        .split_whitespace()
+        .filter(|token| !token.is_empty())
+        .collect::<Vec<_>>();
+
+    if tokens.is_empty() {
+        return 0.0;
+    }
+
+    let matched = tokens
+        .iter()
+        .filter(|token| searchable.contains(**token))
+        .count() as f32;
+    let mut score = matched / tokens.len() as f32;
+    if searchable.contains(&normalized_query) {
+        score += 0.25;
+    }
+    score.clamp(0.0, 1.0)
+}
+
+fn blend_hybrid_score(semantic_score: f32, lexical_score: f32) -> f32 {
+    let semantic_component = ((semantic_score + 1.0) / 2.0).clamp(0.0, 1.0);
+    (semantic_component * HYBRID_SEMANTIC_WEIGHT) + (lexical_score * HYBRID_LEXICAL_WEIGHT)
+}
+
 fn read_required(path: PathBuf, label: &str) -> Result<Vec<u8>> {
     fs::read(&path)
         .map_err(|error| anyhow!("unable to read {label} at `{}`: {error}", path.display()))
@@ -446,6 +607,17 @@ fn normalize_in_place(embedding: &mut [f32]) {
 
 fn cosine_similarity(left: &[f32], right: &[f32]) -> f32 {
     left.iter().zip(right.iter()).map(|(a, b)| a * b).sum()
+}
+
+fn sort_semantic_hits(hits: &mut Vec<SemanticSearchHit>, top_k: usize) {
+    hits.sort_by(|left, right| {
+        right
+            .score
+            .partial_cmp(&left.score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| left.entry.file_name.cmp(&right.entry.file_name))
+    });
+    hits.truncate(top_k.max(1));
 }
 
 fn html_to_visible_text(html: &str) -> String {
@@ -556,6 +728,15 @@ struct IndexedSemanticDocument {
     embedding: Option<Vec<f32>>,
 }
 
+#[derive(Clone, Debug)]
+struct PreparedPersistentIndex {
+    documents: Vec<IndexedSemanticDocument>,
+    index_path: PathBuf,
+    total_documents: usize,
+    reused_documents: usize,
+    embedded_documents: usize,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 struct SemanticIndexFile {
     schema_version: u32,
@@ -590,8 +771,8 @@ mod tests {
 
     use super::{
         CONFIG_JSON, SPECIAL_TOKENS_JSON, SemanticEmbedder, TOKENIZER_CONFIG_JSON, TOKENIZER_JSON,
-        build_fastembed_identity, collect_semantic_documents, semantic_search,
-        semantic_search_with_persistent_index,
+        build_fastembed_identity, collect_semantic_documents, hybrid_search_with_persistent_index,
+        semantic_search, semantic_search_with_persistent_index,
     };
 
     struct MockSemanticEmbedder;
@@ -820,6 +1001,58 @@ mod tests {
         assert_ne!(first.index_path, second.index_path);
         assert_eq!(second.reused_documents, 0);
         assert_eq!(second.embedded_documents, 1);
+    }
+
+    #[test]
+    fn hybrid_search_uses_metadata_signal_without_mutating_semantic_path() {
+        let workspace = tempdir().expect("workspace");
+        let archive_dir = workspace.path().join(".agents").join("Conversations");
+        std::fs::create_dir_all(&archive_dir).expect("mkdirs");
+        std::fs::write(
+            archive_dir.join("thread-1.html"),
+            concat!(
+                "<!DOCTYPE html><html><head>",
+                "<meta name=\"agent-exporter:thread-display-name\" content=\"General transcript\">",
+                "<meta name=\"agent-exporter:connector\" content=\"codex\">",
+                "<meta name=\"agent-exporter:thread-id\" content=\"thread-1\">",
+                "<meta name=\"agent-exporter:completeness\" content=\"complete\">",
+                "<meta name=\"agent-exporter:source-kind\" content=\"app-server-thread-read\">",
+                "<meta name=\"agent-exporter:exported-at\" content=\"2026-04-05T00:00:00Z\">",
+                "</head><body><p>misc notes only</p></body></html>"
+            ),
+        )
+        .expect("write thread-1");
+        std::fs::write(
+            archive_dir.join("thread-2.html"),
+            concat!(
+                "<!DOCTYPE html><html><head>",
+                "<meta name=\"agent-exporter:thread-display-name\" content=\"General transcript\">",
+                "<meta name=\"agent-exporter:connector\" content=\"codex\">",
+                "<meta name=\"agent-exporter:thread-id\" content=\"thread-2\">",
+                "<meta name=\"agent-exporter:completeness\" content=\"complete\">",
+                "<meta name=\"agent-exporter:source-kind\" content=\"app-server-thread-read\">",
+                "<meta name=\"agent-exporter:exported-at\" content=\"2026-04-05T00:00:00Z\">",
+                "</head><body><p>misc notes only</p></body></html>"
+            ),
+        )
+        .expect("write thread-2");
+
+        let hits = hybrid_search_with_persistent_index(
+            &CountingSemanticEmbedder::new("mock-semantic-hybrid"),
+            workspace.path(),
+            "thread-1",
+            5,
+        )
+        .expect("hybrid hits");
+
+        assert_eq!(
+            hits.hits.first().expect("first hit").entry.file_name,
+            "thread-1.html"
+        );
+        assert!(
+            hits.hits.first().expect("first hit").lexical_score
+                > hits.hits.get(1).expect("second hit").lexical_score
+        );
     }
 
     #[test]

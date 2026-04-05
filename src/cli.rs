@@ -10,7 +10,8 @@ use crate::core::archive::{
 };
 use crate::core::archive_index;
 use crate::core::semantic_search::{
-    FastEmbedSemanticEmbedder, SemanticEmbedder, semantic_search_with_persistent_index,
+    FastEmbedSemanticEmbedder, SemanticEmbedder, hybrid_search_with_persistent_index,
+    semantic_search_with_persistent_index,
 };
 use crate::model::{ConnectorKind, OutputFormat, SupportStage};
 use crate::output::{
@@ -73,6 +74,8 @@ enum PublishCommands {
 enum SearchCommands {
     /// Run embedding-based semantic retrieval over local HTML transcript exports.
     Semantic(SearchSemanticArgs),
+    /// Run hybrid retrieval that blends semantic ranking with lexical metadata signals.
+    Hybrid(SearchHybridArgs),
 }
 
 #[derive(Debug, clap::Args)]
@@ -138,6 +141,22 @@ struct SearchSemanticArgs {
     #[arg(long)]
     workspace_root: PathBuf,
     /// Natural-language semantic query.
+    #[arg(long)]
+    query: String,
+    /// Maximum number of hits to return.
+    #[arg(long, default_value_t = 5)]
+    top_k: usize,
+    /// Override the local embedding model directory.
+    #[arg(long)]
+    model_dir: Option<PathBuf>,
+}
+
+#[derive(Debug, clap::Args)]
+struct SearchHybridArgs {
+    /// Workspace root whose `.agents/Conversations` directory should be searched.
+    #[arg(long)]
+    workspace_root: PathBuf,
+    /// Natural-language query blended across semantic and lexical metadata signals.
     #[arg(long)]
     query: String,
     /// Maximum number of hits to return.
@@ -267,6 +286,7 @@ pub fn run() -> Result<()> {
         },
         Commands::Search { command } => match command {
             SearchCommands::Semantic(args) => search_semantic(args)?,
+            SearchCommands::Hybrid(args) => search_hybrid(args)?,
         },
     }
     Ok(())
@@ -291,7 +311,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -306,7 +326,12 @@ fn print_scaffold_status() {
     println!(
         "- Real semantic retrieval path: `agent-exporter search semantic --workspace-root <repo> --query <text>`."
     );
-    println!("- Next step: hybrid retrieval without changing transcript semantics.");
+    println!(
+        "- Real hybrid retrieval path: `agent-exporter search hybrid --workspace-root <repo> --query <text>`."
+    );
+    println!(
+        "- Next step: multi-agent archive platformization without changing transcript semantics."
+    );
 }
 
 fn export_codex(args: CodexExportArgs) -> Result<()> {
@@ -374,6 +399,53 @@ fn search_semantic(args: SearchSemanticArgs) -> Result<()> {
             "  {}. {:.4} | {} | {}",
             index + 1,
             hit.score,
+            hit.entry.title,
+            hit.entry.relative_href
+        );
+        if let Some(connector) = hit.entry.connector.as_deref() {
+            println!("     connector    : {connector}");
+        }
+        if let Some(thread_id) = hit.entry.thread_id.as_deref() {
+            println!("     thread       : {thread_id}");
+        }
+        if let Some(completeness) = hit.entry.completeness.as_deref() {
+            println!("     completeness : {completeness}");
+        }
+    }
+
+    Ok(())
+}
+
+fn search_hybrid(args: SearchHybridArgs) -> Result<()> {
+    let model_dir = match args.model_dir {
+        Some(path) => path,
+        None => FastEmbedSemanticEmbedder::default_model_dir()?,
+    };
+    let embedder = FastEmbedSemanticEmbedder::load_from_dir(&model_dir)?;
+    let execution = hybrid_search_with_persistent_index(
+        &embedder,
+        &args.workspace_root,
+        &args.query,
+        args.top_k,
+    )?;
+
+    println!("Hybrid search completed");
+    println!("- Workspace    : {}", args.workspace_root.display());
+    println!("- Query        : {}", args.query);
+    println!("- Model Dir    : {}", model_dir.display());
+    println!("- True Semantic: {}", embedder.is_true_semantic());
+    println!("- Index Path   : {}", execution.index_path.display());
+    println!("- Documents    : {}", execution.total_documents);
+    println!("- Reused       : {}", execution.reused_documents);
+    println!("- Embedded     : {}", execution.embedded_documents);
+    println!("- Hits         : {}", execution.hits.len());
+    for (index, hit) in execution.hits.iter().enumerate() {
+        println!(
+            "  {}. {:.4} | semantic {:.4} | lexical {:.4} | {} | {}",
+            index + 1,
+            hit.hybrid_score,
+            hit.semantic_score,
+            hit.lexical_score,
             hit.entry.title,
             hit.entry.relative_href
         );

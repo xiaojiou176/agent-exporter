@@ -44,6 +44,8 @@ The format is based on Keep a Changelog.
 - Semantic retrieval unit tests and CLI coverage
 - Persistent local semantic index sidecar reuse
 - Semantic index reuse unit coverage
+- `search hybrid` command for blended semantic + lexical metadata retrieval
+- Hybrid retrieval unit tests and CLI coverage
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder
@@ -55,4 +57,5 @@ The format is based on Keep a Changelog.
 - Archive index now includes local metadata search without adding a hosted search layer
 - Semantic retrieval now lands as a separate command instead of masquerading as metadata search
 - Semantic retrieval now reuses a persistent local semantic index sidecar
+- Hybrid retrieval now lands as a separate command instead of mutating `search semantic`
 - Codex / Claude connector summaries now describe the shared archive transcript contract instead of a Markdown-only contract

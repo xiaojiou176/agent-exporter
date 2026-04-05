@@ -177,15 +177,21 @@
 
 ### Phase 10
 
-再做：
+已落地：
 
 - persistent local semantic index
 
 ### Phase 11
 
-再做：
+已落地：
 
 - hybrid retrieval
+
+### Phase 12
+
+再做：
+
+- multi-agent archive 平台化
 
 ---
 
@@ -203,6 +209,8 @@ agent-exporter export claude-code --session-path <path>
 agent-exporter export codex --thread-id <id> --format json
 agent-exporter export claude-code --session-path <path> --format json
 agent-exporter export codex --thread-id <id> --format html
+agent-exporter search semantic --workspace-root <repo-root> --query <text>
+agent-exporter search hybrid --workspace-root <repo-root> --query <text>
 agent-exporter export claude-code --session-path <path> --format html
 agent-exporter publish archive-index --workspace-root <repo-root>
 agent-exporter export codex --source app-server --thread-id <id> --destination workspace-conversations --workspace-root <repo-root>
