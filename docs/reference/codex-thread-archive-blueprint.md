@@ -179,7 +179,13 @@
 
 再做：
 
-- persistent local semantic index / hybrid retrieval
+- persistent local semantic index
+
+### Phase 11
+
+再做：
+
+- hybrid retrieval
 
 ---
 

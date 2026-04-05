@@ -48,7 +48,7 @@
   - requires local model assets for live retrieval
   - does not silently fall back to lexical search
 - Current highest-value next step:
-  - persistent local semantic index / hybrid retrieval before broader platform layers
+  - hybrid retrieval before broader platform layers
 - Current host-safety semantics:
   - the repo may spawn one direct app-server child
   - the repo may only terminate that directly owned child handle

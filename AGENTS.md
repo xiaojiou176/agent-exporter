@@ -6,7 +6,7 @@
 
 - 当前目标：**Codex canonical transcript/archive 导出**
 - 未来目标：Claude Code、以及其他本地 CLI
-- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval 已落地，当前最高优先级是 persistent local semantic index / hybrid retrieval；默认 Codex 主路径仍是 app-server**
+- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index 已落地，当前最高优先级是 hybrid retrieval；默认 Codex 主路径仍是 app-server**
 
 ---
 

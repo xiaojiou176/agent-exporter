@@ -42,6 +42,8 @@ The format is based on Keep a Changelog.
 - Archive index search UI unit coverage
 - `search semantic` command for embedding-based retrieval
 - Semantic retrieval unit tests and CLI coverage
+- Persistent local semantic index sidecar reuse
+- Semantic index reuse unit coverage
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder
@@ -52,4 +54,5 @@ The format is based on Keep a Changelog.
 - CLI now also exposes `publish archive-index --workspace-root <repo>`
 - Archive index now includes local metadata search without adding a hosted search layer
 - Semantic retrieval now lands as a separate command instead of masquerading as metadata search
+- Semantic retrieval now reuses a persistent local semantic index sidecar
 - Codex / Claude connector summaries now describe the shared archive transcript contract instead of a Markdown-only contract

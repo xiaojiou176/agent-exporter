@@ -46,6 +46,7 @@
 - workspace conversations archive index
 - local archive metadata search
 - semantic retrieval
+- persistent local semantic index
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -54,7 +55,7 @@
 
 当前阶段**还没有**完成的是：
 
-- persistent local semantic index / hybrid retrieval
+- hybrid retrieval
 - 多 agent archive 平台化
 
 ---
@@ -92,7 +93,8 @@
 8. **现在已经落地：workspace conversations archive index via `publish archive-index`**
 9. **现在已经落地：local archive metadata search**
 10. **现在已经落地：semantic retrieval via `search semantic`**
-11. **当前最高优先级：persistent local semantic index / hybrid retrieval，但不能直接膨胀成平台壳**
+11. **现在已经落地：persistent local semantic index reuse**
+12. **当前最高优先级：hybrid retrieval，但不能直接膨胀成平台壳**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -184,6 +186,7 @@ cargo run -- export codex \
   - 对本地 archive corpus 做真实 embedding-based retrieval
   - 当前默认走本地模型目录
   - 如果本地模型文件不存在，命令会明确报错，不会退回关键词假装成语义检索
+  - 会把 corpus embeddings 持久化到本地 sidecar index，并在相同模型资产的后续查询中复用
 
 ### Source contract
 
@@ -313,7 +316,7 @@ codex app-server
 
 后续文档和实现会继续沿着这条线推进：
 
-1. persistent local semantic index / hybrid retrieval
+1. hybrid retrieval
 2. multi-agent archive 平台化
 
 ---

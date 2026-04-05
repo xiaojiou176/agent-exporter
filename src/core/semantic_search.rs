@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::Mutex;
@@ -6,6 +7,7 @@ use anyhow::{Result, anyhow, bail};
 use fastembed::{
     InitOptionsUserDefined, Pooling, TextEmbedding, TokenizerFiles, UserDefinedEmbeddingModel,
 };
+use serde::{Deserialize, Serialize};
 
 use super::archive_index::{
     ArchiveIndexEntry, collect_html_archive_entries, resolve_workspace_conversations_dir,
@@ -32,14 +34,25 @@ pub struct SemanticSearchHit {
     pub score: f32,
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct SemanticSearchExecution {
+    pub hits: Vec<SemanticSearchHit>,
+    pub index_path: PathBuf,
+    pub total_documents: usize,
+    pub reused_documents: usize,
+    pub embedded_documents: usize,
+}
+
 pub trait SemanticEmbedder {
     fn embed_batch_sync(&self, texts: &[&str]) -> Result<Vec<Vec<f32>>>;
     fn dimension(&self) -> usize;
     fn is_true_semantic(&self) -> bool;
+    fn id(&self) -> &str;
 }
 
 pub struct FastEmbedSemanticEmbedder {
     model: Mutex<TextEmbedding>,
+    identity: String,
 }
 
 impl FastEmbedSemanticEmbedder {
@@ -69,28 +82,33 @@ impl FastEmbedSemanticEmbedder {
                 model_dir.display()
             )
         })?;
+        let model_bytes = fs::read(&model_file).map_err(|error| {
+            anyhow!(
+                "unable to read model file `{}`: {error}",
+                model_file.display()
+            )
+        })?;
+        let tokenizer_file = read_required(model_dir.join(TOKENIZER_JSON), TOKENIZER_JSON)?;
+        let config_file = read_required(model_dir.join(CONFIG_JSON), CONFIG_JSON)?;
+        let special_tokens_map_file =
+            read_required(model_dir.join(SPECIAL_TOKENS_JSON), SPECIAL_TOKENS_JSON)?;
+        let tokenizer_config_file =
+            read_required(model_dir.join(TOKENIZER_CONFIG_JSON), TOKENIZER_CONFIG_JSON)?;
+        let identity = build_fastembed_identity(&[
+            ("model.onnx", model_bytes.as_slice()),
+            (TOKENIZER_JSON, tokenizer_file.as_slice()),
+            (CONFIG_JSON, config_file.as_slice()),
+            (SPECIAL_TOKENS_JSON, special_tokens_map_file.as_slice()),
+            (TOKENIZER_CONFIG_JSON, tokenizer_config_file.as_slice()),
+        ]);
         let tokenizer_files = TokenizerFiles {
-            tokenizer_file: read_required(model_dir.join(TOKENIZER_JSON), TOKENIZER_JSON)?,
-            config_file: read_required(model_dir.join(CONFIG_JSON), CONFIG_JSON)?,
-            special_tokens_map_file: read_required(
-                model_dir.join(SPECIAL_TOKENS_JSON),
-                SPECIAL_TOKENS_JSON,
-            )?,
-            tokenizer_config_file: read_required(
-                model_dir.join(TOKENIZER_CONFIG_JSON),
-                TOKENIZER_CONFIG_JSON,
-            )?,
+            tokenizer_file,
+            config_file,
+            special_tokens_map_file,
+            tokenizer_config_file,
         };
 
-        let mut model = UserDefinedEmbeddingModel::new(
-            fs::read(&model_file).map_err(|error| {
-                anyhow!(
-                    "unable to read model file `{}`: {error}",
-                    model_file.display()
-                )
-            })?,
-            tokenizer_files,
-        );
+        let mut model = UserDefinedEmbeddingModel::new(model_bytes, tokenizer_files);
         model.pooling = Some(Pooling::Mean);
 
         let init = InitOptionsUserDefined::new();
@@ -103,6 +121,7 @@ impl FastEmbedSemanticEmbedder {
 
         Ok(Self {
             model: Mutex::new(model),
+            identity,
         })
     }
 }
@@ -138,6 +157,10 @@ impl SemanticEmbedder for FastEmbedSemanticEmbedder {
 
     fn is_true_semantic(&self) -> bool {
         true
+    }
+
+    fn id(&self) -> &str {
+        &self.identity
     }
 }
 
@@ -176,50 +199,129 @@ pub fn semantic_search<E: SemanticEmbedder>(
     query: &str,
     top_k: usize,
 ) -> Result<Vec<SemanticSearchHit>> {
-    let query = query.trim();
-    if query.is_empty() {
-        bail!("semantic search requires --query <TEXT>");
-    }
-    if !embedder.is_true_semantic() {
-        bail!("semantic search requires a true semantic embedder");
-    }
+    let query_embedding = embed_query(embedder, query)?;
     if documents.is_empty() {
         return Ok(Vec::new());
     }
 
-    let mut corpus_inputs = Vec::with_capacity(documents.len() + 1);
-    corpus_inputs.push(query);
-    for document in documents {
-        corpus_inputs.push(document.text.as_str());
-    }
+    let corpus_inputs = documents
+        .iter()
+        .map(|document| document.text.as_str())
+        .collect::<Vec<_>>();
     let embeddings = embedder.embed_batch_sync(&corpus_inputs)?;
-    if embeddings.len() != documents.len() + 1 {
+    if embeddings.len() != documents.len() {
         bail!(
             "embedder returned {} vectors for {} inputs",
             embeddings.len(),
-            documents.len() + 1
+            documents.len()
         );
     }
 
-    let query_embedding = &embeddings[0];
-    let mut hits = documents
+    rank_hits_from_embedding_refs(
+        &query_embedding,
+        documents
+            .iter()
+            .zip(embeddings.iter())
+            .map(|(document, embedding)| (&document.entry, embedding.as_slice())),
+        top_k,
+    )
+}
+
+pub fn semantic_search_with_persistent_index<E: SemanticEmbedder>(
+    embedder: &E,
+    workspace_root: &Path,
+    query: &str,
+    top_k: usize,
+) -> Result<SemanticSearchExecution> {
+    let documents = collect_semantic_documents(workspace_root)?;
+    let index_path = resolve_semantic_index_path(workspace_root, embedder.id());
+    let mut persisted =
+        load_semantic_index(&index_path)?.unwrap_or_else(|| SemanticIndexFile::new(embedder.id()));
+
+    if persisted.embedder != embedder.id() {
+        persisted = SemanticIndexFile::new(embedder.id());
+    }
+
+    let persisted_map = persisted
+        .documents
+        .into_iter()
+        .map(|document| (document.relative_href.clone(), document))
+        .collect::<HashMap<_, _>>();
+
+    let mut reused_documents = 0usize;
+    let mut embedded_documents = 0usize;
+    let mut indexed_documents = documents
         .iter()
-        .zip(embeddings.iter().skip(1))
-        .map(|(document, embedding)| SemanticSearchHit {
+        .map(|document| IndexedSemanticDocument {
             entry: document.entry.clone(),
-            score: cosine_similarity(query_embedding, embedding),
+            text: document.text.clone(),
+            embedding: None,
         })
         .collect::<Vec<_>>();
+    let mut pending_slots = Vec::new();
+    let mut pending_texts = Vec::new();
 
-    hits.sort_by(|left, right| {
-        right
-            .score
-            .partial_cmp(&left.score)
-            .unwrap_or(std::cmp::Ordering::Equal)
-            .then_with(|| left.entry.file_name.cmp(&right.entry.file_name))
-    });
-    hits.truncate(top_k.max(1));
-    Ok(hits)
+    for (index, document) in documents.iter().enumerate() {
+        if let Some(existing) = persisted_map.get(&document.entry.relative_href) {
+            if existing.text == document.text {
+                indexed_documents[index].embedding = Some(existing.embedding.clone());
+                reused_documents += 1;
+                continue;
+            }
+        }
+        pending_slots.push(index);
+        pending_texts.push(document.text.as_str());
+    }
+
+    if !pending_texts.is_empty() {
+        let vectors = embedder.embed_batch_sync(&pending_texts)?;
+        if vectors.len() != pending_slots.len() {
+            bail!(
+                "embedder returned {} vectors for {} pending documents",
+                vectors.len(),
+                pending_slots.len()
+            );
+        }
+        for (slot, vector) in pending_slots.into_iter().zip(vectors.into_iter()) {
+            indexed_documents[slot].embedding = Some(vector);
+            embedded_documents += 1;
+        }
+    }
+
+    let index_file = SemanticIndexFile {
+        schema_version: 1,
+        embedder: embedder.id().to_string(),
+        documents: indexed_documents
+            .iter()
+            .map(|document| PersistedSemanticDocument {
+                relative_href: document.entry.relative_href.clone(),
+                entry: document.entry.clone(),
+                text: document.text.clone(),
+                embedding: document.embedding.clone().unwrap_or_default(),
+            })
+            .collect(),
+    };
+    write_semantic_index(&index_path, &index_file)?;
+
+    let query_embedding = embed_query(embedder, query)?;
+    let query_hits = rank_hits_from_embedding_refs(
+        &query_embedding,
+        indexed_documents.iter().map(|document| {
+            (
+                &document.entry,
+                document.embedding.as_deref().unwrap_or(&[]),
+            )
+        }),
+        top_k,
+    )?;
+
+    Ok(SemanticSearchExecution {
+        hits: query_hits,
+        index_path,
+        total_documents: documents.len(),
+        reused_documents,
+        embedded_documents,
+    })
 }
 
 fn select_model_file(model_dir: &Path) -> Option<PathBuf> {
@@ -234,9 +336,100 @@ fn select_model_file(model_dir: &Path) -> Option<PathBuf> {
     None
 }
 
+fn embed_query<E: SemanticEmbedder>(embedder: &E, query: &str) -> Result<Vec<f32>> {
+    let query = query.trim();
+    if query.is_empty() {
+        bail!("semantic search requires --query <TEXT>");
+    }
+    if !embedder.is_true_semantic() {
+        bail!("semantic search requires a true semantic embedder");
+    }
+
+    let embeddings = embedder.embed_batch_sync(&[query])?;
+    if embeddings.len() != 1 {
+        bail!("embedder returned {} vectors for 1 input", embeddings.len());
+    }
+    let embedding = embeddings
+        .into_iter()
+        .next()
+        .ok_or_else(|| anyhow!("missing query embedding"))?;
+    if embedding.len() != embedder.dimension() {
+        bail!(
+            "embedding dimension mismatch: expected {}, got {}",
+            embedder.dimension(),
+            embedding.len()
+        );
+    }
+    Ok(embedding)
+}
+
+fn rank_hits_from_embedding_refs<'a, I>(
+    query_embedding: &[f32],
+    documents: I,
+    top_k: usize,
+) -> Result<Vec<SemanticSearchHit>>
+where
+    I: IntoIterator<Item = (&'a ArchiveIndexEntry, &'a [f32])>,
+{
+    let mut hits = Vec::new();
+
+    for (entry, embedding) in documents {
+        if embedding.len() != query_embedding.len() {
+            bail!(
+                "embedding dimension mismatch: expected {}, got {}",
+                query_embedding.len(),
+                embedding.len()
+            );
+        }
+        hits.push(SemanticSearchHit {
+            entry: entry.clone(),
+            score: cosine_similarity(query_embedding, embedding),
+        });
+    }
+
+    hits.sort_by(|left, right| {
+        right
+            .score
+            .partial_cmp(&left.score)
+            .unwrap_or(std::cmp::Ordering::Equal)
+            .then_with(|| left.entry.file_name.cmp(&right.entry.file_name))
+    });
+    hits.truncate(top_k.max(1));
+    Ok(hits)
+}
+
 fn read_required(path: PathBuf, label: &str) -> Result<Vec<u8>> {
     fs::read(&path)
         .map_err(|error| anyhow!("unable to read {label} at `{}`: {error}", path.display()))
+}
+
+fn build_fastembed_identity(files: &[(&str, &[u8])]) -> String {
+    format!(
+        "fastembed-minilm-384-{:016x}",
+        stable_asset_fingerprint(files)
+    )
+}
+
+fn stable_asset_fingerprint(files: &[(&str, &[u8])]) -> u64 {
+    const OFFSET_BASIS: u64 = 0xcbf29ce484222325;
+    const PRIME: u64 = 0x100000001b3;
+
+    let mut hash = OFFSET_BASIS;
+    for (label, bytes) in files {
+        hash = update_fingerprint(hash, label.as_bytes(), PRIME);
+        hash = update_fingerprint(hash, &[0], PRIME);
+        hash = update_fingerprint(hash, bytes, PRIME);
+        hash = update_fingerprint(hash, &[0xff], PRIME);
+    }
+    hash
+}
+
+fn update_fingerprint(mut hash: u64, bytes: &[u8], prime: u64) -> u64 {
+    for byte in bytes {
+        hash ^= u64::from(*byte);
+        hash = hash.wrapping_mul(prime);
+    }
+    hash
 }
 
 fn normalize_in_place(embedding: &mut [f32]) {
@@ -311,12 +504,95 @@ fn unescape_html(value: &str) -> String {
         .replace("&amp;", "&")
 }
 
+fn resolve_semantic_index_path(workspace_root: &Path, embedder_id: &str) -> PathBuf {
+    workspace_root
+        .join(".agents")
+        .join("Search")
+        .join(format!("semantic-index-{embedder_id}.json"))
+}
+
+fn load_semantic_index(path: &Path) -> Result<Option<SemanticIndexFile>> {
+    if !path.exists() {
+        return Ok(None);
+    }
+    let content = fs::read_to_string(path).map_err(|error| {
+        anyhow!(
+            "failed to read semantic index `{}`: {error}",
+            path.display()
+        )
+    })?;
+    let index = serde_json::from_str(&content).map_err(|error| {
+        anyhow!(
+            "failed to parse semantic index `{}`: {error}",
+            path.display()
+        )
+    })?;
+    Ok(Some(index))
+}
+
+fn write_semantic_index(path: &Path, index: &SemanticIndexFile) -> Result<()> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).map_err(|error| {
+            anyhow!(
+                "failed to prepare semantic index directory `{}`: {error}",
+                parent.display()
+            )
+        })?;
+    }
+    let rendered = serde_json::to_string_pretty(index)
+        .map_err(|error| anyhow!("failed to render semantic index json: {error}"))?;
+    fs::write(path, format!("{rendered}\n")).map_err(|error| {
+        anyhow!(
+            "failed to write semantic index `{}`: {error}",
+            path.display()
+        )
+    })
+}
+
+#[derive(Clone, Debug)]
+struct IndexedSemanticDocument {
+    entry: ArchiveIndexEntry,
+    text: String,
+    embedding: Option<Vec<f32>>,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct SemanticIndexFile {
+    schema_version: u32,
+    embedder: String,
+    documents: Vec<PersistedSemanticDocument>,
+}
+
+impl SemanticIndexFile {
+    fn new(embedder: &str) -> Self {
+        Self {
+            schema_version: 1,
+            embedder: embedder.to_string(),
+            documents: Vec::new(),
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+struct PersistedSemanticDocument {
+    relative_href: String,
+    entry: ArchiveIndexEntry,
+    text: String,
+    embedding: Vec<f32>,
+}
+
 #[cfg(test)]
 mod tests {
+    use std::sync::Mutex;
+
     use anyhow::Result;
     use tempfile::tempdir;
 
-    use super::{SemanticEmbedder, collect_semantic_documents, semantic_search};
+    use super::{
+        CONFIG_JSON, SPECIAL_TOKENS_JSON, SemanticEmbedder, TOKENIZER_CONFIG_JSON, TOKENIZER_JSON,
+        build_fastembed_identity, collect_semantic_documents, semantic_search,
+        semantic_search_with_persistent_index,
+    };
 
     struct MockSemanticEmbedder;
 
@@ -343,6 +619,51 @@ mod tests {
 
         fn is_true_semantic(&self) -> bool {
             true
+        }
+
+        fn id(&self) -> &str {
+            "mock-semantic"
+        }
+    }
+
+    struct CountingSemanticEmbedder {
+        id: &'static str,
+        calls: Mutex<Vec<Vec<String>>>,
+    }
+
+    impl CountingSemanticEmbedder {
+        fn new(id: &'static str) -> Self {
+            Self {
+                id,
+                calls: Mutex::new(Vec::new()),
+            }
+        }
+
+        fn take_calls(&self) -> Vec<Vec<String>> {
+            let mut calls = self.calls.lock().expect("calls lock");
+            std::mem::take(&mut *calls)
+        }
+    }
+
+    impl SemanticEmbedder for CountingSemanticEmbedder {
+        fn embed_batch_sync(&self, texts: &[&str]) -> Result<Vec<Vec<f32>>> {
+            self.calls
+                .lock()
+                .expect("calls lock")
+                .push(texts.iter().map(|text| (*text).to_string()).collect());
+            MockSemanticEmbedder.embed_batch_sync(texts)
+        }
+
+        fn dimension(&self) -> usize {
+            3
+        }
+
+        fn is_true_semantic(&self) -> bool {
+            true
+        }
+
+        fn id(&self) -> &str {
+            self.id
         }
     }
 
@@ -419,5 +740,105 @@ mod tests {
             "auth.html"
         );
         assert!(hits[0].score >= hits[1].score);
+    }
+
+    #[test]
+    fn semantic_search_with_persistent_index_reuses_existing_embeddings() {
+        let workspace = tempdir().expect("workspace");
+        let archive_dir = workspace.path().join(".agents").join("Conversations");
+        std::fs::create_dir_all(&archive_dir).expect("mkdirs");
+        std::fs::write(
+            archive_dir.join("auth.html"),
+            concat!(
+                "<!DOCTYPE html><html><head>",
+                "<meta name=\"agent-exporter:thread-display-name\" content=\"Auth transcript\">",
+                "<meta name=\"agent-exporter:connector\" content=\"codex\">",
+                "<meta name=\"agent-exporter:thread-id\" content=\"auth-thread\">",
+                "<meta name=\"agent-exporter:completeness\" content=\"complete\">",
+                "<meta name=\"agent-exporter:source-kind\" content=\"app-server-thread-read\">",
+                "<meta name=\"agent-exporter:exported-at\" content=\"2026-04-05T00:00:00Z\">",
+                "</head><body><p>login auth bug</p></body></html>"
+            ),
+        )
+        .expect("write auth");
+
+        let embedder = CountingSemanticEmbedder::new("mock-semantic");
+        let first =
+            semantic_search_with_persistent_index(&embedder, workspace.path(), "login issue", 5)
+                .expect("first search");
+        let first_calls = embedder.take_calls();
+        let second =
+            semantic_search_with_persistent_index(&embedder, workspace.path(), "login issue", 5)
+                .expect("second search");
+        let second_calls = embedder.take_calls();
+
+        assert_eq!(first.embedded_documents, 1);
+        assert_eq!(second.reused_documents, 1);
+        assert_eq!(second.embedded_documents, 0);
+        assert!(second.index_path.exists());
+        assert_eq!(first_calls.len(), 2);
+        assert_eq!(first_calls[0].len(), 1);
+        assert_eq!(first_calls[1], vec!["login issue".to_string()]);
+        assert_eq!(second_calls, vec![vec!["login issue".to_string()]]);
+    }
+
+    #[test]
+    fn semantic_search_with_persistent_index_does_not_reuse_other_embedder_identity() {
+        let workspace = tempdir().expect("workspace");
+        let archive_dir = workspace.path().join(".agents").join("Conversations");
+        std::fs::create_dir_all(&archive_dir).expect("mkdirs");
+        std::fs::write(
+            archive_dir.join("auth.html"),
+            concat!(
+                "<!DOCTYPE html><html><head>",
+                "<meta name=\"agent-exporter:thread-display-name\" content=\"Auth transcript\">",
+                "<meta name=\"agent-exporter:connector\" content=\"codex\">",
+                "<meta name=\"agent-exporter:thread-id\" content=\"auth-thread\">",
+                "<meta name=\"agent-exporter:completeness\" content=\"complete\">",
+                "<meta name=\"agent-exporter:source-kind\" content=\"app-server-thread-read\">",
+                "<meta name=\"agent-exporter:exported-at\" content=\"2026-04-05T00:00:00Z\">",
+                "</head><body><p>login auth bug</p></body></html>"
+            ),
+        )
+        .expect("write auth");
+
+        let first = semantic_search_with_persistent_index(
+            &CountingSemanticEmbedder::new("mock-semantic-a"),
+            workspace.path(),
+            "login issue",
+            5,
+        )
+        .expect("first search");
+        let second = semantic_search_with_persistent_index(
+            &CountingSemanticEmbedder::new("mock-semantic-b"),
+            workspace.path(),
+            "login issue",
+            5,
+        )
+        .expect("second search");
+
+        assert_ne!(first.index_path, second.index_path);
+        assert_eq!(second.reused_documents, 0);
+        assert_eq!(second.embedded_documents, 1);
+    }
+
+    #[test]
+    fn fastembed_identity_changes_when_asset_bytes_change() {
+        let first = build_fastembed_identity(&[
+            ("model.onnx", &[1, 2, 3]),
+            (TOKENIZER_JSON, &[4, 5]),
+            (CONFIG_JSON, &[6]),
+            (SPECIAL_TOKENS_JSON, &[7]),
+            (TOKENIZER_CONFIG_JSON, &[8]),
+        ]);
+        let second = build_fastembed_identity(&[
+            ("model.onnx", &[1, 2, 4]),
+            (TOKENIZER_JSON, &[4, 5]),
+            (CONFIG_JSON, &[6]),
+            (SPECIAL_TOKENS_JSON, &[7]),
+            (TOKENIZER_CONFIG_JSON, &[8]),
+        ]);
+
+        assert_ne!(first, second);
     }
 }

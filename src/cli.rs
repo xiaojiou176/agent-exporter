@@ -10,7 +10,7 @@ use crate::core::archive::{
 };
 use crate::core::archive_index;
 use crate::core::semantic_search::{
-    FastEmbedSemanticEmbedder, SemanticEmbedder, collect_semantic_documents, semantic_search,
+    FastEmbedSemanticEmbedder, SemanticEmbedder, semantic_search_with_persistent_index,
 };
 use crate::model::{ConnectorKind, OutputFormat, SupportStage};
 use crate::output::{
@@ -291,7 +291,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -306,9 +306,7 @@ fn print_scaffold_status() {
     println!(
         "- Real semantic retrieval path: `agent-exporter search semantic --workspace-root <repo> --query <text>`."
     );
-    println!(
-        "- Next step: persistent local semantic index / hybrid retrieval without changing transcript semantics."
-    );
+    println!("- Next step: hybrid retrieval without changing transcript semantics.");
 }
 
 fn export_codex(args: CodexExportArgs) -> Result<()> {
@@ -349,21 +347,29 @@ fn publish_archive_index(args: PublishArchiveIndexArgs) -> Result<()> {
 }
 
 fn search_semantic(args: SearchSemanticArgs) -> Result<()> {
-    let documents = collect_semantic_documents(&args.workspace_root)?;
     let model_dir = match args.model_dir {
         Some(path) => path,
         None => FastEmbedSemanticEmbedder::default_model_dir()?,
     };
     let embedder = FastEmbedSemanticEmbedder::load_from_dir(&model_dir)?;
-    let hits = semantic_search(&embedder, &documents, &args.query, args.top_k)?;
+    let execution = semantic_search_with_persistent_index(
+        &embedder,
+        &args.workspace_root,
+        &args.query,
+        args.top_k,
+    )?;
 
     println!("Semantic search completed");
     println!("- Workspace    : {}", args.workspace_root.display());
     println!("- Query        : {}", args.query);
     println!("- Model Dir    : {}", model_dir.display());
     println!("- True Semantic: {}", embedder.is_true_semantic());
-    println!("- Hits         : {}", hits.len());
-    for (index, hit) in hits.iter().enumerate() {
+    println!("- Index Path   : {}", execution.index_path.display());
+    println!("- Documents    : {}", execution.total_documents);
+    println!("- Reused       : {}", execution.reused_documents);
+    println!("- Embedded     : {}", execution.embedded_documents);
+    println!("- Hits         : {}", execution.hits.len());
+    for (index, hit) in execution.hits.iter().enumerate() {
         println!(
             "  {}. {:.4} | {} | {}",
             index + 1,
