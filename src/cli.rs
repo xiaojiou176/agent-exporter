@@ -10,7 +10,7 @@ use crate::core::archive::{
 };
 use crate::model::{ConnectorKind, OutputFormat, SupportStage};
 use crate::output::{
-    json as json_output,
+    html as html_output, json as json_output,
     markdown::{self, DEFAULT_MAX_LINES_PER_PART},
 };
 
@@ -20,7 +20,7 @@ use crate::output::{
     version,
     about = "Local-first Rust CLI for exporting Codex transcripts and thread archives.",
     long_about = "Local-first Rust CLI for exporting Codex transcripts and thread archives.\
-\n\nCurrent delivery: Codex dual-source, a minimal Claude Code second-connector proof, and shared Markdown/JSON export surfaces.\
+\n\nCurrent delivery: Codex dual-source, a minimal Claude Code second-connector proof, and shared Markdown/JSON/HTML export surfaces.\
 \nCodex keeps the default canonical app-server front door, while local archival inputs and Claude session-path imports stay explicitly degraded."
 )]
 pub struct Cli {
@@ -115,6 +115,7 @@ enum SourceArg {
 enum FormatArg {
     Markdown,
     Json,
+    Html,
 }
 
 impl DestinationArg {
@@ -136,6 +137,7 @@ impl FormatArg {
         match self {
             Self::Markdown => OutputFormat::Markdown,
             Self::Json => OutputFormat::Json,
+            Self::Html => OutputFormat::Html,
         }
     }
 }
@@ -234,7 +236,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON export."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -242,7 +244,8 @@ fn print_scaffold_status() {
         "- Real Claude export path: `agent-exporter export claude-code --session-path <path>`."
     );
     println!("- Real JSON export path: add `--format json` to the existing export commands.");
-    println!("- Next step: minimal HTML renderer without changing transcript semantics.");
+    println!("- Real HTML export path: add `--format html` to the existing export commands.");
+    println!("- Next step: archive browsing / publish without changing transcript semantics.");
 }
 
 fn export_codex(args: CodexExportArgs) -> Result<()> {
@@ -284,7 +287,15 @@ fn export_request(request: ExportRequest) -> Result<()> {
                 &document,
             )?
         }
-        OutputFormat::Html => bail!("HTML export is planned but not implemented yet"),
+        OutputFormat::Html => {
+            let document =
+                html_output::render_html_document(&transcript, &archive_title, &exported_at);
+            crate::core::archive::write_html_document(
+                &transcript,
+                &request.output_target,
+                &document,
+            )?
+        }
     };
 
     println!("Export completed");

@@ -161,6 +161,14 @@
 - 继续复用 shared archive / transcript contract
 - 不提前做 HTML / publish / browse
 
+### Phase 6
+
+目标：
+
+- 落最小 HTML renderer
+- 保持 single-file transcript export
+- 不提前做 browse / publish shell
+
 该借：
 
 - `claude-code-transcripts`
@@ -219,7 +227,11 @@
 6. **Phase 5 JSON renderer**
    - existing export commands now accept `--format json`
    - shared archive core still stays the SSOT
-   - HTML remains later
+   - HTML remained later at that stage
+7. **Phase 6 HTML renderer**
+   - existing export commands now accept `--format html`
+   - output remains single-transcript export, not browse shell
+   - search / publish platform layers still remain later
 
 ### 明确未采纳
 

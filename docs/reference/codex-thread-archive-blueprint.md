@@ -68,7 +68,7 @@
 
 - Markdown
 - JSON
-- HTML（future）
+- HTML
 
 ---
 
@@ -133,9 +133,20 @@
 
 ### Phase 6
 
-再做：
+已落地：
 
 - HTML renderer
+
+原因：
+
+- 现在已经证明 shared transcript/core/output 不只服务 Markdown / JSON
+- 但仍然把 HTML 收在单文件 transcript export，而不是 browse / publish shell
+
+### Phase 7
+
+再做：
+
+- archive browsing / publish
 
 ---
 
@@ -152,6 +163,8 @@ agent-exporter export codex --source local --rollout-path <path>
 agent-exporter export claude-code --session-path <path>
 agent-exporter export codex --thread-id <id> --format json
 agent-exporter export claude-code --session-path <path> --format json
+agent-exporter export codex --thread-id <id> --format html
+agent-exporter export claude-code --session-path <path> --format html
 agent-exporter export codex --source app-server --thread-id <id> --destination workspace-conversations --workspace-root <repo-root>
 ```
 
@@ -197,6 +210,7 @@ src/
 ├── model/
 │   └── mod.rs
 └── output/
+    ├── html.rs
     ├── json.rs
     ├── markdown.rs
     └── mod.rs
@@ -234,4 +248,5 @@ src/
 - typed archive core 已落地
 - Markdown export 已落地
 - JSON export 已落地
+- HTML export 已落地
 - 未来扩展边界仍然保持收口

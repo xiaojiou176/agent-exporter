@@ -132,6 +132,50 @@ fn export_codex_writes_workspace_conversations_json() {
 }
 
 #[test]
+fn export_codex_writes_workspace_conversations_html() {
+    let workspace = tempdir().expect("temp workspace");
+    build_export_command("complete-thread", workspace.path())
+        .arg("--format")
+        .arg("html")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Format       : html"))
+        .stdout(predicate::str::contains("Completeness : complete"))
+        .stdout(predicate::str::contains(
+            "Source       : app-server-thread-read",
+        ));
+
+    let paths = exported_paths_with_extension(workspace.path(), "html");
+    assert_eq!(paths.len(), 1);
+    let content = fs::read_to_string(&paths[0]).expect("html content");
+    assert!(content.contains("<!DOCTYPE html>"));
+    assert!(content.contains("第1轮"));
+    assert!(content.contains("app-server-thread-read"));
+    assert!(content.contains("pwd"));
+}
+
+#[test]
+fn export_codex_html_marks_incomplete_when_resume_fallback_is_used() {
+    let workspace = tempdir().expect("temp workspace");
+    build_export_command("fallback-thread", workspace.path())
+        .arg("--format")
+        .arg("html")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Format       : html"))
+        .stdout(predicate::str::contains("Completeness : incomplete"))
+        .stdout(predicate::str::contains(
+            "Source       : app-server-resume-fallback",
+        ));
+
+    let paths = exported_paths_with_extension(workspace.path(), "html");
+    assert_eq!(paths.len(), 1);
+    let content = fs::read_to_string(&paths[0]).expect("html content");
+    assert!(content.contains("Preview recovered through resume fallback"));
+    assert!(content.contains("app-server-resume-fallback"));
+}
+
+#[test]
 fn workspace_conversations_requires_workspace_root() {
     let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
     command

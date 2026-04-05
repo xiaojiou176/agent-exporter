@@ -2,11 +2,12 @@
 
 `agent-exporter` 是一个 **本地优先、CLI 优先、可扩展到多 Agent CLI** 的会话导出工具仓库。
 
-当前先把三件事做对：
+当前先把四件事做对：
 
 > **先把 Codex 的 canonical export 做对，**
 > **再用最小 Claude Code connector 证明这套架构能接第二个来源，**
-> **再用最小 JSON exporter 证明 shared transcript core 能接第二种输出。**
+> **再用最小 JSON exporter 证明 shared transcript core 能接第二种输出，**
+> **再用最小 HTML exporter 证明同一份 transcript 也能直接变成静态可读页面。**
 
 但仓库从第一天开始就按“未来会接 Claude Code 和其他本地 CLI”来设计，所以不会把 Codex 的私有读取逻辑写死在整个项目里。
 
@@ -40,15 +41,16 @@
 - typed archive core
 - round-based Markdown export
 - shared JSON export
+- shared HTML export
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
-- 一条真实可用的 `--format markdown|json` 输出命令面
+- 一条真实可用的 `--format markdown|json|html` 输出命令面
 - 第一批 ADR / 参考文档与实现对齐
 
 当前阶段**还没有**完成的是：
 
-- HTML exporter
 - search / index / archive browsing
+- archive browsing / publish
 
 ---
 
@@ -62,8 +64,8 @@
 
 ### 当前不做
 
-- HTML renderer
 - Search / index / knowledge base
+- archive browsing / publish shell
 - GUI / Web UI
 - 远程服务
 - 多 connector 同步交付
@@ -80,8 +82,9 @@
 4. **现在已经落地：typed archive core + Codex dual source (`app-server` + `local`) + Markdown export**
 5. **现在已经落地：Claude Code minimal `--session-path` second connector proof**
 6. **现在已经落地：shared JSON export via `--format json`**
-7. **当前最高优先级：最小 HTML renderer**
-8. **browse / index 继续留在后面**
+7. **现在已经落地：shared HTML export via `--format html`**
+8. **当前最高优先级：archive browsing / publish，但不能变成平台壳**
+9. **search / index 继续留在后面**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -117,6 +120,8 @@ cargo run -- export codex --source local --rollout-path /absolute/path/to/rollou
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl
 cargo run -- export codex --thread-id <thread-id> --format json
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format json
+cargo run -- export codex --thread-id <thread-id> --format html
+cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format html
 cargo run -- export codex \
   --source app-server \
   --thread-id <thread-id> \
@@ -146,11 +151,10 @@ cargo run -- export codex \
   - 输出单文件 transcript JSON
   - 继续复用 shared archive core
   - 不发明比 transcript 更强的新语义
-
-当前**还不暴露**：
-
 - `--format html`
-  - 仍然属于下一阶段
+  - 输出单文件 transcript HTML
+  - 继续复用 shared archive core
+  - 是静态可读文档，不是 browse / publish shell
 
 ### Source contract
 
@@ -280,9 +284,8 @@ codex app-server
 
 后续文档和实现会继续沿着这条线推进：
 
-1. 最小 HTML renderer
-2. 更丰富的 archive browsing / publishing 能力
-3. search / index / multi-agent archive 平台化
+1. 更丰富的 archive browsing / publishing 能力
+2. search / index / multi-agent archive 平台化
 
 ---
 
@@ -298,6 +301,8 @@ cargo run -- export codex --source local --thread-id <thread-id>
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl
 cargo run -- export codex --thread-id <thread-id> --format json
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format json
+cargo run -- export codex --thread-id <thread-id> --format html
+cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format html
 ```
 
 `cargo test` 现在也承担 host safety gate: 如果运行时代码里重新出现危险宿主机原语，测试会直接失败。

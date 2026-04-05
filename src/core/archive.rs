@@ -598,6 +598,72 @@ fn write_json_document_at(
     bail!("Failed to allocate unique archive export filenames.")
 }
 
+pub fn write_html_document(
+    transcript: &ArchiveTranscript,
+    output_target: &OutputTarget,
+    document: &str,
+) -> Result<ExportOutcome> {
+    write_html_document_at(transcript, output_target, document, Local::now())
+}
+
+fn write_html_document_at(
+    transcript: &ArchiveTranscript,
+    output_target: &OutputTarget,
+    document: &str,
+    now: DateTime<Local>,
+) -> Result<ExportOutcome> {
+    let output_dir = output_target.resolve_output_dir()?;
+    fs::create_dir_all(&output_dir).with_context(|| {
+        format!(
+            "Failed to prepare export directory `{}`",
+            output_dir.display()
+        )
+    })?;
+
+    let filename_stem = build_thread_archive_filename_stem(
+        output_target.workspace_display_name().as_deref(),
+        transcript.thread_display_name(),
+        &transcript.thread_id,
+    );
+    let timestamp = now.format("%Y-%m-%d_%H-%M-%S").to_string();
+    let rendered = format!("{}\n", document.trim_end());
+    let start_round = usize::from(transcript.round_count() > 0);
+    let end_round = transcript.round_count();
+
+    for attempt in 0..1000usize {
+        let path = output_dir.join(build_archive_document_filename(
+            &filename_stem,
+            &timestamp,
+            start_round,
+            end_round,
+            "html",
+            attempt,
+        ));
+
+        if path.exists() {
+            continue;
+        }
+
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent).with_context(|| {
+                format!("Failed to prepare export directory `{}`", parent.display())
+            })?;
+        }
+        fs::write(&path, &rendered)
+            .with_context(|| format!("Failed to write export file `{}`", path.display()))?;
+
+        return Ok(ExportOutcome {
+            output_paths: vec![path],
+            exported_part_count: 1,
+            exported_item_count: transcript.item_count(),
+            exported_turn_count: transcript.round_count(),
+            completeness: transcript.completeness,
+        });
+    }
+
+    bail!("Failed to allocate unique archive export filenames.")
+}
+
 fn sanitize_filename_component(value: &str) -> String {
     let sanitized: String = value
         .chars()
@@ -708,7 +774,7 @@ mod tests {
     use super::{
         AppServerLaunchConfig, ArchiveCompleteness, ArchiveRound, ArchiveThreadStatus,
         ArchiveTranscript, ArchiveTurnItem, ArchiveTurnStatus, ConnectorSourceKind, OutputTarget,
-        write_json_document_at, write_markdown_parts_at,
+        write_html_document_at, write_json_document_at, write_markdown_parts_at,
     };
     use crate::model::ConnectorKind;
     use crate::output::markdown::RenderedArchivePart;
@@ -821,6 +887,35 @@ mod tests {
                 .file_name()
                 .and_then(|name| name.to_str())
                 .is_some_and(|name| name.ends_with("-2.json"))
+        );
+    }
+
+    #[test]
+    fn write_html_document_increments_conflict_suffix() {
+        let workspace = tempdir().expect("temp dir");
+        let transcript = sample_transcript();
+        let document = "<!DOCTYPE html><html><body>demo</body></html>";
+        let target = OutputTarget::WorkspaceConversations {
+            workspace_root: workspace.path().to_path_buf(),
+        };
+        let timestamp = chrono::Local
+            .with_ymd_and_hms(2026, 4, 4, 12, 0, 0)
+            .single()
+            .expect("fixed timestamp");
+
+        let first = write_html_document_at(&transcript, &target, document, timestamp)
+            .expect("first export");
+        let second = write_html_document_at(&transcript, &target, document, timestamp)
+            .expect("second export");
+
+        assert_eq!(first.exported_part_count, 1);
+        assert_eq!(second.exported_part_count, 1);
+        assert_ne!(first.output_paths[0], second.output_paths[0]);
+        assert!(
+            second.output_paths[0]
+                .file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| name.ends_with("-2.html"))
         );
     }
 

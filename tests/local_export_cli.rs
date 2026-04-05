@@ -221,6 +221,38 @@ fn local_source_with_thread_id_exports_degraded_json() {
 }
 
 #[test]
+fn local_source_with_thread_id_exports_degraded_html() {
+    let workspace = tempdir().expect("workspace");
+    let codex_home = tempdir().expect("codex home");
+    create_local_fixture(
+        codex_home.path(),
+        "local-html-thread",
+        "sessions/local-html-thread.jsonl",
+    );
+
+    build_local_command(workspace.path())
+        .arg("--codex-home")
+        .arg(codex_home.path())
+        .arg("--thread-id")
+        .arg("local-html-thread")
+        .arg("--format")
+        .arg("html")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Format       : html"))
+        .stdout(predicate::str::contains("Completeness : degraded"))
+        .stdout(predicate::str::contains("Source       : local-thread-id"));
+
+    let paths = exported_paths_with_extension(workspace.path(), "html");
+    assert_eq!(paths.len(), 1);
+    let content = fs::read_to_string(&paths[0]).expect("html content");
+    assert!(content.contains("<!DOCTYPE html>"));
+    assert!(content.contains("local-thread-id"));
+    assert!(content.contains("第1轮"));
+    assert!(content.contains("spawn_agent"));
+}
+
+#[test]
 fn local_and_app_server_exports_keep_same_structure_skeleton() {
     let app_workspace = tempdir().expect("app workspace");
     let local_workspace = tempdir().expect("local workspace");

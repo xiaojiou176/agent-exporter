@@ -193,3 +193,34 @@ fn claude_code_export_writes_degraded_json_with_shared_transcript_shape() {
     assert!(tool_kinds.contains(&"file_change"));
     assert!(tool_kinds.contains(&"command_execution"));
 }
+
+#[test]
+fn claude_code_export_writes_degraded_html_with_shared_structure() {
+    let workspace = tempdir().expect("workspace");
+    build_claude_command(
+        &fixture_path("claude_session_minimal.jsonl"),
+        workspace.path(),
+    )
+    .arg("--format")
+    .arg("html")
+    .assert()
+    .success()
+    .stdout(predicate::str::contains("Connector    : claude-code"))
+    .stdout(predicate::str::contains("Format       : html"))
+    .stdout(predicate::str::contains("Completeness : degraded"))
+    .stdout(predicate::str::contains(
+        "Source       : claude-session-path",
+    ));
+
+    let paths = exported_paths_with_extension(workspace.path(), "html");
+    assert_eq!(paths.len(), 1);
+
+    let content = fs::read_to_string(&paths[0]).expect("html content");
+    assert!(content.contains("<!DOCTYPE html>"));
+    assert!(content.contains("claude-session-path"));
+    assert!(content.contains("第1轮"));
+    assert!(content.contains("hello.py"));
+    assert!(content.contains("python -m pytest tests/"));
+    assert!(!content.contains("queue-operation"));
+    assert!(!content.contains("progress"));
+}
