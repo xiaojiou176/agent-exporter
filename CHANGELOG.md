@@ -40,6 +40,8 @@ The format is based on Keep a Changelog.
 - Archive index unit tests and publish CLI integration tests
 - Local metadata search inside archive index
 - Archive index search UI unit coverage
+- `search semantic` command for embedding-based retrieval
+- Semantic retrieval unit tests and CLI coverage
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder
@@ -49,4 +51,5 @@ The format is based on Keep a Changelog.
 - CLI export surface now keeps Markdown as the default while exposing `--format markdown|json|html`
 - CLI now also exposes `publish archive-index --workspace-root <repo>`
 - Archive index now includes local metadata search without adding a hosted search layer
+- Semantic retrieval now lands as a separate command instead of masquerading as metadata search
 - Codex / Claude connector summaries now describe the shared archive transcript contract instead of a Markdown-only contract

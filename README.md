@@ -45,6 +45,7 @@
 - shared HTML export
 - workspace conversations archive index
 - local archive metadata search
+- semantic retrieval
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -53,7 +54,7 @@
 
 当前阶段**还没有**完成的是：
 
-- semantic retrieval
+- persistent local semantic index / hybrid retrieval
 - 多 agent archive 平台化
 
 ---
@@ -90,7 +91,8 @@
 7. **现在已经落地：shared HTML export via `--format html`**
 8. **现在已经落地：workspace conversations archive index via `publish archive-index`**
 9. **现在已经落地：local archive metadata search**
-10. **当前最高优先级：semantic retrieval，但不能直接膨胀成平台壳**
+10. **现在已经落地：semantic retrieval via `search semantic`**
+11. **当前最高优先级：persistent local semantic index / hybrid retrieval，但不能直接膨胀成平台壳**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -173,6 +175,15 @@ cargo run -- export codex \
   - 使用相对链接串起 transcript 页面
   - 现在已内置本地 metadata search
   - 不做 semantic retrieval、分页、gist、web publish
+
+### Semantic retrieval contract
+
+当前还额外支持：
+
+- `search semantic --workspace-root <repo> --query "<text>"`
+  - 对本地 archive corpus 做真实 embedding-based retrieval
+  - 当前默认走本地模型目录
+  - 如果本地模型文件不存在，命令会明确报错，不会退回关键词假装成语义检索
 
 ### Source contract
 
@@ -302,7 +313,8 @@ codex app-server
 
 后续文档和实现会继续沿着这条线推进：
 
-1. semantic retrieval / multi-agent archive 平台化
+1. persistent local semantic index / hybrid retrieval
+2. multi-agent archive 平台化
 
 ---
 
@@ -321,6 +333,7 @@ cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl -
 cargo run -- export codex --thread-id <thread-id> --format html
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format html
 cargo run -- publish archive-index --workspace-root /absolute/path/to/repo
+cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues"
 ```
 
 `cargo test` 现在也承担 host safety gate: 如果运行时代码里重新出现危险宿主机原语，测试会直接失败。

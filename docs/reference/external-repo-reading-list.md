@@ -239,6 +239,9 @@
 9. **Phase 8 local metadata search**
    - archive index now supports local metadata search without leaving static local mode
    - semantic retrieval still remains later
+10. **Phase 9 semantic retrieval**
+   - local embedding-based retrieval is now landed
+   - hosted semantic platform layers still remain later
 
 ### 明确未采纳
 

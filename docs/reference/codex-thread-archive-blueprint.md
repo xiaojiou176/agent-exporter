@@ -32,8 +32,8 @@
 
 当前明确不做：
 
-1. Search / index
-2. 知识库 / semantic retrieval
+1. hosted / remote search platform
+2. 知识库 / semantic platform shell
 3. GUI / Web UI
 4. 远程服务
 5. 多 connector 同步交付
@@ -166,9 +166,20 @@
 
 ### Phase 9
 
-再做：
+已落地：
 
 - semantic retrieval
+
+原因：
+
+- 现在已经有独立的 embedding-based retrieval 命令
+- 但仍然没有进入 persistent vector index / hosted semantic platform
+
+### Phase 10
+
+再做：
+
+- persistent local semantic index / hybrid retrieval
 
 ---
 

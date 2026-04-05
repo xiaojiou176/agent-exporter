@@ -7,8 +7,8 @@
 所以最欢迎的贡献顺序是：
 
 1. 文档与实现继续保持同步
-2. 继续完善 export + archive index + metadata search 与 Codex / Claude 路径的回归验证
-3. semantic retrieval
+2. 继续完善 export + archive index + metadata search + semantic retrieval 与 Codex / Claude 路径的回归验证
+3. persistent local semantic index / hybrid retrieval
 4. 后续 connector 扩展
 
 不欢迎的顺序是：

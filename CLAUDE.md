@@ -12,7 +12,7 @@
 ## Current Truth
 
 - This repo is a **Rust CLI-first exporter**.
-- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search**.
+- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search + semantic retrieval**.
 - The repository is designed to grow into multiple connectors later, but not all at once.
 - Current export semantics stay aligned with CodexMonitor:
   - `thread/read` primary
@@ -42,8 +42,13 @@
   - writes one static `index.html` with relative links
   - now supports local metadata search inside that static index
   - does not add semantic retrieval / hosted publish
+- Current semantic retrieval semantics:
+  - `search semantic --workspace-root <repo> --query "<text>"`
+  - uses embedding-based retrieval over the local archive corpus
+  - requires local model assets for live retrieval
+  - does not silently fall back to lexical search
 - Current highest-value next step:
-  - semantic retrieval before broader platform layers
+  - persistent local semantic index / hybrid retrieval before broader platform layers
 - Current host-safety semantics:
   - the repo may spawn one direct app-server child
   - the repo may only terminate that directly owned child handle
@@ -71,6 +76,7 @@ cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl -
 cargo run -- export codex --thread-id <thread-id> --format html
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format html
 cargo run -- publish archive-index --workspace-root /absolute/path/to/repo
+cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues"
 ```
 
 `cargo test` now also acts as the repo's host-safety gate.

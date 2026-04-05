@@ -9,6 +9,9 @@ use crate::core::archive::{
     AppServerLaunchConfig, ExportRequest, ExportSelector, ExportSource, OutputTarget,
 };
 use crate::core::archive_index;
+use crate::core::semantic_search::{
+    FastEmbedSemanticEmbedder, SemanticEmbedder, collect_semantic_documents, semantic_search,
+};
 use crate::model::{ConnectorKind, OutputFormat, SupportStage};
 use crate::output::{
     archive_index as archive_index_output, html as html_output, json as json_output,
@@ -45,6 +48,11 @@ enum Commands {
         #[command(subcommand)]
         command: PublishCommands,
     },
+    /// Query the local archive corpus with semantic retrieval.
+    Search {
+        #[command(subcommand)]
+        command: SearchCommands,
+    },
 }
 
 #[derive(Debug, Subcommand)]
@@ -59,6 +67,12 @@ enum ExportCommands {
 enum PublishCommands {
     /// Generate a static index for HTML transcript exports inside workspace conversations.
     ArchiveIndex(PublishArchiveIndexArgs),
+}
+
+#[derive(Debug, Subcommand)]
+enum SearchCommands {
+    /// Run embedding-based semantic retrieval over local HTML transcript exports.
+    Semantic(SearchSemanticArgs),
 }
 
 #[derive(Debug, clap::Args)]
@@ -116,6 +130,22 @@ struct PublishArchiveIndexArgs {
     /// Workspace root whose `.agents/Conversations` directory should be indexed.
     #[arg(long)]
     workspace_root: PathBuf,
+}
+
+#[derive(Debug, clap::Args)]
+struct SearchSemanticArgs {
+    /// Workspace root whose `.agents/Conversations` directory should be searched.
+    #[arg(long)]
+    workspace_root: PathBuf,
+    /// Natural-language semantic query.
+    #[arg(long)]
+    query: String,
+    /// Maximum number of hits to return.
+    #[arg(long, default_value_t = 5)]
+    top_k: usize,
+    /// Override the local embedding model directory.
+    #[arg(long)]
+    model_dir: Option<PathBuf>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
@@ -235,6 +265,9 @@ pub fn run() -> Result<()> {
         Commands::Publish { command } => match command {
             PublishCommands::ArchiveIndex(args) => publish_archive_index(args)?,
         },
+        Commands::Search { command } => match command {
+            SearchCommands::Semantic(args) => search_semantic(args)?,
+        },
     }
     Ok(())
 }
@@ -258,7 +291,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -270,7 +303,12 @@ fn print_scaffold_status() {
     println!(
         "- Real archive index path: `agent-exporter publish archive-index --workspace-root <repo>`."
     );
-    println!("- Next step: search / index without changing transcript semantics.");
+    println!(
+        "- Real semantic retrieval path: `agent-exporter search semantic --workspace-root <repo> --query <text>`."
+    );
+    println!(
+        "- Next step: persistent local semantic index / hybrid retrieval without changing transcript semantics."
+    );
 }
 
 fn export_codex(args: CodexExportArgs) -> Result<()> {
@@ -306,6 +344,43 @@ fn publish_archive_index(args: PublishArchiveIndexArgs) -> Result<()> {
     println!("- Archive Dir  : {}", archive_dir.display());
     println!("- Entries      : {}", entries.len());
     println!("- Index        : {}", index_path.display());
+
+    Ok(())
+}
+
+fn search_semantic(args: SearchSemanticArgs) -> Result<()> {
+    let documents = collect_semantic_documents(&args.workspace_root)?;
+    let model_dir = match args.model_dir {
+        Some(path) => path,
+        None => FastEmbedSemanticEmbedder::default_model_dir()?,
+    };
+    let embedder = FastEmbedSemanticEmbedder::load_from_dir(&model_dir)?;
+    let hits = semantic_search(&embedder, &documents, &args.query, args.top_k)?;
+
+    println!("Semantic search completed");
+    println!("- Workspace    : {}", args.workspace_root.display());
+    println!("- Query        : {}", args.query);
+    println!("- Model Dir    : {}", model_dir.display());
+    println!("- True Semantic: {}", embedder.is_true_semantic());
+    println!("- Hits         : {}", hits.len());
+    for (index, hit) in hits.iter().enumerate() {
+        println!(
+            "  {}. {:.4} | {} | {}",
+            index + 1,
+            hit.score,
+            hit.entry.title,
+            hit.entry.relative_href
+        );
+        if let Some(connector) = hit.entry.connector.as_deref() {
+            println!("     connector    : {connector}");
+        }
+        if let Some(thread_id) = hit.entry.thread_id.as_deref() {
+            println!("     thread       : {thread_id}");
+        }
+        if let Some(completeness) = hit.entry.completeness.as_deref() {
+            println!("     completeness : {completeness}");
+        }
+    }
 
     Ok(())
 }
