@@ -130,23 +130,27 @@
 
 ---
 
-## 当前 `agent-exporter` v1 落地状态
+## 当前 `agent-exporter` dual-source 落地状态
 
-当前仓已经把下面三件事真正落到了实现里：
+当前仓已经把下面两层入口真正落到了实现里：
 
-1. **主路径**
+1. **主路径：canonical app-server**
    - 通过一次性本地 `codex app-server` 连接发送 `thread/read(includeTurns=true)`
 2. **fallback**
    - 只在命中当前 CodexMonitor 已知的两类 `includeTurns` 拒绝错误时，才退到 `thread/resume`
-3. **导出结果**
+3. **第二入口：archival local**
+   - `--source local --thread-id <THREAD_ID>`
+   - `--source local --rollout-path <PATH>`
+   - local 结果统一标 `degraded`
+4. **导出结果**
    - 输出真实 Markdown 文件
-   - 明确写出 `complete / incomplete`
+   - 明确写出 `complete / incomplete / degraded`
    - 按 round 组织，并按 round 边界 split part
 
 说得更直白一点：
 
-> `agent-exporter` v1 现在不是“计划这样做”，而是“已经按这条 contract 真正在代码里这样做”。  
-> 以后如果改主路径、fallback 条件、输出目标语义或 round/part 规则，就不再是普通重构，而是 contract 变更。
+> `agent-exporter` 现在不是“只有正门”，而是“正门 + 侧门都已经装好”。
+> 但正门仍然是 `app-server`，local 侧门不能反过来改写 CodexMonitor 的 canonical contract。
 
 ---
 

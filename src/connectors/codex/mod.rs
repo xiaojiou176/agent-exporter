@@ -1,4 +1,5 @@
 mod app_server;
+mod local;
 
 use std::path::PathBuf;
 
@@ -8,8 +9,8 @@ use serde_json::{Map, Value};
 use crate::core::archive::{
     ArchiveCompleteness, ArchiveRound, ArchiveThreadStatus, ArchiveToolCall, ArchiveTranscript,
     ArchiveTurnError, ArchiveTurnItem, ArchiveTurnStatus, CommandExecutionRecord,
-    ConnectorSourceKind, DynamicToolCallRecord, ExportRequest, ExportSelector, FileChangeRecord,
-    McpToolCallRecord,
+    ConnectorSourceKind, DynamicToolCallRecord, ExportRequest, ExportSelector, ExportSource,
+    FileChangeRecord, McpToolCallRecord,
 };
 use crate::model::{ConnectorDefinition, ConnectorKind, SupportStage};
 
@@ -23,8 +24,18 @@ pub const DEFINITION: ConnectorDefinition = ConnectorDefinition {
 };
 
 pub fn load_transcript(request: &ExportRequest) -> Result<ArchiveTranscript> {
+    match request.source {
+        ExportSource::AppServer => load_app_server_transcript(request),
+        ExportSource::Local => local::load_transcript(request),
+    }
+}
+
+fn load_app_server_transcript(request: &ExportRequest) -> Result<ArchiveTranscript> {
     let thread_id = match &request.selector {
         ExportSelector::ThreadId(thread_id) => thread_id.clone(),
+        ExportSelector::RolloutPath(_) => {
+            bail!("app-server source does not support `--rollout-path`; use `--thread-id`")
+        }
     };
 
     let mut client = AppServerClient::spawn(&request.app_server)

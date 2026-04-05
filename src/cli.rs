@@ -5,7 +5,9 @@ use chrono::Utc;
 use clap::{Parser, Subcommand, ValueEnum};
 
 use crate::connectors;
-use crate::core::archive::{AppServerLaunchConfig, ExportRequest, ExportSelector, OutputTarget};
+use crate::core::archive::{
+    AppServerLaunchConfig, ExportRequest, ExportSelector, ExportSource, OutputTarget,
+};
 use crate::model::{ConnectorKind, OutputFormat, SupportStage};
 use crate::output::markdown::{self, DEFAULT_MAX_LINES_PER_PART};
 
@@ -38,15 +40,24 @@ enum Commands {
 
 #[derive(Debug, Subcommand)]
 enum ExportCommands {
-    /// Export a Codex thread through the canonical app-server path.
+    /// Export a Codex thread through the canonical app-server path or the local archival path.
     Codex(CodexExportArgs),
 }
 
 #[derive(Debug, clap::Args)]
 struct CodexExportArgs {
+    /// Source contract to use. `app-server` stays the default canonical path.
+    #[arg(long, value_enum, default_value_t = SourceArg::AppServer)]
+    source: SourceArg,
     /// Stable Codex thread identifier.
     #[arg(long)]
-    thread_id: String,
+    thread_id: Option<String>,
+    /// Direct rollout jsonl path. Only valid with `--source local`.
+    #[arg(long)]
+    rollout_path: Option<PathBuf>,
+    /// Override `CODEX_HOME` for local direct-read mode.
+    #[arg(long)]
+    codex_home: Option<PathBuf>,
     /// Output destination contract.
     #[arg(long, value_enum, default_value_t = DestinationArg::Downloads)]
     destination: DestinationArg,
@@ -68,6 +79,12 @@ enum DestinationArg {
     WorkspaceConversations,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
+enum SourceArg {
+    AppServer,
+    Local,
+}
+
 impl DestinationArg {
     fn into_output_target(self, workspace_root: Option<PathBuf>) -> Result<OutputTarget> {
         match self {
@@ -84,15 +101,42 @@ impl DestinationArg {
 
 impl CodexExportArgs {
     fn into_request(self) -> Result<ExportRequest> {
+        let source = match self.source {
+            SourceArg::AppServer => ExportSource::AppServer,
+            SourceArg::Local => ExportSource::Local,
+        };
+
+        let selector = match source {
+            ExportSource::AppServer => match (self.thread_id, self.rollout_path) {
+                (Some(thread_id), None) => ExportSelector::ThreadId(thread_id),
+                (None, None) => bail!("app-server source requires --thread-id <THREAD_ID>"),
+                (_, Some(_)) => bail!(
+                    "`--rollout-path` is only valid with `--source local`; app-server source accepts `--thread-id` only"
+                ),
+            },
+            ExportSource::Local => match (self.thread_id, self.rollout_path) {
+                (Some(thread_id), None) => ExportSelector::ThreadId(thread_id),
+                (None, Some(rollout_path)) => ExportSelector::RolloutPath(rollout_path),
+                (None, None) => bail!(
+                    "local source requires either --thread-id <THREAD_ID> or --rollout-path <PATH>"
+                ),
+                (Some(_), Some(_)) => {
+                    bail!("local source accepts either --thread-id or --rollout-path, not both")
+                }
+            },
+        };
+
         Ok(ExportRequest {
             connector: ConnectorKind::Codex,
-            selector: ExportSelector::ThreadId(self.thread_id),
+            source,
+            selector,
             format: OutputFormat::Markdown,
             output_target: self.destination.into_output_target(self.workspace_root)?,
             app_server: AppServerLaunchConfig {
                 command: self.app_server_command,
                 args: self.app_server_args,
             },
+            codex_home: self.codex_home,
         })
     }
 }
@@ -157,6 +201,7 @@ fn export_codex(args: CodexExportArgs) -> Result<()> {
 
     println!("Codex export completed");
     println!("- Connector    : {}", request.connector.as_str());
+    println!("- Selection    : {}", request.source.as_str());
     println!("- Thread ID    : {}", transcript.thread_id);
     println!("- Completeness : {}", outcome.completeness.as_str());
     println!("- Source       : {}", transcript.source_kind.as_str());

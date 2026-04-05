@@ -14,6 +14,22 @@ const MAX_THREAD_DISPLAY_NAME_FILENAME_CHARS: usize = 48;
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ExportSelector {
     ThreadId(String),
+    RolloutPath(PathBuf),
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum ExportSource {
+    AppServer,
+    Local,
+}
+
+impl ExportSource {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::AppServer => "app-server",
+            Self::Local => "local",
+        }
+    }
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -84,16 +100,19 @@ impl OutputTarget {
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ExportRequest {
     pub connector: ConnectorKind,
+    pub source: ExportSource,
     pub selector: ExportSelector,
     pub format: OutputFormat,
     pub output_target: OutputTarget,
     pub app_server: AppServerLaunchConfig,
+    pub codex_home: Option<PathBuf>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ArchiveCompleteness {
     Complete,
     Incomplete,
+    Degraded,
 }
 
 impl ArchiveCompleteness {
@@ -101,6 +120,7 @@ impl ArchiveCompleteness {
         match self {
             Self::Complete => "complete",
             Self::Incomplete => "incomplete",
+            Self::Degraded => "degraded",
         }
     }
 }
@@ -109,6 +129,8 @@ impl ArchiveCompleteness {
 pub enum ConnectorSourceKind {
     AppServerThreadRead,
     AppServerResumeFallback,
+    LocalThreadId,
+    LocalRolloutPath,
 }
 
 impl ConnectorSourceKind {
@@ -116,6 +138,8 @@ impl ConnectorSourceKind {
         match self {
             Self::AppServerThreadRead => "app-server-thread-read",
             Self::AppServerResumeFallback => "app-server-resume-fallback",
+            Self::LocalThreadId => "local-thread-id",
+            Self::LocalRolloutPath => "local-rollout-path",
         }
     }
 }
@@ -183,7 +207,6 @@ impl ArchiveTranscript {
     pub fn thread_display_name(&self) -> Option<&str> {
         self.thread_name
             .as_deref()
-            .or(self.preview.as_deref())
             .map(str::trim)
             .filter(|value| !value.is_empty())
     }

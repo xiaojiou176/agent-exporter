@@ -11,7 +11,7 @@
 ## Current Truth
 
 - This repo is a **Rust CLI-first exporter**.
-- Current implementation delivery is **Codex-only v1 via app-server**.
+- Current implementation delivery is **Codex dual-source export**.
 - The repository is designed to grow into multiple connectors later, but not all at once.
 - Current export semantics stay aligned with CodexMonitor:
   - `thread/read` primary
@@ -19,6 +19,11 @@
   - fallback exports are `incomplete`
   - Markdown stays round-based
   - output target semantics remain explicit
+- Current local direct-read semantics:
+  - `--source local`
+  - `thread-id -> sqlite -> rollout_path` or direct `--rollout-path`
+  - result is `degraded`
+  - local source is archival truth, not canonical truth
 
 ## Current Document Surfaces
 
@@ -35,4 +40,5 @@ cargo test
 cargo run -- connectors
 cargo run -- scaffold
 cargo run -- export codex --thread-id <thread-id>
+cargo run -- export codex --source local --thread-id <thread-id>
 ```

@@ -186,6 +186,28 @@ CodexMonitor 告诉我们“导出成品长什么样”，
 
 ---
 
+## 当前 Phase 2 已采用的 local source 原则
+
+当前 `agent-exporter` 已把 local direct-read 挂成第二条 source seam：
+
+1. `--source local --thread-id <THREAD_ID>`
+   - 通过 `CODEX_HOME/state_5.sqlite` 的 `threads.rollout_path` 定位 rollout
+2. `--source local --rollout-path <PATH>`
+   - 直接读取本地 rollout jsonl
+
+但这条 local source 仍然只代表：
+
+- **archival truth**
+- **degraded**
+
+不会冒充：
+
+- `thread.name` 的 canonical overlay
+- runtime `status`
+- canonical `complete`
+
+---
+
 ## 最后一句话
 
 未来实现 `Codex source adapter` 时，最危险的误判不是“不会写代码”，而是：

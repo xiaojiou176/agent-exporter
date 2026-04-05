@@ -4,6 +4,17 @@
 
 如果你第一次读这个仓，推荐先按下面顺序走，不要直接跳到某个实现文件里。
 
+## Current Phase Snapshot
+
+当前这套文档已经进入 **Codex dual-source Phase 2**。
+
+你可以先把它理解成：这套文档现在要同时解释“正门”和“侧门”，但不能把两者说反。
+
+- 默认主路径仍然是 `app-server`
+- `local direct-read` 已经 landed，属于第二条已落地入口
+- `local` 代表 **archival truth**
+- `local` 的结果要按 **degraded** 理解，不能冒充 canonical parity
+
 ## Read Order
 
 1. `../README.md`
@@ -31,7 +42,7 @@
 
 ### 2. `docs/reference/*`
 
-记录实现前必须参考的真理面和外部参考仓，回答“要参考谁、借哪一层、不该抄哪一层”。
+记录实现前必须参考的真理面和外部参考仓，回答“要参考谁、借哪一层、不该抄哪一层”，同时把当前 dual-source 现实讲清楚。
 
 当前已有：
 
@@ -52,6 +63,6 @@
 
 这三份分别回答：
 
-- 当前导出 contract 是什么
-- 官方 thread/source 真相层是什么
-- `agent-exporter` 该怎么做
+- 默认 `app-server` 主路径的 contract 是什么
+- 为什么 `local` 已 landed 但仍然只能算 archival truth
+- `agent-exporter` 现在该如何同时容纳 canonical 与 degraded 这两层 reality

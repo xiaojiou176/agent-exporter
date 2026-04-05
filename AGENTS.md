@@ -6,7 +6,7 @@
 
 - 当前目标：**Codex canonical transcript/archive 导出**
 - 未来目标：Claude Code、以及其他本地 CLI
-- 当前阶段：**Codex-only v1 已落地主导出链，后续继续扩边界**
+- 当前阶段：**Codex dual-source Phase 2 已落地，默认主路径仍是 app-server**
 
 ---
 
@@ -55,9 +55,12 @@
 ### 当前实现目标
 
 - `codex app-server source`
+- `codex local direct-read source`
 - typed archive core
 - markdown export
 - `export codex --thread-id ...` 真实 CLI 主链
+- `--source app-server|local`
+- `degraded` archival semantics for local source
 
 ### 当前明确非目标
 
@@ -79,4 +82,5 @@ cargo test
 cargo run -- connectors
 cargo run -- scaffold
 cargo run -- export codex --thread-id <thread-id>
+cargo run -- export codex --source local --thread-id <thread-id>
 ```

@@ -180,12 +180,16 @@
 ### 已采纳
 
 1. **`claude-code-transcripts` 的命令收口思路**
-   - 当前真实 public export 命令只收口为 `export codex --thread-id ...`
+   - 当前真实 public export 命令收口为 `export codex ...`
+   - source 维度只扩到 `app-server|local`
 2. **`claude-code-log` 的 typed transcript -> renderer 分层**
    - source 先把上游 payload 变成 typed archive core
    - output 再把 typed archive core 渲染成 Markdown
 3. **bundle-aware 的输出心态**
    - 当前一次导出会生成 thread-scoped Markdown part 文件，而不是继续停在 plan-only stdout
+4. **`claude-conversation-extractor` 的 local direct-read framing**
+   - local source 已落地为 Codex connector 的第二入口
+   - 但没有把整个单来源小工具边界搬进 repo
 
 ### 明确未采纳
 

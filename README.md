@@ -19,6 +19,7 @@
 - Rust CLI 骨架
 - `source / core / output` 分层
 - `Codex app-server source`
+- `Codex local direct-read source`
 - typed archive core
 - round-based Markdown export
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
@@ -26,7 +27,6 @@
 
 当前阶段**还没有**完成的是：
 
-- local direct-read 实现
 - Claude Code connector
 - JSON / HTML exporter
 - search / index / archive browsing
@@ -58,9 +58,9 @@
 1. **先继承 CodexMonitor 的导出 contract**
 2. **再参考官方 Codex 的 thread/source 真相层**
 3. **v1 先做 Codex app-server source**
-4. **现在已经落地：typed archive core + Markdown export**
-5. **v2 再加 local direct-read source**
-6. **Claude Code 放到后续 connector 扩展**
+4. **现在已经落地：typed archive core + dual source (`app-server` + `local`) + Markdown export**
+5. **Claude Code 放到后续 connector 扩展**
+6. **search / browse / index 继续留在后面**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -91,7 +91,10 @@ docs/
 cargo run -- connectors
 cargo run -- scaffold
 cargo run -- export codex --thread-id <thread-id>
+cargo run -- export codex --source local --thread-id <thread-id>
+cargo run -- export codex --source local --rollout-path /absolute/path/to/rollout.jsonl
 cargo run -- export codex \
+  --source app-server \
   --thread-id <thread-id> \
   --destination workspace-conversations \
   --workspace-root /absolute/path/to/repo
@@ -101,7 +104,42 @@ cargo run -- export codex \
 
 - `connectors`：显示当前 connector 路线图
 - `scaffold`：显示当前仓库状态和当前真实导出入口
-- `export codex`：通过本地 `codex app-server` 走 canonical app-server path，生成真实 Markdown 归档文件
+- `export codex`：现在已经是一个双 source 命令面
+  - 默认 `app-server`
+  - 可显式切到 `local`
+
+### Source contract
+
+你可以先把它理解成“一栋房子现在有两扇合法入口，但正门还是原来的正门”：
+
+- `--source app-server`
+  - **默认值**
+  - 代表 **canonical truth**
+  - 继续使用 `thread/read` primary、`thread/resume` fallback
+- `--source local`
+  - **非默认**
+  - 代表 **archival truth**
+  - 支持：
+    - `--thread-id <THREAD_ID>`：通过 `state_5.sqlite -> threads.rollout_path` 找 rollout
+    - `--rollout-path <PATH>`：直接读本地 rollout jsonl
+
+### 参数组合规则
+
+- `app-server`
+  - 允许：`--thread-id`
+  - 禁止：`--rollout-path`
+- `local`
+  - 允许：`--thread-id`
+  - 允许：`--rollout-path`
+  - 但两者**不能同时给**
+
+### CODEX_HOME 规则
+
+在 `--source local` 下，`agent-exporter` 会按下面顺序找 Codex 本地账本：
+
+1. `--codex-home <PATH>`
+2. 环境变量 `CODEX_HOME`
+3. 默认 `~/.codex`
 
 ### 输出目标语义
 
@@ -132,11 +170,16 @@ cargo run -- export codex \
   - 主路径 `thread/read(includeTurns=true)` 成功
 - `incomplete`
   - 只有当上游明确拒绝 `includeTurns` 时，才降级到 `thread/resume`
+- `degraded`
+  - `--source local` 的 archival replay 结果
+  - 结构 contract 与 canonical 保持一致
+  - 但**不冒充 canonical parity**
 
 说得更直白一点：
 
 > 能导出来，不等于历史已经被证明完整。  
 > 只要走了 live fallback，就必须老老实实标 `incomplete`。
+> 只要走了 local archival source，就必须老老实实标 `degraded`。
 
 ### 高级调试 / 测试入口
 
@@ -191,10 +234,10 @@ codex app-server
 
 后续文档和实现会继续沿着这条线推进：
 
-1. `local direct-read` source
-2. JSON / HTML renderer
-3. Claude Code connector
-4. 更丰富的 archive browsing / publishing 能力
+1. JSON / HTML renderer
+2. Claude Code connector
+3. 更丰富的 archive browsing / publishing 能力
+4. search / index / multi-agent archive 平台化
 
 ---
 
@@ -206,6 +249,7 @@ cargo test
 cargo run -- connectors
 cargo run -- scaffold
 cargo run -- export codex --thread-id <thread-id>
+cargo run -- export codex --source local --thread-id <thread-id>
 ```
 
 ---

@@ -7,8 +7,8 @@
 所以最欢迎的贡献顺序是：
 
 1. 文档与实现继续保持同步
-2. 完善 Codex canonical export 验证与测试
-3. `local direct-read` 作为第二阶段能力
+2. 完善 dual-source (`app-server` + `local`) 验证与对比测试
+3. JSON / HTML renderer
 4. 后续 connector 扩展
 
 不欢迎的顺序是：
@@ -28,6 +28,7 @@ cargo test
 cargo run -- connectors
 cargo run -- scaffold
 cargo run -- export codex --thread-id <thread-id>
+cargo run -- export codex --source local --thread-id <thread-id>
 ```
 
 ---
@@ -51,3 +52,4 @@ cargo run -- export codex --thread-id <thread-id>
 3. 不要在没有 ADR/文档更新前改导出语义
 4. 新增 connector 前，先更新 docs/reference
 5. 不要破坏 `complete / incomplete` 与 round-based Markdown contract
+6. 不要把 `local` 结果包装成 canonical / complete truth

@@ -47,8 +47,8 @@
 
 当前规划：
 
-- `codex app-server source`（v1）
-- `codex local direct-read source`（v2）
+- `codex app-server source`（default canonical）
+- `codex local direct-read source`（landed archival second entrance）
 - `claude-code source`（future）
 
 ### 2. core
@@ -88,7 +88,7 @@
 
 ### Phase 2
 
-再做：
+已落地：
 
 - `codex local direct-read source`
 
@@ -118,15 +118,14 @@
 agent-exporter connectors
 agent-exporter scaffold
 agent-exporter export codex --thread-id <id>
-agent-exporter export codex --thread-id <id> --destination workspace-conversations --workspace-root <repo-root>
+agent-exporter export codex --source local --thread-id <id>
+agent-exporter export codex --source local --rollout-path <path>
+agent-exporter export codex --source app-server --thread-id <id> --destination workspace-conversations --workspace-root <repo-root>
 ```
 
 未来扩展：
 
 ```bash
-agent-exporter export codex --source app-server
-agent-exporter export codex --source local
-agent-exporter export codex --rollout-path <path>    # only after local direct-read lands
 agent-exporter export claude-code --session-path <path>
 ```
 
@@ -141,7 +140,7 @@ agent-exporter export claude-code --session-path <path>
 | `complete` | canonical export，来自主真源 |
 | `incomplete` | fallback 成功，但历史不保证完整 |
 
-未来如果 local direct-read 真的落地，再单独增加：
+当前 Phase 2 已额外落地：
 
 | 状态 | 含义 |
 | --- | --- |
@@ -198,6 +197,7 @@ src/
 当前这句话已经从蓝图进入实现：
 
 - canonical source 已落地
+- archival local source 已落地
 - typed archive core 已落地
 - Markdown export 已落地
 - 未来扩展边界仍然保持收口
