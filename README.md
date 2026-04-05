@@ -2,9 +2,10 @@
 
 `agent-exporter` 是一个 **本地优先、CLI 优先、可扩展到多 Agent CLI** 的会话导出工具仓库。
 
-当前只做一件事：
+当前先把两件事做对：
 
-> **先把 Codex 的对话记录导出做好。**
+> **先把 Codex 的 canonical export 做对，**
+> **再用最小 Claude Code connector 证明这套架构能接第二个来源。**
 
 但仓库从第一天开始就按“未来会接 Claude Code 和其他本地 CLI”来设计，所以不会把 Codex 的私有读取逻辑写死在整个项目里。
 
@@ -20,14 +21,15 @@
 - `source / core / output` 分层
 - `Codex app-server source`
 - `Codex local direct-read source`
+- `Claude Code session-path connector`
 - typed archive core
 - round-based Markdown export
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
+- 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 第一批 ADR / 参考文档与实现对齐
 
 当前阶段**还没有**完成的是：
 
-- Claude Code connector
 - JSON / HTML exporter
 - search / index / archive browsing
 
@@ -58,9 +60,9 @@
 1. **先继承 CodexMonitor 的导出 contract**
 2. **再参考官方 Codex 的 thread/source 真相层**
 3. **v1 先做 Codex app-server source**
-4. **现在已经落地：typed archive core + dual source (`app-server` + `local`) + Markdown export**
-5. **Claude Code 放到后续 connector 扩展**
-6. **search / browse / index 继续留在后面**
+4. **现在已经落地：typed archive core + Codex dual source (`app-server` + `local`) + Markdown export**
+5. **现在已经落地：Claude Code minimal `--session-path` second connector proof**
+6. **JSON / HTML、browse / index 继续留在后面**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -93,6 +95,7 @@ cargo run -- scaffold
 cargo run -- export codex --thread-id <thread-id>
 cargo run -- export codex --source local --thread-id <thread-id>
 cargo run -- export codex --source local --rollout-path /absolute/path/to/rollout.jsonl
+cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl
 cargo run -- export codex \
   --source app-server \
   --thread-id <thread-id> \
@@ -107,6 +110,9 @@ cargo run -- export codex \
 - `export codex`：现在已经是一个双 source 命令面
   - 默认 `app-server`
   - 可显式切到 `local`
+- `export claude-code`：现在已经是一个最小 second connector 入口
+  - 只收 `--session-path`
+  - 结果默认按 `degraded` 理解
 
 ### Source contract
 
@@ -171,7 +177,8 @@ cargo run -- export codex \
 - `incomplete`
   - 只有当上游明确拒绝 `includeTurns` 时，才降级到 `thread/resume`
 - `degraded`
-  - `--source local` 的 archival replay 结果
+  - Codex `--source local` 的 archival replay 结果
+  - Claude `--session-path` 的 local session-file import 结果
   - 结构 contract 与 canonical 保持一致
   - 但**不冒充 canonical parity**
 
@@ -235,7 +242,7 @@ codex app-server
 后续文档和实现会继续沿着这条线推进：
 
 1. JSON / HTML renderer
-2. Claude Code connector
+2. Claude replay hardening / fidelity 提升
 3. 更丰富的 archive browsing / publishing 能力
 4. search / index / multi-agent archive 平台化
 
@@ -250,6 +257,7 @@ cargo run -- connectors
 cargo run -- scaffold
 cargo run -- export codex --thread-id <thread-id>
 cargo run -- export codex --source local --thread-id <thread-id>
+cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl
 ```
 
 ---

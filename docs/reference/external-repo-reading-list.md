@@ -115,7 +115,7 @@
 
 ---
 
-## v1 / v2 / v3 该借谁
+## 当前 phase 顺序该借谁
 
 ### v1
 
@@ -145,11 +145,25 @@
 - `claude-code-log`
 - `coding_agent_session_search`
 
-### v3
+### Phase 3
 
 目标：
 
-- 走向多 agent archive / search / index
+- 证明 second connector 能接进共享 archive / Markdown contract
+- 最小范围接入 Claude Code
+- 不做 auto-discovery / HTML-first / browser-first 体验层
+
+该借：
+
+- `claude-code-transcripts`
+- `claude-code-log`
+- `claude-conversation-extractor`
+
+### Later
+
+目标：
+
+- 走向更强的 output / browse / search / index
 
 该借：
 
@@ -161,8 +175,8 @@
 
 如果只能记一句话，就记这句：
 
-> **v1 先学 `claude-conversation-extractor + claude-code-transcripts + claude-code-log`，**
-> **v2/v3 再学 `coding_agent_session_search`。**
+> **当前 second connector proof 先学 `claude-code-transcripts + claude-code-log + claude-conversation-extractor`，**
+> **以后再学 `coding_agent_session_search`。**
 
 这样做的好处是：
 
@@ -173,7 +187,7 @@
 
 ---
 
-## 当前 v1 已采纳的借鉴结果
+## 当前已采纳的借鉴结果
 
 本仓当前已经明确采纳了下面几层，而没有把整个参考仓整包搬进来：
 
@@ -190,6 +204,10 @@
 4. **`claude-conversation-extractor` 的 local direct-read framing**
    - local source 已落地为 Codex connector 的第二入口
    - 但没有把整个单来源小工具边界搬进 repo
+5. **Phase 3 Claude second connector proof**
+   - `claude-code --session-path <PATH>` landed
+   - shared archive core / shared Markdown contract reused
+   - no auto-discovery / TUI / browser / HTML-first drift
 
 ### 明确未采纳
 

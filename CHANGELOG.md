@@ -26,8 +26,11 @@ The format is based on Keep a Changelog.
 - `--source app-server|local` and `--codex-home` command surface
 - `degraded` completeness semantics for archival local exports
 - Local source CLI integration tests and app-server vs local structure comparison tests
+- Minimal Claude Code connector via `export claude-code --session-path <PATH>`
+- Claude session-path CLI integration tests
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder
 - README / AGENTS / CLAUDE now describe the landed Codex-only v1 implementation
 - CLI help and docs now describe dual-source Phase 2 while keeping `app-server` as the default front door
+- README / blueprint order now place Claude Code connector ahead of JSON / HTML follow-ups

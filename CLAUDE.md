@@ -11,7 +11,7 @@
 ## Current Truth
 
 - This repo is a **Rust CLI-first exporter**.
-- Current implementation delivery is **Codex dual-source export**.
+- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export**.
 - The repository is designed to grow into multiple connectors later, but not all at once.
 - Current export semantics stay aligned with CodexMonitor:
   - `thread/read` primary
@@ -24,6 +24,11 @@
   - `thread-id -> sqlite -> rollout_path` or direct `--rollout-path`
   - result is `degraded`
   - local source is archival truth, not canonical truth
+- Current Claude Code semantics:
+  - `export claude-code --session-path <PATH>`
+  - local session-file import into the shared archive core
+  - result is `degraded`
+  - Claude Phase 3 is a second-connector proof, not a second Markdown dialect
 
 ## Current Document Surfaces
 
@@ -41,4 +46,5 @@ cargo run -- connectors
 cargo run -- scaffold
 cargo run -- export codex --thread-id <thread-id>
 cargo run -- export codex --source local --thread-id <thread-id>
+cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl
 ```

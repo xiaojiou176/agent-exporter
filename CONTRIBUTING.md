@@ -2,12 +2,12 @@
 
 ## 当前贡献重点
 
-当前仓库已经从“只有骨架”进入“Codex-only v1 已落地主导出链”的阶段。
+当前仓库已经从“只有骨架”进入“Codex dual-source + Claude second connector 已 landed”的阶段。
 
 所以最欢迎的贡献顺序是：
 
 1. 文档与实现继续保持同步
-2. 完善 dual-source (`app-server` + `local`) 验证与对比测试
+2. 完善 Claude connector 与 Codex 路径的回归验证
 3. JSON / HTML renderer
 4. 后续 connector 扩展
 
@@ -29,6 +29,7 @@ cargo run -- connectors
 cargo run -- scaffold
 cargo run -- export codex --thread-id <thread-id>
 cargo run -- export codex --source local --thread-id <thread-id>
+cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl
 ```
 
 ---
@@ -53,3 +54,4 @@ cargo run -- export codex --source local --thread-id <thread-id>
 4. 新增 connector 前，先更新 docs/reference
 5. 不要破坏 `complete / incomplete` 与 round-based Markdown contract
 6. 不要把 `local` 结果包装成 canonical / complete truth
+7. 不要为 Claude 再造第二套 transcript / Markdown 模型

@@ -41,6 +41,11 @@ pub fn load_transcript(request: &ExportRequest) -> Result<ArchiveTranscript> {
             let rollout_path = resolve_rollout_path(rollout_path, request.codex_home.as_deref())?;
             load_rollout_transcript(&rollout_path, None, ConnectorSourceKind::LocalRolloutPath)
         }
+        ExportSelector::SessionPath(_) => {
+            bail!(
+                "codex local source does not support `--session-path`; use `--thread-id` or `--rollout-path`"
+            )
+        }
     }
 }
 

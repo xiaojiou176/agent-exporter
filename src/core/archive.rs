@@ -15,12 +15,14 @@ const MAX_THREAD_DISPLAY_NAME_FILENAME_CHARS: usize = 48;
 pub enum ExportSelector {
     ThreadId(String),
     RolloutPath(PathBuf),
+    SessionPath(PathBuf),
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum ExportSource {
     AppServer,
     Local,
+    SessionPath,
 }
 
 impl ExportSource {
@@ -28,6 +30,7 @@ impl ExportSource {
         match self {
             Self::AppServer => "app-server",
             Self::Local => "local",
+            Self::SessionPath => "session-path",
         }
     }
 }
@@ -131,6 +134,7 @@ pub enum ConnectorSourceKind {
     AppServerResumeFallback,
     LocalThreadId,
     LocalRolloutPath,
+    ClaudeSessionPath,
 }
 
 impl ConnectorSourceKind {
@@ -140,6 +144,7 @@ impl ConnectorSourceKind {
             Self::AppServerResumeFallback => "app-server-resume-fallback",
             Self::LocalThreadId => "local-thread-id",
             Self::LocalRolloutPath => "local-rollout-path",
+            Self::ClaudeSessionPath => "claude-session-path",
         }
     }
 }

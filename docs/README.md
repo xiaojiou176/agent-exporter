@@ -6,14 +6,14 @@
 
 ## Current Phase Snapshot
 
-当前这套文档已经进入 **Codex dual-source Phase 2**。
+当前这套文档已经进入 **Phase 3 second-connector proof**。
 
 你可以先把它理解成：这套文档现在要同时解释“正门”和“侧门”，但不能把两者说反。
 
-- 默认主路径仍然是 `app-server`
-- `local direct-read` 已经 landed，属于第二条已落地入口
-- `local` 代表 **archival truth**
-- `local` 的结果要按 **degraded** 理解，不能冒充 canonical parity
+- Codex 默认主路径仍然是 `app-server`
+- Codex `local direct-read` 已经 landed，属于第二条已落地入口
+- `Claude Code` 最小 `--session-path` connector 已 landed，证明架构能接第二个来源
+- `local` 和 `claude-code` 当前都按 **degraded** 理解，不能冒充 canonical parity
 
 ## Read Order
 
@@ -63,6 +63,6 @@
 
 这三份分别回答：
 
-- 默认 `app-server` 主路径的 contract 是什么
-- 为什么 `local` 已 landed 但仍然只能算 archival truth
-- `agent-exporter` 现在该如何同时容纳 canonical 与 degraded 这两层 reality
+- 默认 Codex `app-server` 主路径的 contract 是什么
+- 为什么 `local` 和 `claude-code` 已 landed 但仍然只能算 degraded / archival-class reality
+- `agent-exporter` 现在该如何同时容纳 multiple connectors 与 shared Markdown contract

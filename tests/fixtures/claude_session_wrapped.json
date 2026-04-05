@@ -1,0 +1,57 @@
+{
+  "loglines": [
+    {
+      "type": "user",
+      "timestamp": "2026-04-05T06:00:00.000Z",
+      "sessionId": "claude-session-wrapped",
+      "cwd": "/tmp/claude-json",
+      "uuid": "json-user-1",
+      "message": {
+        "role": "user",
+        "content": "Summarize the repository state"
+      }
+    },
+    {
+      "type": "assistant",
+      "timestamp": "2026-04-05T06:00:01.000Z",
+      "sessionId": "claude-session-wrapped",
+      "cwd": "/tmp/claude-json",
+      "uuid": "json-assistant-1",
+      "message": {
+        "role": "assistant",
+        "content": [
+          {
+            "type": "text",
+            "text": "I'll inspect the repository and summarize it."
+          },
+          {
+            "type": "tool_use",
+            "id": "toolu_glob_001",
+            "name": "Glob",
+            "input": {
+              "pattern": "**/*.rs"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "user",
+      "timestamp": "2026-04-05T06:00:02.000Z",
+      "sessionId": "claude-session-wrapped",
+      "cwd": "/tmp/claude-json",
+      "uuid": "json-user-2",
+      "message": {
+        "role": "user",
+        "content": [
+          {
+            "type": "tool_result",
+            "tool_use_id": "toolu_glob_001",
+            "content": "src/cli.rs\nsrc/main.rs",
+            "is_error": false
+          }
+        ]
+      }
+    }
+  ]
+}

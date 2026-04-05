@@ -6,17 +6,19 @@
 
 ## Current Reality
 
-当前 reference 层已经对齐 **Codex dual-source Phase 2**：
+当前 reference 层已经对齐 **Phase 3 second-connector proof**：
 
 - 默认主路径仍然是 `app-server`
 - `local direct-read` 已经 landed，不再是 future plan
+- `claude-code --session-path` 已经 landed，不再是 future plan
 - `local` 只代表 **archival truth**
-- `local` 的导出状态要按 **degraded** 理解，不能写成 complete 或 canonical
+- `claude-code` 当前也只代表 **degraded local import truth**
+- `local` / `claude-code` 的导出状态都不能写成 complete 或 canonical
 
 说得更直白一点：
 
-> `app-server` 像正式成绩单，`local` 更像档案室复印件。
-> 两者都是真的，但不是同一种“真”。
+> `app-server` 像正式成绩单，`local` 和 `claude-code` 更像档案室复印件。
+> 它们都是真的，但不是同一种“真”。
 
 ## Current Documents
 
@@ -27,7 +29,7 @@
 3. `external-repo-reading-list.md`
    - 外部开源仓的分层借鉴矩阵
 4. `codex-thread-archive-blueprint.md`
-   - 当前 `agent-exporter` 的产品/架构蓝图，明确 dual-source 命令面、默认 source、以及 `degraded` 状态语义
+  - 当前 `agent-exporter` 的产品/架构蓝图，明确 multi-connector 命令面、默认 source、以及 `degraded` 状态语义
 
 ## Suggested Reading Order
 
@@ -39,5 +41,5 @@
 这条顺序现在的目的，不只是“读参考资料”，而是尽快把下面三件事读成同一个口径：
 
 1. 为什么 `app-server` 仍然是默认主路径
-2. 为什么 `local` 已经 landed 但仍然不是 canonical replacement
+2. 为什么 `local` 与 `claude-code` 已经 landed 但仍然不是 canonical replacement
 3. 为什么 `degraded` 是正确披露，而不是保守措辞

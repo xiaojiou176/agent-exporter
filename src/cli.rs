@@ -17,8 +17,8 @@ use crate::output::markdown::{self, DEFAULT_MAX_LINES_PER_PART};
     version,
     about = "Local-first Rust CLI for exporting Codex transcripts and thread archives.",
     long_about = "Local-first Rust CLI for exporting Codex transcripts and thread archives.\
-\n\nCurrent delivery: Codex-only v1 via the canonical app-server path.\
-\nPlanned expansion: Claude Code and other local agent CLIs."
+\n\nCurrent delivery: Codex dual-source plus a minimal Claude Code second-connector proof.\
+\nCodex keeps the default canonical app-server front door, while Claude currently enters through explicit session-path import."
 )]
 pub struct Cli {
     #[command(subcommand)]
@@ -42,6 +42,8 @@ enum Commands {
 enum ExportCommands {
     /// Export a Codex thread through the canonical app-server path or the local archival path.
     Codex(CodexExportArgs),
+    /// Export a Claude Code session file through the shared archival Markdown contract.
+    ClaudeCode(ClaudeCodeExportArgs),
 }
 
 #[derive(Debug, clap::Args)]
@@ -71,6 +73,19 @@ struct CodexExportArgs {
     /// default `codex`, the CLI automatically uses `codex app-server`.
     #[arg(long = "app-server-arg")]
     app_server_args: Vec<String>,
+}
+
+#[derive(Debug, clap::Args)]
+struct ClaudeCodeExportArgs {
+    /// Direct Claude Code session path (`.jsonl` or compatible JSON export).
+    #[arg(long)]
+    session_path: PathBuf,
+    /// Output destination contract.
+    #[arg(long, value_enum, default_value_t = DestinationArg::Downloads)]
+    destination: DestinationArg,
+    /// Workspace root required when destination is workspace-conversations.
+    #[arg(long)]
+    workspace_root: Option<PathBuf>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
@@ -124,6 +139,9 @@ impl CodexExportArgs {
                     bail!("local source accepts either --thread-id or --rollout-path, not both")
                 }
             },
+            ExportSource::SessionPath => {
+                unreachable!("codex export args cannot construct a session-path source")
+            }
         };
 
         Ok(ExportRequest {
@@ -141,6 +159,20 @@ impl CodexExportArgs {
     }
 }
 
+impl ClaudeCodeExportArgs {
+    fn into_request(self) -> Result<ExportRequest> {
+        Ok(ExportRequest {
+            connector: ConnectorKind::ClaudeCode,
+            source: ExportSource::SessionPath,
+            selector: ExportSelector::SessionPath(self.session_path),
+            format: OutputFormat::Markdown,
+            output_target: self.destination.into_output_target(self.workspace_root)?,
+            app_server: AppServerLaunchConfig::default(),
+            codex_home: None,
+        })
+    }
+}
+
 pub fn run() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
@@ -148,6 +180,7 @@ pub fn run() -> Result<()> {
         Commands::Scaffold => print_scaffold_status(),
         Commands::Export { command } => match command {
             ExportCommands::Codex(args) => export_codex(args)?,
+            ExportCommands::ClaudeCode(args) => export_claude_code(args)?,
         },
     }
     Ok(())
@@ -171,15 +204,27 @@ fn print_connectors() {
 
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
-    println!("- Current scope: Codex-only v1 via the canonical app-server path.");
+    println!(
+        "- Current scope: Codex dual-source + minimal Claude session-path second-connector proof."
+    );
     println!("- Repository shape: source/core/output split with room for future connectors.");
-    println!("- Real export path: `agent-exporter export codex --thread-id <id>`.");
-    println!("- Next expansion slice: local direct-read after canonical parity stays green.");
+    println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
+    println!(
+        "- Real Claude export path: `agent-exporter export claude-code --session-path <path>`."
+    );
 }
 
 fn export_codex(args: CodexExportArgs) -> Result<()> {
     let request = args.into_request()?;
+    export_request(request)
+}
 
+fn export_claude_code(args: ClaudeCodeExportArgs) -> Result<()> {
+    let request = args.into_request()?;
+    export_request(request)
+}
+
+fn export_request(request: ExportRequest) -> Result<()> {
     let transcript = connectors::export(&request)?;
     let exported_at = Utc::now().to_rfc3339();
     let archive_title = transcript.archive_title(&request.output_target);
@@ -199,7 +244,7 @@ fn export_codex(args: CodexExportArgs) -> Result<()> {
     let outcome =
         crate::core::archive::write_markdown_parts(&transcript, &request.output_target, &parts)?;
 
-    println!("Codex export completed");
+    println!("Export completed");
     println!("- Connector    : {}", request.connector.as_str());
     println!("- Selection    : {}", request.source.as_str());
     println!("- Thread ID    : {}", transcript.thread_id);

@@ -10,11 +10,12 @@
 
 ## 一句话定义
 
-`agent-exporter` 的 v1 目标不是“万能会话平台”，而是：
+`agent-exporter` 当前的最小目标不是“万能会话平台”，而是：
 
-> **一个 Rust CLI-first 的 Codex transcript/archive 工具。**
+> **一个 Rust CLI-first 的 transcript/archive exporter，**
+> **先做稳 Codex，再证明第二个 connector 也能接进来。**
 
-它当前先做 Codex，后续再扩展到 Claude Code 和其他 CLI。
+它当前已经做完 Codex dual-source，并且落下了一个最小 `Claude Code` second connector proof。
 
 ---
 
@@ -49,7 +50,7 @@
 
 - `codex app-server source`（default canonical）
 - `codex local direct-read source`（landed archival second entrance）
-- `claude-code source`（future）
+- `claude-code session-path source`（landed minimal second connector）
 
 ### 2. core
 
@@ -99,14 +100,21 @@
 
 ### Phase 3
 
-再做：
+已落地：
 
-- Claude Code connector
+- `claude-code --session-path <PATH>`
 
 原因：
 
-- 当前仓库先把 Codex 走通最重要
-- connector 边界稳定后再接第二个来源，成本更低
+- 用最小范围证明 second connector 可以复用现有 archive core
+- 不必先做自动发现 / HTML / browser 体验层
+
+### Phase 4
+
+再做：
+
+- JSON / HTML renderer
+- Claude replay hardening / fidelity 提升
 
 ---
 
@@ -120,6 +128,7 @@ agent-exporter scaffold
 agent-exporter export codex --thread-id <id>
 agent-exporter export codex --source local --thread-id <id>
 agent-exporter export codex --source local --rollout-path <path>
+agent-exporter export claude-code --session-path <path>
 agent-exporter export codex --source app-server --thread-id <id> --destination workspace-conversations --workspace-root <repo-root>
 ```
 

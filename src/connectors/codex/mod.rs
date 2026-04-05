@@ -27,6 +27,9 @@ pub fn load_transcript(request: &ExportRequest) -> Result<ArchiveTranscript> {
     match request.source {
         ExportSource::AppServer => load_app_server_transcript(request),
         ExportSource::Local => local::load_transcript(request),
+        ExportSource::SessionPath => {
+            bail!("codex connector does not support `session-path`; use `app-server` or `local`")
+        }
     }
 }
 
@@ -35,6 +38,9 @@ fn load_app_server_transcript(request: &ExportRequest) -> Result<ArchiveTranscri
         ExportSelector::ThreadId(thread_id) => thread_id.clone(),
         ExportSelector::RolloutPath(_) => {
             bail!("app-server source does not support `--rollout-path`; use `--thread-id`")
+        }
+        ExportSelector::SessionPath(_) => {
+            bail!("app-server source does not support `--session-path`; use `--thread-id`")
         }
     };
 
