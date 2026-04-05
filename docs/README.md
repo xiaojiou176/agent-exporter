@@ -6,7 +6,7 @@
 
 ## Current Phase Snapshot
 
-当前这套文档已经进入 **Phase 6 minimal HTML renderer landed**。
+当前这套文档已经进入 **Phase 7 archive index landed**。
 
 你可以先把它理解成：这套文档现在要同时解释“正门、侧门、以及第二种输出格式”，但不能把它们说成同一种真相。
 
@@ -15,8 +15,9 @@
 - `Claude Code` 最小 `--session-path` connector 已 landed，证明架构能接第二个来源
 - `--format json` 已经 landed，证明 shared transcript/core/output abstraction 能接第二种结构化输出
 - `--format html` 已经 landed，证明同一份 transcript 也能输出成静态可读页面
+- `publish archive-index` 已经 landed，证明这些页面已经可以本地浏览和静态发布
 - `local` 和 `claude-code` 当前都按 **degraded** 理解，不能冒充 canonical parity
-- 当前最值钱的工作是 archive browsing / publish，而不是 search / index / 平台壳
+- 当前最值钱的工作是 search / index，而不是 hosted / 平台壳
 
 ## Read Order
 
@@ -72,4 +73,4 @@
 - 这个仓允许碰宿主机的最远边界在哪里
 - 默认 Codex `app-server` 主路径的 contract 是什么
 - 为什么 `local` 和 `claude-code` 已 landed 但仍然只能算 degraded / archival-class reality
-- `agent-exporter` 现在该如何同时容纳 multiple connectors 与 shared archive contract，以及 Markdown / JSON / HTML 三种输出
+- `agent-exporter` 现在该如何同时容纳 multiple connectors 与 shared archive contract，以及 Markdown / JSON / HTML / archive index 这几层输出

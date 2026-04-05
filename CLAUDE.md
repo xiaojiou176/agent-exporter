@@ -12,7 +12,7 @@
 ## Current Truth
 
 - This repo is a **Rust CLI-first exporter**.
-- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export**.
+- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index**.
 - The repository is designed to grow into multiple connectors later, but not all at once.
 - Current export semantics stay aligned with CodexMonitor:
   - `thread/read` primary
@@ -36,8 +36,13 @@
   - `json` is a second output over the same transcript core
   - `html` is a third output over the same transcript core
   - `html` is a static readable transcript document, not a browse shell
+- Current archive browsing / publish semantics:
+  - `publish archive-index --workspace-root <repo>`
+  - scans workspace conversations for existing HTML transcript exports
+  - writes one static `index.html` with relative links
+  - does not add search / semantic indexing / hosted publish
 - Current highest-value next step:
-  - archive browsing / publish before search / index layers
+  - search / index before broader platform layers
 - Current host-safety semantics:
   - the repo may spawn one direct app-server child
   - the repo may only terminate that directly owned child handle
@@ -64,6 +69,7 @@ cargo run -- export codex --thread-id <thread-id> --format json
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format json
 cargo run -- export codex --thread-id <thread-id> --format html
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format html
+cargo run -- publish archive-index --workspace-root /absolute/path/to/repo
 ```
 
 `cargo test` now also acts as the repo's host-safety gate.

@@ -36,6 +36,8 @@ The format is based on Keep a Changelog.
 - Codex HTML export CLI integration tests
 - Claude HTML export CLI integration tests
 - HTML renderer unit tests and HTML writer conflict-suffix coverage
+- Local `publish archive-index` command for workspace conversations
+- Archive index unit tests and publish CLI integration tests
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder
@@ -43,4 +45,5 @@ The format is based on Keep a Changelog.
 - CLI help and docs now describe dual-source Phase 2 while keeping `app-server` as the default front door
 - README / blueprint order now place Claude Code connector ahead of JSON / HTML follow-ups
 - CLI export surface now keeps Markdown as the default while exposing `--format markdown|json|html`
+- CLI now also exposes `publish archive-index --workspace-root <repo>`
 - Codex / Claude connector summaries now describe the shared archive transcript contract instead of a Markdown-only contract

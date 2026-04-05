@@ -36,6 +36,13 @@ pub fn render_html_document(
             "  <meta charset=\"utf-8\">\n",
             "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n",
             "  <title>{title}</title>\n",
+            "  <meta name=\"agent-exporter:archive-title\" content=\"{archive_title_meta}\">\n",
+            "  <meta name=\"agent-exporter:thread-display-name\" content=\"{thread_display_name_meta}\">\n",
+            "  <meta name=\"agent-exporter:connector\" content=\"{connector_meta}\">\n",
+            "  <meta name=\"agent-exporter:thread-id\" content=\"{thread_id_meta}\">\n",
+            "  <meta name=\"agent-exporter:exported-at\" content=\"{exported_at_meta}\">\n",
+            "  <meta name=\"agent-exporter:completeness\" content=\"{completeness_meta}\">\n",
+            "  <meta name=\"agent-exporter:source-kind\" content=\"{source_kind_meta}\">\n",
             "  <style>\n{style}\n  </style>\n",
             "</head>\n",
             "<body>\n",
@@ -64,11 +71,22 @@ pub fn render_html_document(
         ),
         title = escape_html(&title),
         title_html = escape_html(&title),
+        archive_title_meta = escape_html(archive_title),
+        thread_display_name_meta = escape_html(
+            transcript
+                .thread_display_name()
+                .unwrap_or(&transcript.thread_id)
+        ),
         style = html_style(),
+        connector_meta = escape_html(transcript.connector.as_str()),
         connector = escape_html(transcript.connector.as_str()),
+        thread_id_meta = escape_html(&transcript.thread_id),
         thread_id = escape_html(&transcript.thread_id),
+        exported_at_meta = escape_html(exported_at),
         exported_at_html = escape_html(exported_at),
+        completeness_meta = escape_html(transcript.completeness.as_str()),
         completeness = escape_html(transcript.completeness.as_str()),
+        source_kind_meta = escape_html(transcript.source_kind.as_str()),
         source_kind = escape_html(transcript.source_kind.as_str()),
         thread_status = escape_html(transcript.thread_status.as_str()),
         round_count = transcript.round_count(),
@@ -510,7 +528,7 @@ fn pretty_json(value: &Value) -> String {
     serde_json::to_string_pretty(value).unwrap_or_else(|_| value.to_string())
 }
 
-fn escape_html(value: &str) -> String {
+pub(crate) fn escape_html(value: &str) -> String {
     value
         .chars()
         .map(|ch| match ch {
@@ -836,6 +854,7 @@ mod tests {
 
         assert!(document.contains("<!DOCTYPE html>"));
         assert!(document.contains("agent-exporter 对话归档"));
+        assert!(document.contains("agent-exporter:archive-title"));
         assert!(document.contains("第1轮"));
         assert!(document.contains("用户"));
         assert!(document.contains("助手") || document.contains("工具"));

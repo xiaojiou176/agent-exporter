@@ -144,9 +144,20 @@
 
 ### Phase 7
 
-再做：
+已落地：
 
 - archive browsing / publish
+
+原因：
+
+- 现在已经能为 workspace conversations 生成本地 archive index
+- 但仍然没有进入 search / semantic retrieval / 平台壳
+
+### Phase 8
+
+再做：
+
+- search / index / semantic retrieval
 
 ---
 
@@ -165,6 +176,7 @@ agent-exporter export codex --thread-id <id> --format json
 agent-exporter export claude-code --session-path <path> --format json
 agent-exporter export codex --thread-id <id> --format html
 agent-exporter export claude-code --session-path <path> --format html
+agent-exporter publish archive-index --workspace-root <repo-root>
 agent-exporter export codex --source app-server --thread-id <id> --destination workspace-conversations --workspace-root <repo-root>
 ```
 

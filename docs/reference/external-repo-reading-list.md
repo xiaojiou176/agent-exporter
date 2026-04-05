@@ -232,6 +232,10 @@
    - existing export commands now accept `--format html`
    - output remains single-transcript export, not browse shell
    - search / publish platform layers still remain later
+8. **Phase 7 archive index**
+   - local `publish archive-index` now generates one static index page
+   - archive browsing still stays local-first and relative-link based
+   - search / semantic index still remain later
 
 ### 明确未采纳
 

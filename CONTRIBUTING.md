@@ -7,8 +7,8 @@
 所以最欢迎的贡献顺序是：
 
 1. 文档与实现继续保持同步
-2. 继续完善 Markdown / JSON / HTML 三输出与 Codex / Claude 路径的回归验证
-3. archive browsing / publish
+2. 继续完善 export + archive index 与 Codex / Claude 路径的回归验证
+3. search / index / semantic retrieval
 4. 后续 connector 扩展
 
 不欢迎的顺序是：
@@ -34,6 +34,7 @@ cargo run -- export codex --thread-id <thread-id> --format json
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format json
 cargo run -- export codex --thread-id <thread-id> --format html
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format html
+cargo run -- publish archive-index --workspace-root /absolute/path/to/repo
 ```
 
 ---

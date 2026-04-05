@@ -8,9 +8,10 @@ use crate::connectors;
 use crate::core::archive::{
     AppServerLaunchConfig, ExportRequest, ExportSelector, ExportSource, OutputTarget,
 };
+use crate::core::archive_index;
 use crate::model::{ConnectorKind, OutputFormat, SupportStage};
 use crate::output::{
-    html as html_output, json as json_output,
+    archive_index as archive_index_output, html as html_output, json as json_output,
     markdown::{self, DEFAULT_MAX_LINES_PER_PART},
 };
 
@@ -39,6 +40,11 @@ enum Commands {
         #[command(subcommand)]
         command: ExportCommands,
     },
+    /// Generate a local archive index for existing transcript exports.
+    Publish {
+        #[command(subcommand)]
+        command: PublishCommands,
+    },
 }
 
 #[derive(Debug, Subcommand)]
@@ -47,6 +53,12 @@ enum ExportCommands {
     Codex(CodexExportArgs),
     /// Export a Claude Code session file through the shared archival transcript contract.
     ClaudeCode(ClaudeCodeExportArgs),
+}
+
+#[derive(Debug, Subcommand)]
+enum PublishCommands {
+    /// Generate a static index for HTML transcript exports inside workspace conversations.
+    ArchiveIndex(PublishArchiveIndexArgs),
 }
 
 #[derive(Debug, clap::Args)]
@@ -97,6 +109,13 @@ struct ClaudeCodeExportArgs {
     /// Workspace root required when destination is workspace-conversations.
     #[arg(long)]
     workspace_root: Option<PathBuf>,
+}
+
+#[derive(Debug, clap::Args)]
+struct PublishArchiveIndexArgs {
+    /// Workspace root whose `.agents/Conversations` directory should be indexed.
+    #[arg(long)]
+    workspace_root: PathBuf,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
@@ -213,6 +232,9 @@ pub fn run() -> Result<()> {
             ExportCommands::Codex(args) => export_codex(args)?,
             ExportCommands::ClaudeCode(args) => export_claude_code(args)?,
         },
+        Commands::Publish { command } => match command {
+            PublishCommands::ArchiveIndex(args) => publish_archive_index(args)?,
+        },
     }
     Ok(())
 }
@@ -236,7 +258,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -245,7 +267,10 @@ fn print_scaffold_status() {
     );
     println!("- Real JSON export path: add `--format json` to the existing export commands.");
     println!("- Real HTML export path: add `--format html` to the existing export commands.");
-    println!("- Next step: archive browsing / publish without changing transcript semantics.");
+    println!(
+        "- Real archive index path: `agent-exporter publish archive-index --workspace-root <repo>`."
+    );
+    println!("- Next step: search / index without changing transcript semantics.");
 }
 
 fn export_codex(args: CodexExportArgs) -> Result<()> {
@@ -256,6 +281,33 @@ fn export_codex(args: CodexExportArgs) -> Result<()> {
 fn export_claude_code(args: ClaudeCodeExportArgs) -> Result<()> {
     let request = args.into_request()?;
     export_request(request)
+}
+
+fn publish_archive_index(args: PublishArchiveIndexArgs) -> Result<()> {
+    let entries = archive_index::collect_html_archive_entries(&args.workspace_root)?;
+    let archive_title = args
+        .workspace_root
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map(|name| format!("{name} archive index"))
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or_else(|| "agent-exporter archive index".to_string());
+    let generated_at = Utc::now().to_rfc3339();
+    let document = archive_index_output::render_archive_index_document(
+        &archive_title,
+        &generated_at,
+        &entries,
+    );
+    let archive_dir = archive_index::resolve_workspace_conversations_dir(&args.workspace_root)?;
+    let index_path = archive_index::write_archive_index_document(&args.workspace_root, &document)?;
+
+    println!("Archive index published");
+    println!("- Workspace    : {}", args.workspace_root.display());
+    println!("- Archive Dir  : {}", archive_dir.display());
+    println!("- Entries      : {}", entries.len());
+    println!("- Index        : {}", index_path.display());
+
+    Ok(())
 }
 
 fn export_request(request: ExportRequest) -> Result<()> {
