@@ -6,7 +6,7 @@
 
 - 当前目标：**Codex canonical transcript/archive 导出**
 - 未来目标：Claude Code、以及其他本地 CLI
-- 当前阶段：**Codex dual-source + Claude Code minimal Phase 3 已落地，当前最高优先级是 Phase 4 Claude replay hardening；默认 Codex 主路径仍是 app-server**
+- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON export 已落地，当前最高优先级是最小 HTML renderer；默认 Codex 主路径仍是 app-server**
 
 ---
 
@@ -65,13 +65,16 @@
 - `claude-code session-path connector`
 - typed archive core
 - markdown export
+- json export
 - `export codex --thread-id ...` 真实 CLI 主链
+- `export claude-code --session-path ...` 真实 CLI 主链
+- `--format markdown|json`
 - `--source app-server|local`
 - `degraded` archival semantics for local source
 
 ### 当前明确非目标
 
-- Claude Code connector
+- HTML renderer
 - Search / index
 - MCP server
 - Web UI / GUI
@@ -91,6 +94,8 @@ cargo run -- scaffold
 cargo run -- export codex --thread-id <thread-id>
 cargo run -- export codex --source local --thread-id <thread-id>
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl
+cargo run -- export codex --thread-id <thread-id> --format json
+cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format json
 ```
 
 说明：

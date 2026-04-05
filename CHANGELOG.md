@@ -28,9 +28,15 @@ The format is based on Keep a Changelog.
 - Local source CLI integration tests and app-server vs local structure comparison tests
 - Minimal Claude Code connector via `export claude-code --session-path <PATH>`
 - Claude session-path CLI integration tests
+- Minimal shared JSON exporter via `--format json`
+- Codex JSON export CLI integration tests
+- Claude JSON export CLI integration tests
+- JSON renderer unit tests and JSON writer conflict-suffix coverage
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder
 - README / AGENTS / CLAUDE now describe the landed Codex-only v1 implementation
 - CLI help and docs now describe dual-source Phase 2 while keeping `app-server` as the default front door
 - README / blueprint order now place Claude Code connector ahead of JSON / HTML follow-ups
+- CLI export surface now keeps Markdown as the default while exposing `--format markdown|json`
+- Codex / Claude connector summaries now describe the shared archive transcript contract instead of a Markdown-only contract

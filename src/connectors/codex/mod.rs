@@ -19,7 +19,7 @@ use self::app_server::{AppServerClient, AppServerResponseError};
 pub const DEFINITION: ConnectorDefinition = ConnectorDefinition {
     kind: ConnectorKind::Codex,
     stage: SupportStage::Current,
-    summary: "Canonical Codex app-server export path for round-based Markdown archives.",
+    summary: "Canonical Codex app-server export path for the shared archive transcript contract.",
     source_of_truth: "CodexMonitor export contract + official Codex thread/read pipeline",
 };
 

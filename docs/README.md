@@ -6,15 +6,16 @@
 
 ## Current Phase Snapshot
 
-当前这套文档已经进入 **Phase 4 Claude replay hardening**。
+当前这套文档已经进入 **Phase 5 minimal JSON renderer landed**。
 
-你可以先把它理解成：这套文档现在要同时解释“正门”和“侧门”，但不能把两者说反。
+你可以先把它理解成：这套文档现在要同时解释“正门、侧门、以及第二种输出格式”，但不能把它们说成同一种真相。
 
 - Codex 默认主路径仍然是 `app-server`
 - Codex `local direct-read` 已经 landed，属于第二条已落地入口
 - `Claude Code` 最小 `--session-path` connector 已 landed，证明架构能接第二个来源
+- `--format json` 已经 landed，证明 shared transcript/core/output abstraction 能接第二种结构化输出
 - `local` 和 `claude-code` 当前都按 **degraded** 理解，不能冒充 canonical parity
-- 当前最值钱的工作不是 renderer，而是 Claude replay fidelity 提升
+- 当前最值钱的工作是最小 HTML renderer，而不是 browse / publish / search
 
 ## Read Order
 
@@ -44,7 +45,7 @@
 
 ### 2. `docs/reference/*`
 
-记录实现前必须参考的真理面和外部参考仓，回答“要参考谁、借哪一层、不该抄哪一层”，同时把当前 dual-source 现实讲清楚。
+记录实现前必须参考的真理面和外部参考仓，回答“要参考谁、借哪一层、不该抄哪一层”，同时把当前 dual-source reality、second connector reality、以及双输出现实讲清楚。
 
 当前已有：
 
@@ -70,4 +71,4 @@
 - 这个仓允许碰宿主机的最远边界在哪里
 - 默认 Codex `app-server` 主路径的 contract 是什么
 - 为什么 `local` 和 `claude-code` 已 landed 但仍然只能算 degraded / archival-class reality
-- `agent-exporter` 现在该如何同时容纳 multiple connectors 与 shared Markdown contract
+- `agent-exporter` 现在该如何同时容纳 multiple connectors 与 shared archive contract，以及 Markdown / JSON 两种输出

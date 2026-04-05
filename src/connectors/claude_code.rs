@@ -16,7 +16,7 @@ use crate::model::{ConnectorDefinition, ConnectorKind, SupportStage};
 pub const DEFINITION: ConnectorDefinition = ConnectorDefinition {
     kind: ConnectorKind::ClaudeCode,
     stage: SupportStage::Current,
-    summary: "Minimal Claude Code session-path import that reuses the shared archive Markdown contract.",
+    summary: "Minimal Claude Code session-path import that reuses the shared archive transcript contract.",
     source_of_truth: "Claude local session artifacts (`--session-path`) mapped into the shared archive core",
 };
 

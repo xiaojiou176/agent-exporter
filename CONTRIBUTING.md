@@ -7,8 +7,8 @@
 所以最欢迎的贡献顺序是：
 
 1. 文档与实现继续保持同步
-2. 完善 Claude connector 与 Codex 路径的回归验证
-3. JSON / HTML renderer
+2. 继续完善 JSON / Markdown 双输出与 Codex / Claude 路径的回归验证
+3. 最小 HTML renderer
 4. 后续 connector 扩展
 
 不欢迎的顺序是：
@@ -30,6 +30,8 @@ cargo run -- scaffold
 cargo run -- export codex --thread-id <thread-id>
 cargo run -- export codex --source local --thread-id <thread-id>
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl
+cargo run -- export codex --thread-id <thread-id> --format json
+cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format json
 ```
 
 ---
@@ -52,6 +54,6 @@ cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl
 2. 不要把 local direct-read 假装成 canonical export
 3. 不要在没有 ADR/文档更新前改导出语义
 4. 新增 connector 前，先更新 docs/reference
-5. 不要破坏 `complete / incomplete` 与 round-based Markdown contract
+5. 不要破坏 `complete / incomplete` 与默认 round-based Markdown contract
 6. 不要把 `local` 结果包装成 canonical / complete truth
-7. 不要为 Claude 再造第二套 transcript / Markdown 模型
+7. 不要为 Claude 再造第二套 transcript / output 模型

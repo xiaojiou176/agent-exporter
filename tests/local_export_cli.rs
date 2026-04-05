@@ -21,10 +21,15 @@ fn conversations_dir(workspace_root: &Path) -> PathBuf {
     workspace_root.join(".agents").join("Conversations")
 }
 
-fn exported_markdown_paths(workspace_root: &Path) -> Vec<PathBuf> {
+fn exported_paths_with_extension(workspace_root: &Path, extension: &str) -> Vec<PathBuf> {
     let mut paths = fs::read_dir(conversations_dir(workspace_root))
         .expect("conversations dir should exist")
         .map(|entry| entry.expect("dir entry").path())
+        .filter(|path| {
+            path.extension()
+                .and_then(|value| value.to_str())
+                .is_some_and(|value| value == extension)
+        })
         .collect::<Vec<_>>();
     paths.sort();
     paths
@@ -142,7 +147,7 @@ fn local_source_with_thread_id_exports_degraded_markdown() {
         .stdout(predicate::str::contains("Completeness : degraded"))
         .stdout(predicate::str::contains("Source       : local-thread-id"));
 
-    let paths = exported_markdown_paths(workspace.path());
+    let paths = exported_paths_with_extension(workspace.path(), "md");
     assert_eq!(paths.len(), 1);
     let content = fs::read_to_string(&paths[0]).expect("markdown content");
     assert!(content.contains("完整性: `degraded`"));
@@ -173,10 +178,46 @@ fn local_source_with_rollout_path_exports_degraded_markdown() {
             "Source       : local-rollout-path",
         ));
 
-    let paths = exported_markdown_paths(workspace.path());
+    let paths = exported_paths_with_extension(workspace.path(), "md");
     let content = fs::read_to_string(&paths[0]).expect("markdown content");
     assert!(content.contains("来源: `local-rollout-path`"));
     assert!(content.contains("spawn_agent"));
+}
+
+#[test]
+fn local_source_with_thread_id_exports_degraded_json() {
+    let workspace = tempdir().expect("workspace");
+    let codex_home = tempdir().expect("codex home");
+    create_local_fixture(
+        codex_home.path(),
+        "local-json-thread",
+        "sessions/local-json-thread.jsonl",
+    );
+
+    build_local_command(workspace.path())
+        .arg("--codex-home")
+        .arg(codex_home.path())
+        .arg("--thread-id")
+        .arg("local-json-thread")
+        .arg("--format")
+        .arg("json")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Format       : json"))
+        .stdout(predicate::str::contains("Completeness : degraded"))
+        .stdout(predicate::str::contains("Source       : local-thread-id"));
+
+    let paths = exported_paths_with_extension(workspace.path(), "json");
+    assert_eq!(paths.len(), 1);
+    let content = fs::read_to_string(&paths[0]).expect("json content");
+    let document: serde_json::Value = serde_json::from_str(&content).expect("valid json");
+    assert_eq!(document["transcript"]["connector"], "codex");
+    assert_eq!(document["transcript"]["completeness"], "degraded");
+    assert_eq!(document["transcript"]["source_kind"], "local-thread-id");
+    assert_eq!(
+        document["transcript"]["rounds"][0]["items"][1]["kind"],
+        "tool_call"
+    );
 }
 
 #[test]
@@ -201,10 +242,12 @@ fn local_and_app_server_exports_keep_same_structure_skeleton() {
         .assert()
         .success();
 
-    let app_markdown = fs::read_to_string(&exported_markdown_paths(app_workspace.path())[0])
-        .expect("app markdown");
-    let local_markdown = fs::read_to_string(&exported_markdown_paths(local_workspace.path())[0])
-        .expect("local markdown");
+    let app_markdown =
+        fs::read_to_string(&exported_paths_with_extension(app_workspace.path(), "md")[0])
+            .expect("app markdown");
+    let local_markdown =
+        fs::read_to_string(&exported_paths_with_extension(local_workspace.path(), "md")[0])
+            .expect("local markdown");
 
     for marker in ["# 第1轮", "## 用户", "## 助手", "### 工具"] {
         assert_eq!(

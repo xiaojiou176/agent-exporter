@@ -450,7 +450,7 @@ pub struct DynamicToolCallRecord {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ExportOutcome {
-    pub markdown_paths: Vec<PathBuf>,
+    pub output_paths: Vec<PathBuf>,
     pub exported_part_count: usize,
     pub exported_item_count: usize,
     pub exported_turn_count: usize,
@@ -518,8 +518,77 @@ fn write_markdown_parts_at(
         }
 
         return Ok(ExportOutcome {
-            markdown_paths: paths,
+            output_paths: paths,
             exported_part_count: parts.len(),
+            exported_item_count: transcript.item_count(),
+            exported_turn_count: transcript.round_count(),
+            completeness: transcript.completeness,
+        });
+    }
+
+    bail!("Failed to allocate unique archive export filenames.")
+}
+
+pub fn write_json_document(
+    transcript: &ArchiveTranscript,
+    output_target: &OutputTarget,
+    document: &Value,
+) -> Result<ExportOutcome> {
+    write_json_document_at(transcript, output_target, document, Local::now())
+}
+
+fn write_json_document_at(
+    transcript: &ArchiveTranscript,
+    output_target: &OutputTarget,
+    document: &Value,
+    now: DateTime<Local>,
+) -> Result<ExportOutcome> {
+    let output_dir = output_target.resolve_output_dir()?;
+    fs::create_dir_all(&output_dir).with_context(|| {
+        format!(
+            "Failed to prepare export directory `{}`",
+            output_dir.display()
+        )
+    })?;
+
+    let filename_stem = build_thread_archive_filename_stem(
+        output_target.workspace_display_name().as_deref(),
+        transcript.thread_display_name(),
+        &transcript.thread_id,
+    );
+    let timestamp = now.format("%Y-%m-%d_%H-%M-%S").to_string();
+    let rendered = format!(
+        "{}\n",
+        serde_json::to_string_pretty(document).context("failed to render JSON export document")?
+    );
+    let start_round = usize::from(transcript.round_count() > 0);
+    let end_round = transcript.round_count();
+
+    for attempt in 0..1000usize {
+        let path = output_dir.join(build_archive_document_filename(
+            &filename_stem,
+            &timestamp,
+            start_round,
+            end_round,
+            "json",
+            attempt,
+        ));
+
+        if path.exists() {
+            continue;
+        }
+
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent).with_context(|| {
+                format!("Failed to prepare export directory `{}`", parent.display())
+            })?;
+        }
+        fs::write(&path, &rendered)
+            .with_context(|| format!("Failed to write export file `{}`", path.display()))?;
+
+        return Ok(ExportOutcome {
+            output_paths: vec![path],
+            exported_part_count: 1,
             exported_item_count: transcript.item_count(),
             exported_turn_count: transcript.round_count(),
             completeness: transcript.completeness,
@@ -615,6 +684,22 @@ fn build_archive_part_filename(
     }
 }
 
+fn build_archive_document_filename(
+    stem: &str,
+    timestamp: &str,
+    start_round: usize,
+    end_round: usize,
+    extension: &str,
+    attempt: usize,
+) -> String {
+    let base = format!("{stem}-rounds-{start_round}-{end_round}-{timestamp}");
+    if attempt == 0 {
+        format!("{base}.{extension}")
+    } else {
+        format!("{base}-{}.{}", attempt + 1, extension)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use chrono::TimeZone;
@@ -623,7 +708,7 @@ mod tests {
     use super::{
         AppServerLaunchConfig, ArchiveCompleteness, ArchiveRound, ArchiveThreadStatus,
         ArchiveTranscript, ArchiveTurnItem, ArchiveTurnStatus, ConnectorSourceKind, OutputTarget,
-        write_markdown_parts_at,
+        write_json_document_at, write_markdown_parts_at,
     };
     use crate::model::ConnectorKind;
     use crate::output::markdown::RenderedArchivePart;
@@ -696,12 +781,46 @@ mod tests {
 
         assert_eq!(first.exported_part_count, 1);
         assert_eq!(second.exported_part_count, 1);
-        assert_ne!(first.markdown_paths[0], second.markdown_paths[0]);
+        assert_ne!(first.output_paths[0], second.output_paths[0]);
         assert!(
-            second.markdown_paths[0]
+            second.output_paths[0]
                 .file_name()
                 .and_then(|name| name.to_str())
                 .is_some_and(|name| name.ends_with("-2.md"))
+        );
+    }
+
+    #[test]
+    fn write_json_document_increments_conflict_suffix() {
+        let workspace = tempdir().expect("temp dir");
+        let transcript = sample_transcript();
+        let document = serde_json::json!({
+            "schema_version": 1,
+            "transcript": {
+                "thread_id": transcript.thread_id,
+            }
+        });
+        let target = OutputTarget::WorkspaceConversations {
+            workspace_root: workspace.path().to_path_buf(),
+        };
+        let timestamp = chrono::Local
+            .with_ymd_and_hms(2026, 4, 4, 12, 0, 0)
+            .single()
+            .expect("fixed timestamp");
+
+        let first = write_json_document_at(&transcript, &target, &document, timestamp)
+            .expect("first export");
+        let second = write_json_document_at(&transcript, &target, &document, timestamp)
+            .expect("second export");
+
+        assert_eq!(first.exported_part_count, 1);
+        assert_eq!(second.exported_part_count, 1);
+        assert_ne!(first.output_paths[0], second.output_paths[0]);
+        assert!(
+            second.output_paths[0]
+                .file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| name.ends_with("-2.json"))
         );
     }
 

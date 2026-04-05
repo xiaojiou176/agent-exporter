@@ -12,13 +12,13 @@
 ## Current Truth
 
 - This repo is a **Rust CLI-first exporter**.
-- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export**.
+- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON export**.
 - The repository is designed to grow into multiple connectors later, but not all at once.
 - Current export semantics stay aligned with CodexMonitor:
   - `thread/read` primary
   - `thread/resume` fallback only
   - fallback exports are `incomplete`
-  - Markdown stays round-based
+  - Markdown stays round-based and remains the default output
   - output target semantics remain explicit
 - Current local direct-read semantics:
   - `--source local`
@@ -30,8 +30,13 @@
   - local session-file import into the shared archive core
   - result is `degraded`
   - Claude Phase 3 is a second-connector proof, not a second Markdown dialect
+- Current output-format semantics:
+  - `--format markdown|json`
+  - `markdown` stays the default
+  - `json` is a second output over the same transcript core
+  - `html` is still future-only
 - Current highest-value next step:
-  - Claude replay hardening / fidelity pass before JSON / HTML renderer work
+  - minimal HTML renderer before browse / publish layers
 - Current host-safety semantics:
   - the repo may spawn one direct app-server child
   - the repo may only terminate that directly owned child handle
@@ -54,6 +59,8 @@ cargo run -- scaffold
 cargo run -- export codex --thread-id <thread-id>
 cargo run -- export codex --source local --thread-id <thread-id>
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl
+cargo run -- export codex --thread-id <thread-id> --format json
+cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format json
 ```
 
 `cargo test` now also acts as the repo's host-safety gate.

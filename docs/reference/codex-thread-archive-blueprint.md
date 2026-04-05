@@ -4,7 +4,7 @@
 
 它回答的问题是：
 
-> 如果我们现在真要落地一个只做 Codex 导出的工具，它最合理的长相是什么？
+> 如果我们现在真要落地一个先做稳 Codex、再接第二个 connector、再接第二种输出格式的工具，它最合理的长相是什么？
 
 ---
 
@@ -122,9 +122,20 @@
 
 ### Phase 5
 
+已落地：
+
+- JSON renderer
+
+原因：
+
+- 现在已经证明 shared transcript/core/output 不只服务 Markdown
+- 但仍然没有把仓库拖进 browse / publish / platform 层
+
+### Phase 6
+
 再做：
 
-- JSON / HTML renderer
+- HTML renderer
 
 ---
 
@@ -139,6 +150,8 @@ agent-exporter export codex --thread-id <id>
 agent-exporter export codex --source local --thread-id <id>
 agent-exporter export codex --source local --rollout-path <path>
 agent-exporter export claude-code --session-path <path>
+agent-exporter export codex --thread-id <id> --format json
+agent-exporter export claude-code --session-path <path> --format json
 agent-exporter export codex --source app-server --thread-id <id> --destination workspace-conversations --workspace-root <repo-root>
 ```
 
@@ -184,6 +197,7 @@ src/
 ├── model/
 │   └── mod.rs
 └── output/
+    ├── json.rs
     ├── markdown.rs
     └── mod.rs
 ```
@@ -219,4 +233,5 @@ src/
 - archival local source 已落地
 - typed archive core 已落地
 - Markdown export 已落地
+- JSON export 已落地
 - 未来扩展边界仍然保持收口

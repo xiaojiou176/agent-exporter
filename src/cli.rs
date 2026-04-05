@@ -9,7 +9,10 @@ use crate::core::archive::{
     AppServerLaunchConfig, ExportRequest, ExportSelector, ExportSource, OutputTarget,
 };
 use crate::model::{ConnectorKind, OutputFormat, SupportStage};
-use crate::output::markdown::{self, DEFAULT_MAX_LINES_PER_PART};
+use crate::output::{
+    json as json_output,
+    markdown::{self, DEFAULT_MAX_LINES_PER_PART},
+};
 
 #[derive(Debug, Parser)]
 #[command(
@@ -17,8 +20,8 @@ use crate::output::markdown::{self, DEFAULT_MAX_LINES_PER_PART};
     version,
     about = "Local-first Rust CLI for exporting Codex transcripts and thread archives.",
     long_about = "Local-first Rust CLI for exporting Codex transcripts and thread archives.\
-\n\nCurrent delivery: Codex dual-source plus a minimal Claude Code second-connector proof.\
-\nCodex keeps the default canonical app-server front door, while Claude currently enters through explicit session-path import."
+\n\nCurrent delivery: Codex dual-source, a minimal Claude Code second-connector proof, and shared Markdown/JSON export surfaces.\
+\nCodex keeps the default canonical app-server front door, while local archival inputs and Claude session-path imports stay explicitly degraded."
 )]
 pub struct Cli {
     #[command(subcommand)]
@@ -42,7 +45,7 @@ enum Commands {
 enum ExportCommands {
     /// Export a Codex thread through the canonical app-server path or the local archival path.
     Codex(CodexExportArgs),
-    /// Export a Claude Code session file through the shared archival Markdown contract.
+    /// Export a Claude Code session file through the shared archival transcript contract.
     ClaudeCode(ClaudeCodeExportArgs),
 }
 
@@ -63,6 +66,9 @@ struct CodexExportArgs {
     /// Output destination contract.
     #[arg(long, value_enum, default_value_t = DestinationArg::Downloads)]
     destination: DestinationArg,
+    /// Output format. `markdown` stays the default current path.
+    #[arg(long, value_enum, default_value_t = FormatArg::Markdown)]
+    format: FormatArg,
     /// Workspace root required when destination is workspace-conversations.
     #[arg(long)]
     workspace_root: Option<PathBuf>,
@@ -85,6 +91,9 @@ struct ClaudeCodeExportArgs {
     /// Output destination contract.
     #[arg(long, value_enum, default_value_t = DestinationArg::Downloads)]
     destination: DestinationArg,
+    /// Output format. `markdown` stays the default current path.
+    #[arg(long, value_enum, default_value_t = FormatArg::Markdown)]
+    format: FormatArg,
     /// Workspace root required when destination is workspace-conversations.
     #[arg(long)]
     workspace_root: Option<PathBuf>,
@@ -102,6 +111,12 @@ enum SourceArg {
     Local,
 }
 
+#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
+enum FormatArg {
+    Markdown,
+    Json,
+}
+
 impl DestinationArg {
     fn into_output_target(self, workspace_root: Option<PathBuf>) -> Result<OutputTarget> {
         match self {
@@ -112,6 +127,15 @@ impl DestinationArg {
                 };
                 Ok(OutputTarget::WorkspaceConversations { workspace_root })
             }
+        }
+    }
+}
+
+impl FormatArg {
+    fn into_output_format(self) -> OutputFormat {
+        match self {
+            Self::Markdown => OutputFormat::Markdown,
+            Self::Json => OutputFormat::Json,
         }
     }
 }
@@ -156,7 +180,7 @@ impl CodexExportArgs {
             connector: ConnectorKind::Codex,
             source,
             selector,
-            format: OutputFormat::Markdown,
+            format: self.format.into_output_format(),
             output_target: self.destination.into_output_target(self.workspace_root)?,
             app_server,
             codex_home: self.codex_home,
@@ -170,7 +194,7 @@ impl ClaudeCodeExportArgs {
             connector: ConnectorKind::ClaudeCode,
             source: ExportSource::SessionPath,
             selector: ExportSelector::SessionPath(self.session_path),
-            format: OutputFormat::Markdown,
+            format: self.format.into_output_format(),
             output_target: self.destination.into_output_target(self.workspace_root)?,
             app_server: AppServerLaunchConfig::default(),
             codex_home: None,
@@ -210,13 +234,15 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + minimal Claude session-path second-connector proof."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON export."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
     println!(
         "- Real Claude export path: `agent-exporter export claude-code --session-path <path>`."
     );
+    println!("- Real JSON export path: add `--format json` to the existing export commands.");
+    println!("- Next step: minimal HTML renderer without changing transcript semantics.");
 }
 
 fn export_codex(args: CodexExportArgs) -> Result<()> {
@@ -233,33 +259,46 @@ fn export_request(request: ExportRequest) -> Result<()> {
     let transcript = connectors::export(&request)?;
     let exported_at = Utc::now().to_rfc3339();
     let archive_title = transcript.archive_title(&request.output_target);
-    let parts = markdown::render_markdown_parts(
-        &transcript,
-        &archive_title,
-        &exported_at,
-        DEFAULT_MAX_LINES_PER_PART,
-    );
-    if parts.is_empty() {
-        bail!(
-            "No exportable Markdown content found for thread `{}`.",
-            transcript.thread_id
-        );
-    }
-
-    let outcome =
-        crate::core::archive::write_markdown_parts(&transcript, &request.output_target, &parts)?;
+    let outcome = match request.format {
+        OutputFormat::Markdown => {
+            let parts = markdown::render_markdown_parts(
+                &transcript,
+                &archive_title,
+                &exported_at,
+                DEFAULT_MAX_LINES_PER_PART,
+            );
+            if parts.is_empty() {
+                bail!(
+                    "No exportable Markdown content found for thread `{}`.",
+                    transcript.thread_id
+                );
+            }
+            crate::core::archive::write_markdown_parts(&transcript, &request.output_target, &parts)?
+        }
+        OutputFormat::Json => {
+            let document =
+                json_output::render_json_document(&transcript, &archive_title, &exported_at);
+            crate::core::archive::write_json_document(
+                &transcript,
+                &request.output_target,
+                &document,
+            )?
+        }
+        OutputFormat::Html => bail!("HTML export is planned but not implemented yet"),
+    };
 
     println!("Export completed");
     println!("- Connector    : {}", request.connector.as_str());
     println!("- Selection    : {}", request.source.as_str());
+    println!("- Format       : {}", request.format.as_str());
     println!("- Thread ID    : {}", transcript.thread_id);
     println!("- Completeness : {}", outcome.completeness.as_str());
     println!("- Source       : {}", transcript.source_kind.as_str());
-    println!("- Parts        : {}", outcome.exported_part_count);
+    println!("- Files        : {}", outcome.output_paths.len());
     println!("- Rounds       : {}", outcome.exported_turn_count);
     println!("- Items        : {}", outcome.exported_item_count);
-    println!("- Markdown");
-    for path in &outcome.markdown_paths {
+    println!("- Output");
+    for path in &outcome.output_paths {
         println!("  - {}", path.display());
     }
 

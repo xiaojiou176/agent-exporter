@@ -149,9 +149,17 @@
 
 目标：
 
-- 证明 second connector 能接进共享 archive / Markdown contract
+- 证明 second connector 能接进共享 archive / transcript contract
 - 最小范围接入 Claude Code
 - 不做 auto-discovery / HTML-first / browser-first 体验层
+
+### Phase 5
+
+目标：
+
+- 落最小 JSON renderer
+- 继续复用 shared archive / transcript contract
+- 不提前做 HTML / publish / browse
 
 该借：
 
@@ -198,7 +206,7 @@
    - source 维度只扩到 `app-server|local`
 2. **`claude-code-log` 的 typed transcript -> renderer 分层**
    - source 先把上游 payload 变成 typed archive core
-   - output 再把 typed archive core 渲染成 Markdown
+   - output 再把 typed archive core 渲染成 Markdown / JSON
 3. **bundle-aware 的输出心态**
    - 当前一次导出会生成 thread-scoped Markdown part 文件，而不是继续停在 plan-only stdout
 4. **`claude-conversation-extractor` 的 local direct-read framing**
@@ -206,8 +214,12 @@
    - 但没有把整个单来源小工具边界搬进 repo
 5. **Phase 3 Claude second connector proof**
    - `claude-code --session-path <PATH>` landed
-   - shared archive core / shared Markdown contract reused
+   - shared archive core / shared transcript contract reused
    - no auto-discovery / TUI / browser / HTML-first drift
+6. **Phase 5 JSON renderer**
+   - existing export commands now accept `--format json`
+   - shared archive core still stays the SSOT
+   - HTML remains later
 
 ### 明确未采纳
 
