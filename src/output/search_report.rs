@@ -1,4 +1,5 @@
 use crate::core::archive_index::ArchiveIndexEntry;
+use crate::core::search_report::SearchReportEntry;
 
 use super::html::escape_html;
 
@@ -101,6 +102,7 @@ pub fn render_search_report_document(report: &SearchReportDocument) -> String {
             "      </dl>\n",
             "      <div class=\"link-row\">\n",
             "        <a class=\"open-link\" href=\"../../Conversations/index.html\">Open archive shell</a>\n",
+            "        <a class=\"open-link\" href=\"index.html\">Open reports shell</a>\n",
             "      </div>\n",
             "    </header>\n",
             "    <section class=\"card-grid\">\n",
@@ -122,6 +124,60 @@ pub fn render_search_report_document(report: &SearchReportDocument) -> String {
         reused = report.reused_documents,
         embedded = report.embedded_documents,
         hit_cards = hit_cards,
+        style = search_report_style(),
+    )
+}
+
+pub fn render_search_reports_index_document(
+    archive_title: &str,
+    generated_at: &str,
+    reports: &[SearchReportEntry],
+) -> String {
+    let body = if reports.is_empty() {
+        "<section class=\"empty-state\"><h2>No saved reports yet</h2><p>运行 <code>search semantic --save-report</code> 或 <code>search hybrid --save-report</code> 之后，这里会出现可重复打开的 retrieval report cards。</p></section>".to_string()
+    } else {
+        reports
+            .iter()
+            .map(render_report_index_card)
+            .collect::<Vec<_>>()
+            .join("\n")
+    };
+
+    format!(
+        concat!(
+            "<!DOCTYPE html>\n",
+            "<html lang=\"zh-CN\">\n",
+            "<head>\n",
+            "  <meta charset=\"utf-8\">\n",
+            "  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n",
+            "  <title>{title}</title>\n",
+            "  <style>\n{style}\n  </style>\n",
+            "</head>\n",
+            "<body>\n",
+            "  <main class=\"page-shell\">\n",
+            "    <header class=\"hero-card\">\n",
+            "      <p class=\"eyebrow\">agent-exporter reports shell</p>\n",
+            "      <h1>{title}</h1>\n",
+            "      <p class=\"hero-copy\">这是一张 retrieval reports 的本地目录页。你可以把它理解成 search receipts 的柜台：检索执行仍然在 CLI，页面只负责组织和回看这些已保存的 report。</p>\n",
+            "      <dl class=\"meta-grid\">\n",
+            "        <div><dt>Generated</dt><dd><code>{generated_at}</code></dd></div>\n",
+            "        <div><dt>Saved reports</dt><dd><code>{report_count}</code></dd></div>\n",
+            "      </dl>\n",
+            "      <div class=\"link-row\">\n",
+            "        <a class=\"open-link\" href=\"../../Conversations/index.html\">Open archive shell</a>\n",
+            "      </div>\n",
+            "    </header>\n",
+            "    <section class=\"card-grid\">\n",
+            "{body}\n",
+            "    </section>\n",
+            "  </main>\n",
+            "</body>\n",
+            "</html>\n"
+        ),
+        title = escape_html(archive_title),
+        generated_at = escape_html(generated_at),
+        report_count = reports.len(),
+        body = body,
         style = search_report_style(),
     )
 }
@@ -170,6 +226,52 @@ fn render_hit_card(kind: SearchReportKind, hit: &SearchReportHit) -> String {
         file_name = escape_html(&hit.entry.file_name),
         href = escape_html(&transcript_href),
     )
+}
+
+fn render_report_index_card(entry: &SearchReportEntry) -> String {
+    let query_line = entry
+        .query
+        .as_deref()
+        .map(|query| {
+            format!(
+                "<p class=\"mono-inline\">query: <code>{}</code></p>",
+                escape_html(query)
+            )
+        })
+        .unwrap_or_default();
+    let generated_line = entry
+        .generated_at
+        .as_deref()
+        .map(|generated| {
+            format!(
+                "<p class=\"mono-inline\">generated: <code>{}</code></p>",
+                escape_html(generated)
+            )
+        })
+        .unwrap_or_default();
+    let report_href = entry.relative_href.trim_start_matches("./");
+
+    format!(
+        concat!(
+            "<article class=\"entry-card\">",
+            "<p class=\"eyebrow\">Saved report</p>",
+            "<h2>{title}</h2>",
+            "<div class=\"chip-row\">{kind_chip}</div>",
+            "{query_line}",
+            "{generated_line}",
+            "<p><a class=\"open-link\" href=\"{href}\">Open report</a></p>",
+            "</article>"
+        ),
+        title = escape_html(&entry.title),
+        kind_chip = chip(entry.report_kind.as_deref().unwrap_or("unknown")),
+        query_line = query_line,
+        generated_line = generated_line,
+        href = escape_html(report_href),
+    )
+}
+
+fn chip(value: &str) -> String {
+    format!("<span class=\"chip\">{}</span>", escape_html(value))
 }
 
 fn transcript_href(relative_href: &str) -> String {
@@ -345,8 +447,10 @@ fn search_report_style() -> &'static str {
 mod tests {
     use super::{
         SearchReportDocument, SearchReportHit, SearchReportKind, render_search_report_document,
+        render_search_reports_index_document,
     };
     use crate::core::archive_index::ArchiveIndexEntry;
+    use crate::core::search_report::SearchReportEntry;
 
     fn sample_hit() -> SearchReportHit {
         SearchReportHit {
@@ -385,6 +489,7 @@ mod tests {
         assert!(html.contains("agent-exporter:report-kind"));
         assert!(html.contains("semantic score"));
         assert!(html.contains("../../Conversations/demo.html"));
+        assert!(html.contains("Open reports shell"));
     }
 
     #[test]
@@ -405,5 +510,26 @@ mod tests {
         assert!(html.contains("Hybrid Retrieval Report"));
         assert!(html.contains("hybrid score"));
         assert!(html.contains("lexical score"));
+    }
+
+    #[test]
+    fn render_search_reports_index_document_lists_saved_reports() {
+        let html = render_search_reports_index_document(
+            "Saved retrieval reports",
+            "2026-04-05T12:00:00Z",
+            &[SearchReportEntry {
+                file_name: "search-report-semantic-demo.html".to_string(),
+                relative_href: "search-report-semantic-demo.html".to_string(),
+                title: "Semantic Retrieval Report".to_string(),
+                report_kind: Some("semantic".to_string()),
+                query: Some("login issue".to_string()),
+                generated_at: Some("2026-04-05T12:00:00Z".to_string()),
+            }],
+        );
+
+        assert!(html.contains("agent-exporter reports shell"));
+        assert!(html.contains("Open archive shell"));
+        assert!(html.contains("search-report-semantic-demo.html"));
+        assert!(html.contains("login issue"));
     }
 }

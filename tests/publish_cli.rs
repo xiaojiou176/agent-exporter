@@ -122,10 +122,16 @@ fn publish_archive_index_generates_static_index_for_html_transcripts() {
         .stdout(predicate::str::contains("Archive index published"))
         .stdout(predicate::str::contains("Entries      : 2"))
         .stdout(predicate::str::contains("Reports      : 0"))
+        .stdout(predicate::str::contains("Reports Index:"))
         .stdout(predicate::str::contains("index.html"));
 
     let index_path = conversations_dir(workspace.path()).join("index.html");
     assert!(index_path.exists());
+    assert!(
+        search_reports_dir(workspace.path())
+            .join("index.html")
+            .exists()
+    );
 
     let content = fs::read_to_string(index_path).expect("index html");
     assert!(content.contains("<!DOCTYPE html>"));
@@ -137,6 +143,7 @@ fn publish_archive_index_generates_static_index_for_html_transcripts() {
     assert!(content.contains("archive-search"));
     assert!(content.contains("data-search-text"));
     assert!(content.contains("agent-exporter local archive shell"));
+    assert!(content.contains("Open reports shell"));
     assert!(content.contains("search hybrid --workspace-root &lt;repo-root&gt;"));
     assert!(content.contains("data-filter-group=\"connector\""));
     assert!(content.contains(".html"));
@@ -185,7 +192,8 @@ fn publish_archive_index_links_saved_search_reports() {
     build_publish_command(workspace.path())
         .assert()
         .success()
-        .stdout(predicate::str::contains("Reports      : 1"));
+        .stdout(predicate::str::contains("Reports      : 1"))
+        .stdout(predicate::str::contains("Reports Index:"));
 
     let content = fs::read_to_string(conversations_dir(workspace.path()).join("index.html"))
         .expect("index html");
@@ -193,4 +201,10 @@ fn publish_archive_index_links_saved_search_reports() {
     assert!(content.contains("Semantic Retrieval Report"));
     assert!(content.contains("login issue"));
     assert!(content.contains("../Search/Reports/search-report-semantic-demo.html"));
+
+    let reports_index = fs::read_to_string(search_reports_dir(workspace.path()).join("index.html"))
+        .expect("reports index");
+    assert!(reports_index.contains("agent-exporter reports shell"));
+    assert!(reports_index.contains("Open archive shell"));
+    assert!(reports_index.contains("search-report-semantic-demo.html"));
 }

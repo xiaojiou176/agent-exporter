@@ -91,6 +91,9 @@ pub fn render_archive_index_document(
             "        <div><dt>Retrieval lanes</dt><dd><code>metadata / semantic / hybrid</code></dd></div>\n",
             "        <div><dt>Saved reports</dt><dd><code>{report_count}</code></dd></div>\n",
             "      </dl>\n",
+            "      <div class=\"link-row\">\n",
+            "        <a class=\"open-link\" href=\"../Search/Reports/index.html\">Open reports shell</a>\n",
+            "      </div>\n",
             "    </header>\n",
             "    <section class=\"lane-grid\" aria-label=\"retrieval lanes\">\n",
             "      <article class=\"lane-card\">\n",
@@ -711,6 +714,7 @@ mod tests {
         );
 
         assert!(html.contains("agent-exporter local archive shell"));
+        assert!(html.contains("Open reports shell"));
         assert!(html.contains(
             "search semantic --workspace-root &lt;repo-root&gt; --query \"login issues\" --save-report"
         ));

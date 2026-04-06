@@ -14,7 +14,7 @@ struct RenderedRound {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct WorkspaceHtmlNavigation {
     pub archive_shell_href: String,
-    pub reports_dir_hint: String,
+    pub reports_shell_href: String,
 }
 
 pub fn render_html_document(
@@ -30,10 +30,10 @@ pub fn render_html_document(
             format!(
                 concat!(
                     "  <meta name=\"agent-exporter:workspace-shell-href\" content=\"{shell}\">\n",
-                    "  <meta name=\"agent-exporter:workspace-reports-dir\" content=\"{reports}\">\n"
+                    "  <meta name=\"agent-exporter:workspace-reports-shell-href\" content=\"{reports}\">\n"
                 ),
                 shell = escape_html(&navigation.archive_shell_href),
-                reports = escape_html(&navigation.reports_dir_hint),
+                reports = escape_html(&navigation.reports_shell_href),
             )
         })
         .unwrap_or_default();
@@ -129,12 +129,12 @@ fn render_workspace_navigation(navigation: &WorkspaceHtmlNavigation) -> String {
             "<p class=\"hero-copy\">这份 transcript 当前位于 workspace-local archive 里。你可以把它理解成“从单张打印稿回到前厅”的返回线：阅读完之后，直接回 archive shell；saved retrieval reports 也仍然留在本地 report 目录里。</p>",
             "<div class=\"link-row\">",
             "<a class=\"open-link\" href=\"{shell_href}\">Open archive shell</a>",
+            "<a class=\"open-link\" href=\"{reports_href}\">Open retrieval reports</a>",
             "</div>",
-            "<p class=\"mono-note\">saved reports dir: <code>{reports_dir}</code></p>",
             "</section>"
         ),
         shell_href = escape_html(&navigation.archive_shell_href),
-        reports_dir = escape_html(&navigation.reports_dir_hint),
+        reports_href = escape_html(&navigation.reports_shell_href),
     )
 }
 
@@ -959,7 +959,7 @@ mod tests {
     fn render_html_document_can_embed_workspace_navigation() {
         let navigation = WorkspaceHtmlNavigation {
             archive_shell_href: "index.html".to_string(),
-            reports_dir_hint: "../Search/Reports".to_string(),
+            reports_shell_href: "../Search/Reports/index.html".to_string(),
         };
         let document = render_html_document(
             &sample_transcript(),
@@ -969,7 +969,9 @@ mod tests {
         );
 
         assert!(document.contains("Open archive shell"));
+        assert!(document.contains("Open retrieval reports"));
         assert!(document.contains("agent-exporter:workspace-shell-href"));
-        assert!(document.contains("../Search/Reports"));
+        assert!(document.contains("agent-exporter:workspace-reports-shell-href"));
+        assert!(document.contains("../Search/Reports/index.html"));
     }
 }

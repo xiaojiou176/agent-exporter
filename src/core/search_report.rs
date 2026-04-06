@@ -40,6 +40,11 @@ pub fn collect_search_report_entries(workspace_root: &Path) -> Result<Vec<Search
                 .and_then(|value| value.to_str())
                 .is_some_and(|value| value.eq_ignore_ascii_case("html"))
         })
+        .filter(|path| {
+            path.file_name()
+                .and_then(|name| name.to_str())
+                .is_none_or(|name| name != "index.html")
+        })
         .map(read_search_report_entry)
         .collect::<Result<Vec<_>>>()?;
 
@@ -51,6 +56,28 @@ pub fn collect_search_report_entries(workspace_root: &Path) -> Result<Vec<Search
     });
 
     Ok(entries)
+}
+
+pub fn write_search_reports_index_document(
+    workspace_root: &Path,
+    document: &str,
+) -> Result<PathBuf> {
+    let reports_dir = resolve_search_reports_dir(workspace_root);
+    fs::create_dir_all(&reports_dir).with_context(|| {
+        format!(
+            "failed to prepare search report directory `{}`",
+            reports_dir.display()
+        )
+    })?;
+
+    let index_path = reports_dir.join("index.html");
+    fs::write(&index_path, format!("{}\n", document.trim_end())).with_context(|| {
+        format!(
+            "failed to write search report index `{}`",
+            index_path.display()
+        )
+    })?;
+    Ok(index_path)
 }
 
 pub fn write_search_report_document(
@@ -164,6 +191,7 @@ mod tests {
 
     use super::{
         collect_search_report_entries, resolve_search_reports_dir, write_search_report_document,
+        write_search_reports_index_document,
     };
 
     #[test]
@@ -210,5 +238,48 @@ mod tests {
         assert_eq!(entries.len(), 1);
         assert_eq!(entries[0].report_kind.as_deref(), Some("semantic"));
         assert_eq!(entries[0].query.as_deref(), Some("login issue"));
+    }
+
+    #[test]
+    fn collect_search_report_entries_ignores_reports_index_page() {
+        let workspace = tempdir().expect("workspace");
+        let reports_dir = resolve_search_reports_dir(workspace.path());
+        std::fs::create_dir_all(&reports_dir).expect("mkdirs");
+        std::fs::write(
+            reports_dir.join("index.html"),
+            "<!DOCTYPE html><html><head><title>Reports shell</title></head><body></body></html>",
+        )
+        .expect("write index");
+        std::fs::write(
+            reports_dir.join("search-report-semantic-demo.html"),
+            concat!(
+                "<!DOCTYPE html><html><head>",
+                "<title>Semantic Retrieval Report</title>",
+                "<meta name=\"agent-exporter:report-title\" content=\"Semantic Retrieval Report\">",
+                "<meta name=\"agent-exporter:report-kind\" content=\"semantic\">",
+                "<meta name=\"agent-exporter:search-query\" content=\"login issue\">",
+                "<meta name=\"agent-exporter:generated-at\" content=\"2026-04-05T12:00:00Z\">",
+                "</head><body></body></html>"
+            ),
+        )
+        .expect("write report");
+
+        let entries = collect_search_report_entries(workspace.path()).expect("collect reports");
+        assert_eq!(entries.len(), 1);
+        assert_eq!(entries[0].file_name, "search-report-semantic-demo.html");
+    }
+
+    #[test]
+    fn write_search_reports_index_document_writes_index_file() {
+        let workspace = tempdir().expect("workspace");
+        let path = write_search_reports_index_document(workspace.path(), "<!DOCTYPE html>")
+            .expect("write report index");
+
+        assert!(path.exists());
+        assert_eq!(
+            path.file_name().and_then(|name| name.to_str()),
+            Some("index.html")
+        );
+        assert!(path.starts_with(resolve_search_reports_dir(workspace.path())));
     }
 }

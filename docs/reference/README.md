@@ -6,7 +6,7 @@
 
 ## Current Reality
 
-当前 reference 层已经对齐 **Phase 14 workspace navigation landed**：
+当前 reference 层已经对齐 **Phase 15 reports shell landed**：
 
 - 默认主路径仍然是 `app-server`
 - `local direct-read` 已经 landed，不再是 future plan
@@ -22,6 +22,7 @@
 - `search hybrid` 已经 landed，不再是 future plan
 - retrieval reports under `.agents/Search/Reports` 已经 landed，不再是 future plan
 - workspace-only transcript backlinks 已经 landed，不再是 future plan
+- local reports shell 已经 landed，不再是 future plan
 - `local` 只代表 **archival truth**
 - `claude-code` 当前也只代表 **degraded local import truth**
 - `local` / `claude-code` 的导出状态都不能写成 complete 或 canonical
@@ -53,5 +54,5 @@
 
 1. 为什么 `app-server` 仍然是默认主路径
 2. 为什么 `local` 与 `claude-code` 已经 landed 但仍然不是 canonical replacement
-3. 为什么 workspace-local navigation landed 后仍然还不是 hosted / semantic platform
+3. 为什么 local reports shell landed 后仍然还不是 hosted / semantic platform
 4. 为什么 `degraded` 是正确披露，而不是保守措辞

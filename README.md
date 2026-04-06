@@ -11,7 +11,8 @@
 > **再用最小 archive index 证明这些页面已经可以本地浏览和静态发布，**
 > **再把它升级成一个 local-first multi-agent archive shell，**
 > **再让 semantic / hybrid 检索结果也能保存成可链接的本地 retrieval reports，**
-> **再把 workspace-local transcript 导航闭环补完整。**
+> **再把 workspace-local transcript 导航闭环补完整，**
+> **再给 saved retrieval reports 补一张自己的本地 front door。**
 
 但仓库从第一天开始就按“未来会接 Claude Code 和其他本地 CLI”来设计，所以不会把 Codex 的私有读取逻辑写死在整个项目里。
 
@@ -54,6 +55,7 @@
 - multi-agent local archive shell
 - local retrieval report artifacts
 - workspace-local transcript backlinks
+- local reports shell
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -62,7 +64,7 @@
 
 当前阶段**还没有**完成的是：
 
-- 当前 Phase 14 之后的新一轮产品裁决
+- 当前 Phase 15 之后的新一轮产品裁决
 
 ---
 
@@ -104,7 +106,8 @@
 13. **现在已经落地：multi-agent archive 平台化 via upgraded `publish archive-index` shell**
 14. **现在已经落地：local retrieval report artifacts via `search ... --save-report`**
 15. **现在已经落地：workspace-local transcript backlinks for HTML exports**
-16. **当前已进入 post-Phase-14 product decision 区，默认仍不膨胀成 hosted search / service**
+16. **现在已经落地：local reports shell via `publish archive-index`**
+17. **当前已进入 post-Phase-15 product decision 区，默认仍不膨胀成 hosted search / service**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -188,6 +191,7 @@ cargo run -- export codex \
   - 生成一个本地可打开的 multi-agent archive shell `index.html`
   - 使用相对链接串起 transcript 页面
   - 现在已内置本地 metadata filter、connector/completeness facets、semantic / hybrid retrieval lane 说明，以及 saved retrieval report links
+  - 现在也会在 `.agents/Search/Reports/index.html` 生成一张 local reports shell
   - semantic / hybrid retrieval 仍然留在 CLI，不会偷偷搬进浏览器侧
   - 不做 hosted publish、remote search service、gist、web publish
 
@@ -220,7 +224,7 @@ cargo run -- export codex \
   - 会把本次检索结果保存成静态 HTML retrieval report
   - report 默认写到 `<repo>/.agents/Search/Reports`
   - report 是 search-owned local artifact，不会回流到 `.agents/Conversations` transcript corpus
-  - archive shell 可以链接这些 report，但不会在浏览器里替你重新执行 retrieval
+  - archive shell 和 reports shell 都可以链接这些 report，但不会在浏览器里替你重新执行 retrieval
 
 ### Source contract
 
@@ -352,7 +356,7 @@ codex app-server
 
 后续文档和实现若继续推进，会先进入：
 
-1. 新的 post-Phase-14 产品裁决
+1. 新的 post-Phase-15 产品裁决
 
 ---
 

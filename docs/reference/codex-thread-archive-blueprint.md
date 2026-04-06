@@ -226,6 +226,18 @@
 - 但 Downloads HTML 仍保持为不带 workspace-only links 的 leaf artifact
 - 仍然没有把 transcript 页面膨胀成 browse / retrieval shell
 
+### Phase 15
+
+已落地：
+
+- local reports shell
+
+原因：
+
+- 现在 `.agents/Search/Reports/index.html` 已经能把 saved retrieval reports 组织成一张本地 front door
+- archive shell、transcript、report 三类工件的导航闭环更完整
+- 但仍然没有把检索执行搬进浏览器或远端平台
+
 ## 推荐 CLI 命令面
 
 当前已经落地的最小集合是：
