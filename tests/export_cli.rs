@@ -154,6 +154,8 @@ fn export_codex_writes_workspace_conversations_html() {
     assert!(content.contains("pwd"));
     assert!(content.contains("Open archive shell"));
     assert!(content.contains("agent-exporter:workspace-shell-href"));
+    assert!(content.contains("Open retrieval reports"));
+    assert!(content.contains("agent-exporter:workspace-reports-shell-href"));
 }
 
 #[test]

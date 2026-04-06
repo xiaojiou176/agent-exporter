@@ -221,6 +221,10 @@ fn claude_code_export_writes_degraded_html_with_shared_structure() {
     assert!(content.contains("第1轮"));
     assert!(content.contains("hello.py"));
     assert!(content.contains("python -m pytest tests/"));
+    assert!(content.contains("Open archive shell"));
+    assert!(content.contains("Open retrieval reports"));
+    assert!(content.contains("agent-exporter:workspace-shell-href"));
+    assert!(content.contains("agent-exporter:workspace-reports-shell-href"));
     assert!(!content.contains("queue-operation"));
     assert!(!content.contains("progress"));
 }

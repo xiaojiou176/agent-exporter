@@ -250,6 +250,10 @@ fn local_source_with_thread_id_exports_degraded_html() {
     assert!(content.contains("local-thread-id"));
     assert!(content.contains("第1轮"));
     assert!(content.contains("spawn_agent"));
+    assert!(content.contains("Open archive shell"));
+    assert!(content.contains("Open retrieval reports"));
+    assert!(content.contains("agent-exporter:workspace-shell-href"));
+    assert!(content.contains("agent-exporter:workspace-reports-shell-href"));
 }
 
 #[test]
