@@ -47,6 +47,23 @@
 - 不偷偷替你 build / install / mutate shell
 - 不把 OpenClaw bundle content 夸大成 repo-native runtime
 
+## Doctor Hardening
+
+当前 `doctor integrations` 已经不只是“看文件在不在”。
+
+它现在还会额外检查两件更值钱的事：
+
+1. 当前 target 里的材料，是否仍然和当前 repo 重新材料化后的版本一致
+2. 当前 repo-local launcher，是否真的还能执行 `connectors`
+
+如果当前 launcher 只能回退到 `cargo run`，doctor 会保守停在 `partial`。
+原因很简单：这条命令可能触发 build，而 doctor 这条线承诺的是只读体检，不是顺手编译。
+
+说得更直白一点：
+
+> 如果你昨天材料化了一套接线包，今天这仓已经换了 launcher 路径或 bridge 路径，
+> doctor 现在会更早把这种“接线包过期”揪出来。
+
 ## First-Run Contract
 
 这一层最容易踩坑的地方，不是模板不存在，而是第一次接线时把前置条件想得太乐观。

@@ -434,7 +434,7 @@ fn print_scaffold_status() {
         "- Real integration doctor path: `agent-exporter doctor integrations --platform <platform> --target <dir>`."
     );
     println!(
-        "- Next step: a new post-Phase-21 product decision, while staying local-first and non-hosted."
+        "- Next step: a new post-Phase-22 product decision, while staying local-first and non-hosted."
     );
 }
 

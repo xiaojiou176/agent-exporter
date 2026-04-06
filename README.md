@@ -62,6 +62,7 @@
 - Codex / Claude Code / OpenClaw integration pack docs/templates
 - repo-owned integration materializer
 - repo-owned integration doctor
+- drift-aware integration doctor hardening
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -72,7 +73,7 @@
 
 当前阶段**还没有**完成的是：
 
-- 当前 Phase 21 之后的新一轮产品裁决
+- 当前 Phase 22 之后的新一轮产品裁决
 
 ---
 
@@ -119,7 +120,8 @@
 18. **现在已经落地：minimal stdio MCP bridge for publish/search**
 19. **现在已经落地：repo-owned integration materializer via `integrate <platform> --target <dir>`**
 20. **现在已经落地：repo-owned integration doctor via `doctor integrations --platform <platform> --target <dir>`**
-21. **当前已进入 post-Phase-21 product decision 区，默认仍不膨胀成 hosted search / service**
+21. **现在已经落地：integration doctor drift checks + launcher probe**
+22. **当前已进入 post-Phase-22 product decision 区，默认仍不膨胀成 hosted search / service**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -369,7 +371,7 @@ codex app-server
 
 后续文档和实现若继续推进，会先进入：
 
-1. 新的 post-Phase-21 产品裁决
+1. 新的 post-Phase-22 产品裁决
 
 ---
 
@@ -427,6 +429,10 @@ cargo run -- doctor integrations --platform codex --target /absolute/path/to/cod
 - OpenClaw 当前准备好的是 **bundle content / plugin skeleton**，不是 repo-native OpenClaw runtime；接法见 `docs/integrations/openclaw.md`
 - Installer 只会往显式 `--target` 下材料化，不会静默改你的 Home 目录
 - Doctor 只做只读 readiness 检查，不会偷偷替你装东西
+- Doctor 现在还会额外检查：
+  - 当前 target 内容是否和当前 repo 重新材料化后的版本一致
+  - 当前 repo-local launcher 是否真的还能执行 `connectors`
+  - 如果当前 launcher 只能回退到 `cargo run`，doctor 会保守停在 `partial`，不会在只读模式下为了一句 `ready` 触发 build
 
 ## License
 

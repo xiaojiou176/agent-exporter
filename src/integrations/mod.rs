@@ -239,6 +239,37 @@ pub fn doctor_integration(request: &IntegrationDoctorRequest) -> Result<Integrat
         ),
     });
 
+    let mismatched_files = assets
+        .iter()
+        .filter_map(|asset| {
+            let destination = request.target_root.join(asset.destination_rel);
+            let existing = fs::read_to_string(&destination).ok()?;
+            let source_path = repo_root.join(asset.source_rel);
+            let raw = fs::read_to_string(&source_path).ok()?;
+            let expected = render_template(&raw, asset.mode, &repo_root, &launcher);
+            (existing != expected).then_some(destination)
+        })
+        .collect::<Vec<_>>();
+
+    checks.push(IntegrationDoctorCheck {
+        label: "target_content_sync",
+        readiness: if existing_files == 0 {
+            IntegrationReadiness::Missing
+        } else if mismatched_files.is_empty() {
+            IntegrationReadiness::Ready
+        } else {
+            IntegrationReadiness::Partial
+        },
+        detail: if mismatched_files.is_empty() {
+            "all materialized files match the current repo-generated content".to_string()
+        } else {
+            format!(
+                "{} files differ from the current repo-generated content",
+                mismatched_files.len()
+            )
+        },
+    });
+
     let unresolved_paths = expected_destinations
         .iter()
         .filter_map(|path| fs::read_to_string(path).ok())
@@ -266,6 +297,17 @@ pub fn doctor_integration(request: &IntegrationDoctorRequest) -> Result<Integrat
                 "{unresolved_paths} files still contain placeholder or generic PATH launcher references"
             )
         },
+    });
+
+    let probe = probe_launcher(&launcher);
+    checks.push(IntegrationDoctorCheck {
+        label: "launcher_probe",
+        readiness: if probe.success {
+            IntegrationReadiness::Ready
+        } else {
+            IntegrationReadiness::Partial
+        },
+        detail: probe.detail,
     });
 
     let overall = collapse_readiness(&checks);
@@ -425,6 +467,11 @@ enum WriteDisposition {
     Unchanged,
 }
 
+struct LauncherProbeOutcome {
+    success: bool,
+    detail: String,
+}
+
 fn write_materialized_file(path: &Path, content: &str) -> Result<WriteDisposition> {
     if let Some(parent) = path.parent() {
         fs::create_dir_all(parent).with_context(|| {
@@ -450,6 +497,41 @@ fn write_materialized_file(path: &Path, content: &str) -> Result<WriteDispositio
     fs::write(path, content)
         .with_context(|| format!("failed to write integration file `{}`", path.display()))?;
     Ok(WriteDisposition::Written)
+}
+
+fn probe_launcher(launcher: &LauncherSpec) -> LauncherProbeOutcome {
+    if launcher.kind == "cargo-run" {
+        return LauncherProbeOutcome {
+            success: false,
+            detail: format!(
+                "`{}` is intentionally not executed in read-only doctor mode because `cargo run` may trigger a build",
+                launcher.shell_command()
+            ),
+        };
+    }
+
+    match Command::new(&launcher.command)
+        .args(&launcher.args)
+        .arg("connectors")
+        .output()
+    {
+        Ok(output) if output.status.success() => LauncherProbeOutcome {
+            success: true,
+            detail: format!("`{}` can execute `connectors`", launcher.shell_command()),
+        },
+        Ok(output) => LauncherProbeOutcome {
+            success: false,
+            detail: format!(
+                "`{}` failed probe with status {}",
+                launcher.shell_command(),
+                output.status
+            ),
+        },
+        Err(error) => LauncherProbeOutcome {
+            success: false,
+            detail: format!("`{}` failed probe: {error}", launcher.shell_command()),
+        },
+    }
 }
 
 fn assets_for(platform: IntegrationPlatform) -> &'static [TemplateAsset] {
@@ -535,5 +617,48 @@ fn assets_for(platform: IntegrationPlatform) -> &'static [TemplateAsset] {
                 mode: RenderMode::McpConfig,
             },
         ],
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{LauncherSpec, probe_launcher};
+
+    #[test]
+    fn cargo_run_launcher_is_not_executed_in_doctor_mode() {
+        let launcher = LauncherSpec {
+            kind: "cargo-run",
+            command: "cargo".to_string(),
+            args: vec![
+                "run".to_string(),
+                "--quiet".to_string(),
+                "--manifest-path".to_string(),
+                "/tmp/demo/Cargo.toml".to_string(),
+                "--bin".to_string(),
+                "agent-exporter".to_string(),
+                "--".to_string(),
+            ],
+        };
+
+        let outcome = probe_launcher(&launcher);
+        assert!(!outcome.success);
+        assert!(
+            outcome
+                .detail
+                .contains("not executed in read-only doctor mode")
+        );
+    }
+
+    #[test]
+    fn repo_local_launcher_probe_runs_for_binary_launchers() {
+        let launcher = LauncherSpec {
+            kind: "repo-local-debug",
+            command: "true".to_string(),
+            args: Vec::new(),
+        };
+
+        let outcome = probe_launcher(&launcher);
+        assert!(outcome.success);
+        assert!(outcome.detail.contains("can execute `connectors`"));
     }
 }

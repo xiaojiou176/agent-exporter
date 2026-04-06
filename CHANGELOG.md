@@ -63,6 +63,8 @@ The format is based on Keep a Changelog.
 - Integration template README for Codex / Claude Code / OpenClaw first-run setup
 - Repo-owned integration materializer for Codex / Claude Code / OpenClaw explicit targets
 - Repo-owned integration doctor for target-scoped readiness checks
+- Drift-aware integration doctor checks for target-content sync and launcher probing
+- Integration doctor now keeps `cargo run` launcher fallback in `partial` rather than probing it in read-only mode
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder
@@ -85,3 +87,4 @@ The format is based on Keep a Changelog.
 - MCP bridge templates now default to repo-local launcher discovery instead of requiring a hard-coded release binary path
 - Integration docs now spell out MCP first-run prerequisites and keep OpenClaw at bundle-content honesty
 - Integration pack is no longer docs-only; it now has explicit `integrate` and `doctor integrations` entry points
+- Integration doctor now detects stale materialized targets and probes the current repo-local launcher

@@ -6,7 +6,7 @@
 
 ## Current Phase Snapshot
 
-当前这套文档已经进入 **Phase 21 integration installer/doctor landed**。
+当前这套文档已经进入 **Phase 22 integration doctor hardening landed**。
 
 你可以先把它理解成：这套文档现在要同时解释“正门、侧门、以及第二种输出格式”，但不能把它们说成同一种真相。
 
@@ -26,8 +26,10 @@
 - local reports shell 现在也已经支持本地 report search 和 report-kind filter
 - `integrate <platform> --target <dir>` 已经 landed，说明 integration pack 不再只是模板目录
 - `doctor integrations --platform <platform> --target <dir>` 已经 landed，说明接入 readiness 现在有 repo-owned 验收入口
+- `doctor integrations` 现在还会做 target drift 检查和 launcher probe，不再只是文件存在性检查
+- 当 launcher 只剩 `cargo run` 回退时，doctor 会保守停在 `partial`，而不是在只读模式下触发 build
 - `local` 和 `claude-code` 当前都按 **degraded** 理解，不能冒充 canonical parity
-- 当前已进入 post-Phase-21 产品裁决区，而不是直接膨胀成 hosted / 平台壳
+- 当前已进入 post-Phase-22 产品裁决区，而不是直接膨胀成 hosted / 平台壳
 
 ## Read Order
 

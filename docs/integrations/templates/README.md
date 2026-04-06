@@ -66,7 +66,12 @@ doctor 会检查：
 - target 里该有的模板文件是否齐
 - MCP bridge script 是否存在
 - repo-local launcher 解析是否可用
+- target 内容是否已经和当前 repo 重新材料化后的版本漂移
+- 当前 launcher 是否真的还能执行 `connectors`
 - 当前 readiness 是 `ready / partial / missing` 哪一层
+
+如果当前 launcher 只能回退到 `cargo run`，doctor 会保守停在 `partial`。
+它不会为了给你一个更好看的状态，而在只读模式下偷偷触发 build。
 
 ## OpenClaw 边界
 

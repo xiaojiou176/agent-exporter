@@ -6,7 +6,7 @@
 
 - 当前目标：**Codex canonical transcript/archive 导出**
 - 未来目标：Claude Code、以及其他本地 CLI
-- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + minimal stdio MCP bridge + repo-owned integration materializer/doctor 已落地；当前已进入 post-Phase-21 产品裁决区；默认 Codex 主路径仍是 app-server**
+- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + minimal stdio MCP bridge + repo-owned integration materializer/doctor + drift-aware integration doctor hardening 已落地；当前已进入 post-Phase-22 产品裁决区；默认 Codex 主路径仍是 app-server**
 
 ---
 
@@ -81,6 +81,7 @@
 - integration pack docs/templates
 - repo-owned integration materializer
 - repo-owned integration doctor
+- drift-aware integration doctor hardening
 - `export codex --thread-id ...` 真实 CLI 主链
 - `export claude-code --session-path ...` 真实 CLI 主链
 - `--format markdown|json|html`
@@ -93,6 +94,8 @@
   - bridge 会先尝试 repo-local build 产物
   - 再尝试 `cargo run --manifest-path <repo>/Cargo.toml --bin agent-exporter --`
   - OpenClaw 当前是 bundle content / plugin skeleton，不是 repo-native runtime
+  - doctor 现在还会检查 target 内容是否与当前 repo 重新材料化后的版本一致，并做 launcher probe
+  - 如果 launcher 只剩 `cargo run` 回退，doctor 会保守报告 `partial`，不会在只读模式下触发 build
 
 ### 当前明确非目标
 

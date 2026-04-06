@@ -117,7 +117,9 @@ fn doctor_integrations_reports_codex_ready_after_materialization() {
         .stdout(predicate::str::contains("Readiness    : ready"))
         .stdout(predicate::str::contains("bridge_script [ready]"))
         .stdout(predicate::str::contains("target_files [ready]"))
-        .stdout(predicate::str::contains("3/3 expected files present"));
+        .stdout(predicate::str::contains("3/3 expected files present"))
+        .stdout(predicate::str::contains("target_content_sync [ready]"))
+        .stdout(predicate::str::contains("launcher_probe [ready]"));
 }
 
 #[test]
@@ -187,4 +189,38 @@ fn integrate_openclaw_materializes_both_bundle_variants() {
     let mcp_content = read(&claude_mcp);
     assert!(skill_content.contains(&expected_launcher_fragment()));
     assert!(!mcp_content.contains(MCP_PLACEHOLDER));
+}
+
+#[test]
+fn doctor_integrations_reports_partial_when_target_drifted() {
+    let target = tempdir().expect("target dir");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .arg("integrate")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .assert()
+        .success();
+
+    let drifted_agents = target.path().join("AGENTS.md");
+    let original = read(&drifted_agents);
+    let drifted = original.replace(&expected_launcher_fragment(), "agent-exporter");
+    fs::write(&drifted_agents, drifted).expect("write drifted agents");
+
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .arg("doctor")
+        .arg("integrations")
+        .arg("--platform")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path());
+
+    command
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Readiness    : partial"))
+        .stdout(predicate::str::contains("target_content_sync [partial]"));
 }
