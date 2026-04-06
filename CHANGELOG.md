@@ -54,6 +54,8 @@ The format is based on Keep a Changelog.
 - HTML workspace-navigation coverage
 - Local reports shell generation under `.agents/Search/Reports/index.html`
 - Reports-shell rendering coverage
+- Reports-shell metadata search and report-kind facets
+- Reports-shell search coverage
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder
@@ -70,4 +72,5 @@ The format is based on Keep a Changelog.
 - Search commands can now persist HTML retrieval reports under `.agents/Search/Reports`
 - Workspace conversations HTML exports now link back to the local archive shell without changing Downloads behavior
 - `publish archive-index` now also generates a local reports shell for saved retrieval reports
+- Local reports shell now includes static metadata search/filter without changing retrieval execution semantics
 - Codex / Claude connector summaries now describe the shared archive transcript contract instead of a Markdown-only contract

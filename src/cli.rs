@@ -325,7 +325,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -347,7 +347,7 @@ fn print_scaffold_status() {
         "- Real hybrid retrieval path: `agent-exporter search hybrid --workspace-root <repo> --query <text>`."
     );
     println!(
-        "- Next step: a new post-Phase-15 product decision, while staying local-first and non-hosted."
+        "- Next step: a new post-Phase-18 product decision, while staying local-first and non-hosted."
     );
 }
 

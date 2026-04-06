@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use crate::core::archive_index::ArchiveIndexEntry;
 use crate::core::search_report::SearchReportEntry;
 
@@ -133,6 +135,13 @@ pub fn render_search_reports_index_document(
     generated_at: &str,
     reports: &[SearchReportEntry],
 ) -> String {
+    let report_kind_facets = render_filter_buttons(
+        "report-kind",
+        "Report kind",
+        summarize_reports_by(reports, |entry| {
+            entry.report_kind.as_deref().unwrap_or("unknown")
+        }),
+    );
     let body = if reports.is_empty() {
         "<section class=\"empty-state\"><h2>No saved reports yet</h2><p>运行 <code>search semantic --save-report</code> 或 <code>search hybrid --save-report</code> 之后，这里会出现可重复打开的 retrieval report cards。</p></section>".to_string()
     } else {
@@ -167,18 +176,30 @@ pub fn render_search_reports_index_document(
             "        <a class=\"open-link\" href=\"../../Conversations/index.html\">Open archive shell</a>\n",
             "      </div>\n",
             "    </header>\n",
+            "    <section class=\"search-bar\" aria-label=\"reports search\">\n",
+            "      <label class=\"search-label\" for=\"report-search\">Report search</label>\n",
+            "      <input id=\"report-search\" class=\"search-input\" type=\"search\" placeholder=\"Search title, query, report kind...\" autocomplete=\"off\">\n",
+            "      <div class=\"facet-grid\">\n",
+            "{report_kind_facets}\n",
+            "      </div>\n",
+            "      <p id=\"report-search-status\" class=\"search-status\">Showing <strong>{report_count}</strong> reports.</p>\n",
+            "    </section>\n",
             "    <section class=\"card-grid\">\n",
             "{body}\n",
             "    </section>\n",
+            "    <p id=\"report-empty-result\" class=\"empty-result\" hidden>No reports matched the current search.</p>\n",
             "  </main>\n",
+            "  <script>\n{script}\n  </script>\n",
             "</body>\n",
             "</html>\n"
         ),
         title = escape_html(archive_title),
         generated_at = escape_html(generated_at),
         report_count = reports.len(),
+        report_kind_facets = report_kind_facets,
         body = body,
         style = search_report_style(),
+        script = search_report_script(),
     )
 }
 
@@ -250,10 +271,19 @@ fn render_report_index_card(entry: &SearchReportEntry) -> String {
         })
         .unwrap_or_default();
     let report_href = entry.relative_href.trim_start_matches("./");
+    let searchable_text = [
+        entry.title.as_str(),
+        entry.report_kind.as_deref().unwrap_or(""),
+        entry.query.as_deref().unwrap_or(""),
+        entry.generated_at.as_deref().unwrap_or(""),
+        entry.file_name.as_str(),
+    ]
+    .join(" ")
+    .to_lowercase();
 
     format!(
         concat!(
-            "<article class=\"entry-card\">",
+            "<article class=\"entry-card\" data-search-text=\"{searchable_text}\" data-report-kind=\"{report_kind}\">",
             "<p class=\"eyebrow\">Saved report</p>",
             "<h2>{title}</h2>",
             "<div class=\"chip-row\">{kind_chip}</div>",
@@ -267,11 +297,49 @@ fn render_report_index_card(entry: &SearchReportEntry) -> String {
         query_line = query_line,
         generated_line = generated_line,
         href = escape_html(report_href),
+        searchable_text = escape_html(&searchable_text),
+        report_kind = escape_html(entry.report_kind.as_deref().unwrap_or("unknown")),
     )
 }
 
 fn chip(value: &str) -> String {
     format!("<span class=\"chip\">{}</span>", escape_html(value))
+}
+
+fn summarize_reports_by<F>(entries: &[SearchReportEntry], label: F) -> Vec<(String, usize)>
+where
+    F: Fn(&SearchReportEntry) -> &str,
+{
+    let mut counts = BTreeMap::new();
+    for entry in entries {
+        *counts.entry(label(entry).to_string()).or_insert(0usize) += 1;
+    }
+    counts.into_iter().collect()
+}
+
+fn render_filter_buttons(group: &str, label: &str, items: Vec<(String, usize)>) -> String {
+    let mut buttons = vec![format!(
+        "<button type=\"button\" class=\"facet-button is-active\" data-filter-group=\"{group}\" data-filter-value=\"all\">All</button>"
+    )];
+    buttons.extend(items.into_iter().map(|(name, count)| {
+        format!(
+            "<button type=\"button\" class=\"facet-button\" data-filter-group=\"{group}\" data-filter-value=\"{value}\">{label} <span>{count}</span></button>",
+            value = escape_html(&name),
+            label = escape_html(&name),
+        )
+    }));
+
+    format!(
+        concat!(
+            "<section class=\"facet-section\" aria-label=\"{group}\">",
+            "<p class=\"search-label\">{label}</p>",
+            "<div class=\"facet-row\">{buttons}</div>",
+            "</section>"
+        ),
+        group = escape_html(group),
+        label = escape_html(label),
+        buttons = buttons.join(""),
+    )
 }
 
 fn transcript_href(relative_href: &str) -> String {
@@ -377,6 +445,76 @@ fn search_report_style() -> &'static str {
       margin-top: 18px;
     }
 
+    .search-bar {
+      display: grid;
+      gap: 10px;
+      margin: 0 0 18px;
+      padding: 18px 20px;
+      border-radius: 18px;
+      border: 1px solid rgba(216, 204, 188, 0.95);
+      background: rgba(255, 251, 244, 0.85);
+      box-shadow: var(--shadow);
+    }
+
+    .search-label {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(140, 79, 31, 0.25);
+      background: rgba(255, 255, 255, 0.9);
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 14px;
+    }
+
+    .search-status,
+    .empty-result {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .facet-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .facet-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .facet-button {
+      border: 1px solid rgba(140, 79, 31, 0.25);
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .facet-button.is-active {
+      background: rgba(140, 79, 31, 0.12);
+      color: var(--accent);
+      border-color: rgba(140, 79, 31, 0.35);
+    }
+
+    .chip span,
+    .facet-button span {
+      margin-left: 6px;
+      opacity: 0.7;
+    }
+
     .card-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -440,6 +578,49 @@ fn search_report_style() -> &'static str {
         border-radius: 20px;
         padding: 18px;
       }
+    }"#
+}
+
+fn search_report_script() -> &'static str {
+    r#"    const input = document.getElementById('report-search');
+    const status = document.getElementById('report-search-status');
+    const empty = document.getElementById('report-empty-result');
+    const cards = Array.from(document.querySelectorAll('.entry-card'));
+    const buttons = Array.from(document.querySelectorAll('.facet-button'));
+    const activeFilters = {
+      'report-kind': 'all',
+    };
+
+    if (input && status && empty) {
+      const update = () => {
+        const query = input.value.trim().toLowerCase();
+        let visible = 0;
+        for (const card of cards) {
+          const haystack = (card.getAttribute('data-search-text') || '').toLowerCase();
+          const reportKind = (card.getAttribute('data-report-kind') || 'unknown').toLowerCase();
+          const matchesQuery = !query || haystack.includes(query);
+          const matchesKind = activeFilters['report-kind'] === 'all' || reportKind === activeFilters['report-kind'];
+          const match = matchesQuery && matchesKind;
+          card.hidden = !match;
+          if (match) visible += 1;
+        }
+        status.innerHTML = `Showing <strong>${visible}</strong> report${visible === 1 ? '' : 's'}.`;
+        empty.hidden = visible !== 0;
+      };
+      for (const button of buttons) {
+        button.addEventListener('click', () => {
+          const group = button.getAttribute('data-filter-group');
+          const value = (button.getAttribute('data-filter-value') || 'all').toLowerCase();
+          if (!group) return;
+          activeFilters[group] = value;
+          for (const peer of buttons.filter((candidate) => candidate.getAttribute('data-filter-group') === group)) {
+            peer.classList.toggle('is-active', peer === button);
+          }
+          update();
+        });
+      }
+      input.addEventListener('input', update);
+      update();
     }"#
 }
 
@@ -531,5 +712,7 @@ mod tests {
         assert!(html.contains("Open archive shell"));
         assert!(html.contains("search-report-semantic-demo.html"));
         assert!(html.contains("login issue"));
+        assert!(html.contains("report-search"));
+        assert!(html.contains("data-report-kind"));
     }
 }

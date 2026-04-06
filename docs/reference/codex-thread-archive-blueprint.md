@@ -238,6 +238,17 @@
 - archive shell、transcript、report 三类工件的导航闭环更完整
 - 但仍然没有把检索执行搬进浏览器或远端平台
 
+### Phase 18
+
+已落地：
+
+- reports-shell metadata search
+
+原因：
+
+- 现在 local reports shell 也已经能做本地 report search 和 report-kind filter
+- 但它仍然只是静态 front door，不执行 retrieval
+
 ## 推荐 CLI 命令面
 
 当前已经落地的最小集合是：

@@ -6,7 +6,7 @@
 
 - 当前目标：**Codex canonical transcript/archive 导出**
 - 未来目标：Claude Code、以及其他本地 CLI
-- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell 已落地；当前已进入 post-Phase-15 产品裁决区；默认 Codex 主路径仍是 app-server**
+- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search 已落地；当前已进入 post-Phase-18 产品裁决区；默认 Codex 主路径仍是 app-server**
 
 ---
 
@@ -76,6 +76,7 @@
 - local retrieval report artifacts
 - workspace-local transcript backlinks
 - local reports shell
+- reports-shell metadata search
 - `export codex --thread-id ...` 真实 CLI 主链
 - `export claude-code --session-path ...` 真实 CLI 主链
 - `--format markdown|json|html`

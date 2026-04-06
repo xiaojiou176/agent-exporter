@@ -12,7 +12,7 @@
 ## Current Truth
 
 - This repo is a **Rust CLI-first exporter**.
-- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search + semantic retrieval + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell**.
+- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search + semantic retrieval + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search**.
 - The repository is designed to grow into multiple connectors later, but not all at once.
 - Current export semantics stay aligned with CodexMonitor:
   - `thread/read` primary
@@ -44,6 +44,7 @@
   - writes one local archive shell `index.html` with relative links
   - now supports local metadata filtering plus retrieval-lane guidance for semantic / hybrid CLI search
   - now also writes a local reports shell at `.agents/Search/Reports/index.html`
+  - local reports shell now also supports report search and report-kind filtering
   - keeps semantic / hybrid retrieval in CLI instead of moving them into browser-side execution
   - does not add hosted publish / remote search behavior
 - Current semantic retrieval semantics:
@@ -62,7 +63,7 @@
   - reports are search-owned local artifacts, not transcript HTML inputs
   - archive shell and reports shell may link them, but retrieval execution stays in CLI
 - Current highest-value next step:
-  - a new post-Phase-15 product decision, still local-first and non-hosted
+  - a new post-Phase-18 product decision, still local-first and non-hosted
 - Current host-safety semantics:
   - the repo may spawn one direct app-server child
   - the repo may only terminate that directly owned child handle

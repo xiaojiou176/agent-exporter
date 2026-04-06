@@ -207,4 +207,6 @@ fn publish_archive_index_links_saved_search_reports() {
     assert!(reports_index.contains("agent-exporter reports shell"));
     assert!(reports_index.contains("Open archive shell"));
     assert!(reports_index.contains("search-report-semantic-demo.html"));
+    assert!(reports_index.contains("report-search"));
+    assert!(reports_index.contains("data-report-kind"));
 }
