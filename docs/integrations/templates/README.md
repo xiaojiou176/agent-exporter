@@ -79,6 +79,11 @@ doctor 会检查：
 - Claude Code：`.mcp.json`
 - OpenClaw：bundle/plugin manifests 和 `.mcp.json`
 
+当前这层还进一步收紧了：
+
+- Codex `command` + 非空 `args` 数组
+- Claude `CLAUDE.md` + `.claude/commands/*.md` 的 pack 形状
+
 ## OpenClaw 边界
 
 OpenClaw 这层当前保证的是：

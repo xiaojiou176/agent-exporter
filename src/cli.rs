@@ -403,7 +403,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -434,7 +434,7 @@ fn print_scaffold_status() {
         "- Real integration doctor path: `agent-exporter doctor integrations --platform <platform> --target <dir>`."
     );
     println!(
-        "- Next step: a new post-Phase-23 product decision, while staying local-first and non-hosted."
+        "- Next step: a new post-Phase-24 product decision, while staying local-first and non-hosted."
     );
 }
 

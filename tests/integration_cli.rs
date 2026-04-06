@@ -119,7 +119,8 @@ fn doctor_integrations_reports_codex_ready_after_materialization() {
         .stdout(predicate::str::contains("target_files [ready]"))
         .stdout(predicate::str::contains("3/3 expected files present"))
         .stdout(predicate::str::contains("target_content_sync [ready]"))
-        .stdout(predicate::str::contains("launcher_probe [ready]"));
+        .stdout(predicate::str::contains("launcher_probe [ready]"))
+        .stdout(predicate::str::contains("codex_config_shape [ready]"));
 }
 
 #[test]
@@ -169,7 +170,8 @@ fn doctor_integrations_reports_claude_ready_after_materialization() {
         .assert()
         .success()
         .stdout(predicate::str::contains("Readiness    : ready"))
-        .stdout(predicate::str::contains("claude_project_shape [ready]"));
+        .stdout(predicate::str::contains("claude_project_shape [ready]"))
+        .stdout(predicate::str::contains("claude_pack_shape [ready]"));
 }
 
 #[test]
@@ -278,6 +280,80 @@ fn doctor_integrations_reports_openclaw_ready_after_materialization() {
         .success()
         .stdout(predicate::str::contains("Readiness    : ready"))
         .stdout(predicate::str::contains("openclaw_bundle_shape [ready]"));
+}
+
+#[test]
+fn doctor_integrations_reports_codex_partial_when_config_shape_is_incomplete() {
+    let target = tempdir().expect("target dir");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .arg("integrate")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .assert()
+        .success();
+
+    fs::write(
+        target.path().join(".codex").join("config.toml"),
+        "[mcp_servers.agent_exporter]\ncommand = \"python3\"\n",
+    )
+    .expect("write incomplete codex config");
+
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .arg("doctor")
+        .arg("integrations")
+        .arg("--platform")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path());
+
+    command
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Readiness    : partial"))
+        .stdout(predicate::str::contains("codex_config_shape [partial]"));
+}
+
+#[test]
+fn doctor_integrations_reports_claude_partial_when_pack_shape_is_incomplete() {
+    let target = tempdir().expect("target dir");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .arg("integrate")
+        .arg("claude-code")
+        .arg("--target")
+        .arg(target.path())
+        .assert()
+        .success();
+
+    fs::write(
+        target
+            .path()
+            .join(".claude")
+            .join("commands")
+            .join("publish-archive.md"),
+        "Run:\n\nagent-exporter publish archive-index --workspace-root .\n",
+    )
+    .expect("write incomplete claude command");
+
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .arg("doctor")
+        .arg("integrations")
+        .arg("--platform")
+        .arg("claude-code")
+        .arg("--target")
+        .arg(target.path());
+
+    command
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Readiness    : partial"))
+        .stdout(predicate::str::contains("claude_pack_shape [partial]"));
 }
 
 #[test]

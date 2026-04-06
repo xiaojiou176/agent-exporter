@@ -66,6 +66,7 @@ The format is based on Keep a Changelog.
 - Drift-aware integration doctor checks for target-content sync and launcher probing
 - Integration doctor now keeps `cargo run` launcher fallback in `partial` rather than probing it in read-only mode
 - Platform-aware integration doctor diagnostics for Codex config, Claude project MCP config, and OpenClaw bundle manifests
+- Integration pack-shape hardening for Codex `command/args` and Claude project pack structure
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder

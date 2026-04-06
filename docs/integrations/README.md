@@ -77,6 +77,11 @@
 这仍然是文件级、target 级、只读的 doctor。
 它不是 host runtime 验证器，也不会替你执行 OpenClaw install。
 
+当前这一层还进一步收紧了两件事：
+
+- Codex：不只看 `mcp_servers.agent_exporter` 在不在，还会看 `command` 和非空 `args`
+- Claude Code：不只看 `.mcp.json`，还会看 `CLAUDE.md` 与 `.claude/commands/*.md` 是否像一份项目 pack
+
 ## First-Run Contract
 
 这一层最容易踩坑的地方，不是模板不存在，而是第一次接线时把前置条件想得太乐观。

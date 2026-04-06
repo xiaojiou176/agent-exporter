@@ -64,6 +64,7 @@
 - repo-owned integration doctor
 - drift-aware integration doctor hardening
 - platform-aware integration doctor diagnostics
+- integration pack-shape hardening
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -123,7 +124,8 @@
 20. **现在已经落地：repo-owned integration doctor via `doctor integrations --platform <platform> --target <dir>`**
 21. **现在已经落地：integration doctor drift checks + launcher probe**
 22. **现在已经落地：platform-aware integration doctor diagnostics**
-23. **当前已进入 post-Phase-23 product decision 区，默认仍不膨胀成 hosted search / service**
+23. **现在已经落地：integration pack-shape hardening**
+24. **当前已进入 post-Phase-24 product decision 区，默认仍不膨胀成 hosted search / service**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -439,6 +441,9 @@ cargo run -- doctor integrations --platform codex --target /absolute/path/to/cod
   - Codex：`.codex/config.toml` 是否真像一个 project-scoped config
   - Claude Code：`.mcp.json` 是否真是一个可解析的 project-scoped MCP config
   - OpenClaw：bundle/plugin manifests 和 `.mcp.json` 是否真像一个合法 bundle
+- Doctor 现在还会继续收紧 pack-shape 细节：
+  - Codex：`command` + 非空 `args` 数组
+  - Claude Code：`CLAUDE.md` 与 `.claude/commands/*.md` 的基本 pack 形状
 
 ## License
 

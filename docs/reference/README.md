@@ -6,7 +6,7 @@
 
 ## Current Reality
 
-当前 reference 层已经对齐 **Phase 23 platform-aware integration doctor diagnostics landed**：
+当前 reference 层已经对齐 **Phase 24 integration pack-shape hardening landed**：
 
 - 默认主路径仍然是 `app-server`
 - `local direct-read` 已经 landed，不再是 future plan
@@ -29,6 +29,7 @@
 - repo-owned integration doctor 已经 landed，不再是 future plan
 - integration doctor 的 target drift checks + launcher probe 已经 landed，不再是 future plan
 - integration doctor 的 platform-aware config/bundle diagnostics 已经 landed，不再是 future plan
+- integration doctor 的 pack-shape hardening 已经 landed，不再是 future plan
 - `local` 只代表 **archival truth**
 - `claude-code` 当前也只代表 **degraded local import truth**
 - `local` / `claude-code` 的导出状态都不能写成 complete 或 canonical

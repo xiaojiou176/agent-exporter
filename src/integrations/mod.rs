@@ -633,7 +633,12 @@ fn platform_specific_checks(
 ) -> Vec<IntegrationDoctorCheck> {
     match platform {
         IntegrationPlatform::Codex => vec![check_codex_config(target_root)],
-        IntegrationPlatform::ClaudeCode => vec![check_claude_mcp(target_root)],
+        IntegrationPlatform::ClaudeCode => {
+            vec![
+                check_claude_mcp(target_root),
+                check_claude_pack(target_root),
+            ]
+        }
         IntegrationPlatform::OpenClaw => vec![check_openclaw_bundle(target_root)],
     }
 }
@@ -650,23 +655,36 @@ fn check_codex_config(target_root: &Path) -> IntegrationDoctorCheck {
 
     let parsed = content.parse::<TomlValue>();
     match parsed {
-        Ok(value)
-            if value
-                .get("mcp_servers")
-                .and_then(|servers| servers.get("agent_exporter"))
-                .is_some() =>
+        Ok(value) => match value
+            .get("mcp_servers")
+            .and_then(|servers| servers.get("agent_exporter"))
         {
-            IntegrationDoctorCheck {
-                label: "codex_config_shape",
-                readiness: IntegrationReadiness::Ready,
-                detail: "`.codex/config.toml` contains `mcp_servers.agent_exporter`".to_string(),
+            Some(server)
+                if server
+                    .get("command")
+                    .and_then(TomlValue::as_str)
+                    .is_some()
+                    && server
+                        .get("args")
+                        .and_then(TomlValue::as_array)
+                        .is_some_and(|args| !args.is_empty()) =>
+            {
+                IntegrationDoctorCheck {
+                    label: "codex_config_shape",
+                    readiness: IntegrationReadiness::Ready,
+                    detail: "`.codex/config.toml` contains `mcp_servers.agent_exporter.command` and a non-empty `args` array".to_string(),
+                }
             }
-        }
-        Ok(_) => IntegrationDoctorCheck {
-            label: "codex_config_shape",
-            readiness: IntegrationReadiness::Partial,
-            detail: "`.codex/config.toml` parsed, but `mcp_servers.agent_exporter` is missing"
-                .to_string(),
+            Some(_) => IntegrationDoctorCheck {
+                label: "codex_config_shape",
+                readiness: IntegrationReadiness::Partial,
+                detail: "`.codex/config.toml` parsed, but `mcp_servers.agent_exporter` is missing `command` or a non-empty `args` array".to_string(),
+            },
+            None => IntegrationDoctorCheck {
+                label: "codex_config_shape",
+                readiness: IntegrationReadiness::Partial,
+                detail: "`.codex/config.toml` parsed, but `mcp_servers.agent_exporter` is missing".to_string(),
+            },
         },
         Err(error) => IntegrationDoctorCheck {
             label: "codex_config_shape",
@@ -713,6 +731,49 @@ fn check_claude_mcp(target_root: &Path) -> IntegrationDoctorCheck {
             readiness: IntegrationReadiness::Partial,
             detail: format!("`.mcp.json` failed to parse: {error}"),
         },
+    }
+}
+
+fn check_claude_pack(target_root: &Path) -> IntegrationDoctorCheck {
+    let claude_md = target_root.join("CLAUDE.md");
+    let publish_command = target_root
+        .join(".claude")
+        .join("commands")
+        .join("publish-archive.md");
+
+    let Some(claude_md_content) = fs::read_to_string(&claude_md).ok() else {
+        return IntegrationDoctorCheck {
+            label: "claude_pack_shape",
+            readiness: IntegrationReadiness::Missing,
+            detail: claude_md.display().to_string(),
+        };
+    };
+    let Some(command_content) = fs::read_to_string(&publish_command).ok() else {
+        return IntegrationDoctorCheck {
+            label: "claude_pack_shape",
+            readiness: IntegrationReadiness::Missing,
+            detail: publish_command.display().to_string(),
+        };
+    };
+
+    let has_heading = claude_md_content.lines().any(|line| line.starts_with('#'));
+    let has_description = command_content.contains("description:");
+    let has_bash_block = command_content.contains("```bash");
+
+    if has_heading && has_description && has_bash_block {
+        IntegrationDoctorCheck {
+            label: "claude_pack_shape",
+            readiness: IntegrationReadiness::Ready,
+            detail: "`CLAUDE.md` and `.claude/commands/*.md` look like a valid project pack"
+                .to_string(),
+        }
+    } else {
+        IntegrationDoctorCheck {
+            label: "claude_pack_shape",
+            readiness: IntegrationReadiness::Partial,
+            detail: "Claude pack is missing a heading, command description, or bash command block"
+                .to_string(),
+        }
     }
 }
 
