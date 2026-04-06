@@ -24,6 +24,29 @@
 
 当前 MCP bridge 暴露的是最小 publish/search 工具面，不是全量 CLI 面。
 
+## Repo-Owned Entry Points
+
+现在 integration pack 不再只是“模板目录”。
+
+当前仓里已经有两条 repo-owned 接入入口：
+
+- `agent-exporter integrate codex --target <DIR>`
+- `agent-exporter integrate claude-code --target <DIR>`
+- `agent-exporter integrate openclaw --target <DIR>`
+- `agent-exporter doctor integrations --platform <platform> --target <DIR>`
+
+你可以把它理解成：
+
+> `integrate` 负责把 repo-owned 接线材料材料化到一个显式 target，
+> `doctor` 负责用只读方式检查这份材料和 bridge/launcher readiness 到底处在 `ready / partial / missing` 哪一层。
+
+这两条入口都守住同一个硬边界：
+
+- 不静默写用户 `Home`
+- 不自动扫描全局安装目录
+- 不偷偷替你 build / install / mutate shell
+- 不把 OpenClaw bundle content 夸大成 repo-native runtime
+
 ## First-Run Contract
 
 这一层最容易踩坑的地方，不是模板不存在，而是第一次接线时把前置条件想得太乐观。

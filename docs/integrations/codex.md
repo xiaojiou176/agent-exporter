@@ -7,9 +7,21 @@
 
 ## 当前最稳接法
 
-1. 在项目里保留或合并 `AGENTS.md`
-2. 给团队一个固定约定：当需要导出 / 发布 / 检索 / 保存 report 时，直接调用 `agent-exporter`
-3. 如果你的 Codex 运行时支持 MCP，再补 `config.toml` 里的 MCP server 配置
+1. 先运行 `agent-exporter integrate codex --target <DIR>` 材料化一份可审计的 Codex pack
+2. 在项目里保留或合并 `AGENTS.md`
+3. 如果你要把 repo-shared skill 也一起带上，就连同 `.agents/skills/export-archive/` 一起放进项目
+4. 给团队一个固定约定：当需要导出 / 发布 / 检索 / 保存 report 时，直接调用 `agent-exporter`
+5. 如果你的 Codex 运行时支持 MCP，再补 project-scoped `.codex/config.toml`
+
+## Doctor
+
+材料化后，可以用：
+
+```bash
+agent-exporter doctor integrations --platform codex --target <DIR>
+```
+
+去确认 target 里的 `AGENTS.md`、`.codex/config.toml`、`.agents/skills/export-archive/`、bridge script 路径和 launcher readiness 是否已经到 `ready`。
 
 ## MCP first-run 说明
 
@@ -45,6 +57,7 @@ agent-exporter search hybrid --workspace-root <repo> --query "thread-1" --save-r
 
 - `templates/codex/AGENTS.md`
 - `templates/codex/config.toml`
+- `templates/codex/.agents/skills/export-archive/SKILL.md`
 
 ## 当前诚实边界
 

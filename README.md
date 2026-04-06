@@ -60,15 +60,19 @@
 - local reports-shell metadata search
 - minimal stdio MCP bridge
 - Codex / Claude Code / OpenClaw integration pack docs/templates
+- repo-owned integration materializer
+- repo-owned integration doctor
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
 - 一条真实可用的 `publish archive-index --workspace-root <repo>` 本地归档索引命令
+- 一条真实可用的 `integrate <platform> --target <dir>` 材料化主链
+- 一条真实可用的 `doctor integrations --platform <platform> --target <dir>` 验收主链
 - 第一批 ADR / 参考文档与实现对齐
 
 当前阶段**还没有**完成的是：
 
-- 当前 Phase 20 之后的新一轮产品裁决
+- 当前 Phase 21 之后的新一轮产品裁决
 
 ---
 
@@ -113,7 +117,9 @@
 16. **现在已经落地：local reports shell via `publish archive-index`**
 17. **现在已经落地：local reports-shell metadata search**
 18. **现在已经落地：minimal stdio MCP bridge for publish/search**
-19. **当前已进入 post-Phase-20 product decision 区，默认仍不膨胀成 hosted search / service**
+19. **现在已经落地：repo-owned integration materializer via `integrate <platform> --target <dir>`**
+20. **现在已经落地：repo-owned integration doctor via `doctor integrations --platform <platform> --target <dir>`**
+21. **当前已进入 post-Phase-21 product decision 区，默认仍不膨胀成 hosted search / service**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -363,7 +369,7 @@ codex app-server
 
 后续文档和实现若继续推进，会先进入：
 
-1. 新的 post-Phase-20 产品裁决
+1. 新的 post-Phase-21 产品裁决
 
 ---
 
@@ -386,6 +392,10 @@ cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "ho
 cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1"
 cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues" --save-report
 cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1" --save-report
+cargo run -- integrate codex --target /absolute/path/to/codex-pack
+cargo run -- integrate claude-code --target /absolute/path/to/claude-pack
+cargo run -- integrate openclaw --target /absolute/path/to/openclaw-pack
+cargo run -- doctor integrations --platform codex --target /absolute/path/to/codex-pack
 ```
 
 ## Integration Pack
@@ -403,6 +413,11 @@ cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thre
 当前真实边界：
 
 - 已经准备好的：CLI-first templates / skills / command snippets / bundle skeletons / minimal stdio MCP bridge
+- 当前 repo 还已经多了一层 repo-owned 接入主链：
+  - `agent-exporter integrate codex --target <dir>`
+  - `agent-exporter integrate claude-code --target <dir>`
+  - `agent-exporter integrate openclaw --target <dir>`
+  - `agent-exporter doctor integrations --platform <platform> --target <dir>`
 - 当前 bridge 只覆盖 publish/search 高价值工具，不代表整个 CLI 全量变成 MCP
 - 当前 MCP bridge 默认依赖 repo 内的 `scripts/agent_exporter_mcp.py`
   - first-run 会优先尝试 repo-local `target/release/agent-exporter`
@@ -410,6 +425,8 @@ cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thre
   - 如果本地还没提前 build，它会再退到 `cargo run --manifest-path <repo>/Cargo.toml --bin agent-exporter --`
 - 如果你要改成已安装 binary 或自定义 launcher，再显式设置 `AGENT_EXPORTER_BIN` / `AGENT_EXPORTER_ARGS`
 - OpenClaw 当前准备好的是 **bundle content / plugin skeleton**，不是 repo-native OpenClaw runtime；接法见 `docs/integrations/openclaw.md`
+- Installer 只会往显式 `--target` 下材料化，不会静默改你的 Home 目录
+- Doctor 只做只读 readiness 检查，不会偷偷替你装东西
 
 ## License
 

@@ -17,6 +17,10 @@ use crate::core::semantic_search::{
     FastEmbedSemanticEmbedder, SemanticEmbedder, hybrid_search_with_persistent_index,
     semantic_search_with_persistent_index,
 };
+use crate::integrations::{
+    IntegrationDoctorCheck, IntegrationDoctorRequest, IntegrationMaterializeRequest,
+    IntegrationPlatform, doctor_integration, materialize_integration,
+};
 use crate::model::{ConnectorKind, OutputFormat, SupportStage};
 use crate::output::{
     archive_index as archive_index_output, html as html_output, json as json_output,
@@ -62,6 +66,16 @@ enum Commands {
         #[command(subcommand)]
         command: SearchCommands,
     },
+    /// Materialize repo-owned integration assets into an explicit target directory.
+    Integrate {
+        #[command(subcommand)]
+        command: IntegrateCommands,
+    },
+    /// Check integration readiness for a target directory without mutating it.
+    Doctor {
+        #[command(subcommand)]
+        command: DoctorCommands,
+    },
 }
 
 #[derive(Debug, Subcommand)]
@@ -84,6 +98,23 @@ enum SearchCommands {
     Semantic(SearchSemanticArgs),
     /// Run hybrid retrieval that blends semantic ranking with lexical metadata signals.
     Hybrid(SearchHybridArgs),
+}
+
+#[derive(Debug, Subcommand)]
+enum IntegrateCommands {
+    /// Materialize Codex integration assets into an explicit target directory.
+    Codex(IntegrateArgs),
+    /// Materialize Claude Code integration assets into an explicit target directory.
+    ClaudeCode(IntegrateArgs),
+    /// Materialize OpenClaw bundle/plugin assets into an explicit target directory.
+    #[command(name = "openclaw")]
+    OpenClaw(IntegrateArgs),
+}
+
+#[derive(Debug, Subcommand)]
+enum DoctorCommands {
+    /// Check integration readiness for one platform and one explicit target directory.
+    Integrations(DoctorIntegrationsArgs),
 }
 
 #[derive(Debug, clap::Args)]
@@ -181,6 +212,23 @@ struct SearchHybridArgs {
     save_report: bool,
 }
 
+#[derive(Debug, clap::Args)]
+struct IntegrateArgs {
+    /// Explicit target directory where integration assets should be materialized.
+    #[arg(long)]
+    target: PathBuf,
+}
+
+#[derive(Debug, clap::Args)]
+struct DoctorIntegrationsArgs {
+    /// Platform whose integration target should be checked.
+    #[arg(long, value_enum)]
+    platform: PlatformArg,
+    /// Explicit target directory to inspect. The doctor never mutates this path.
+    #[arg(long)]
+    target: PathBuf,
+}
+
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
 enum DestinationArg {
     Downloads,
@@ -198,6 +246,14 @@ enum FormatArg {
     Markdown,
     Json,
     Html,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
+enum PlatformArg {
+    Codex,
+    ClaudeCode,
+    #[value(name = "openclaw")]
+    OpenClaw,
 }
 
 impl DestinationArg {
@@ -220,6 +276,16 @@ impl FormatArg {
             Self::Markdown => OutputFormat::Markdown,
             Self::Json => OutputFormat::Json,
             Self::Html => OutputFormat::Html,
+        }
+    }
+}
+
+impl PlatformArg {
+    fn into_integration_platform(self) -> IntegrationPlatform {
+        match self {
+            Self::Codex => IntegrationPlatform::Codex,
+            Self::ClaudeCode => IntegrationPlatform::ClaudeCode,
+            Self::OpenClaw => IntegrationPlatform::OpenClaw,
         }
     }
 }
@@ -302,6 +368,18 @@ pub fn run() -> Result<()> {
             SearchCommands::Semantic(args) => search_semantic(args)?,
             SearchCommands::Hybrid(args) => search_hybrid(args)?,
         },
+        Commands::Integrate { command } => match command {
+            IntegrateCommands::Codex(args) => integrate_platform(IntegrationPlatform::Codex, args)?,
+            IntegrateCommands::ClaudeCode(args) => {
+                integrate_platform(IntegrationPlatform::ClaudeCode, args)?
+            }
+            IntegrateCommands::OpenClaw(args) => {
+                integrate_platform(IntegrationPlatform::OpenClaw, args)?
+            }
+        },
+        Commands::Doctor { command } => match command {
+            DoctorCommands::Integrations(args) => doctor_integrations(args)?,
+        },
     }
     Ok(())
 }
@@ -325,7 +403,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -350,7 +428,13 @@ fn print_scaffold_status() {
         "- Real MCP bridge path: `python3 scripts/agent_exporter_mcp.py` with local stdio tool exposure for publish/search workflows."
     );
     println!(
-        "- Next step: a new post-Phase-20 product decision, while staying local-first and non-hosted."
+        "- Real integration materializer path: `agent-exporter integrate <platform> --target <dir>`."
+    );
+    println!(
+        "- Real integration doctor path: `agent-exporter doctor integrations --platform <platform> --target <dir>`."
+    );
+    println!(
+        "- Next step: a new post-Phase-21 product decision, while staying local-first and non-hosted."
     );
 }
 
@@ -590,6 +674,64 @@ fn write_hybrid_report(
         generated_at,
         &rendered,
     )
+}
+
+fn integrate_platform(platform: IntegrationPlatform, args: IntegrateArgs) -> Result<()> {
+    let outcome = materialize_integration(&IntegrationMaterializeRequest {
+        platform,
+        target_root: args.target,
+    })?;
+
+    println!("Integration materialized");
+    println!("- Platform     : {}", outcome.platform.as_str());
+    println!("- Target       : {}", outcome.target_root.display());
+    println!("- Launcher     : {}", outcome.launcher.kind);
+    println!("- Command      : {}", outcome.launcher.shell_command());
+    println!("- Written      : {}", outcome.written_files.len());
+    println!("- Unchanged    : {}", outcome.unchanged_files.len());
+    if !outcome.written_files.is_empty() {
+        println!("- Files Written");
+        for path in &outcome.written_files {
+            println!("  - {}", path.display());
+        }
+    }
+    if !outcome.unchanged_files.is_empty() {
+        println!("- Files Unchanged");
+        for path in &outcome.unchanged_files {
+            println!("  - {}", path.display());
+        }
+    }
+
+    Ok(())
+}
+
+fn doctor_integrations(args: DoctorIntegrationsArgs) -> Result<()> {
+    let outcome = doctor_integration(&IntegrationDoctorRequest {
+        platform: args.platform.into_integration_platform(),
+        target_root: args.target,
+    })?;
+
+    println!("Integration doctor completed");
+    println!("- Platform     : {}", outcome.platform.as_str());
+    println!("- Target       : {}", outcome.target_root.display());
+    println!("- Readiness    : {}", outcome.overall_readiness.as_str());
+    println!("- Launcher     : {}", outcome.launcher.kind);
+    println!("- Command      : {}", outcome.launcher.shell_command());
+    println!("- Checks");
+    for check in &outcome.checks {
+        print_doctor_check(check);
+    }
+
+    Ok(())
+}
+
+fn print_doctor_check(check: &IntegrationDoctorCheck) {
+    println!(
+        "  - {} [{}] {}",
+        check.label,
+        check.readiness.as_str(),
+        check.detail
+    );
 }
 
 fn export_request(request: ExportRequest) -> Result<()> {

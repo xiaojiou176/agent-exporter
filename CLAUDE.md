@@ -12,11 +12,13 @@
 ## Current Truth
 
 - This repo is a **Rust CLI-first exporter**.
-- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search + semantic retrieval + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search**.
+- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search + semantic retrieval + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + repo-owned integration materializer/doctor**.
 - Current integration-pack semantics:
   - Codex and Claude Code are ready through CLI-first templates plus an optional minimal stdio MCP bridge
   - the MCP bridge resolves repo-local launcher paths before any explicit `AGENT_EXPORTER_BIN` / `AGENT_EXPORTER_ARGS` override
   - OpenClaw is prepared as bundle content and plugin skeletons, not as a repo-native runtime
+  - `integrate <platform> --target <dir>` materializes repo-owned assets into explicit targets only
+  - `doctor integrations --platform <platform> --target <dir>` stays read-only and reports `ready / partial / missing`
 - The repository is designed to grow into multiple connectors later, but not all at once.
 - Current export semantics stay aligned with CodexMonitor:
   - `thread/read` primary
@@ -67,7 +69,7 @@
   - reports are search-owned local artifacts, not transcript HTML inputs
   - archive shell and reports shell may link them, but retrieval execution stays in CLI
 - Current highest-value next step:
-  - a new post-Phase-20 product decision, still local-first and non-hosted
+  - a new post-Phase-21 product decision, still local-first and non-hosted
 - Current host-safety semantics:
   - the repo may spawn one direct app-server child
   - the repo may only terminate that directly owned child handle
@@ -100,6 +102,10 @@ cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "ho
 cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1"
 cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues" --save-report
 cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1" --save-report
+cargo run -- integrate codex --target /absolute/path/to/codex-pack
+cargo run -- integrate claude-code --target /absolute/path/to/claude-pack
+cargo run -- integrate openclaw --target /absolute/path/to/openclaw-pack
+cargo run -- doctor integrations --platform codex --target /absolute/path/to/codex-pack
 ```
 
 `cargo test` now also acts as the repo's host-safety gate.

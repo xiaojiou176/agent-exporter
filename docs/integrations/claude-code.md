@@ -7,9 +7,21 @@ Claude Code 当前最稳的接法，是把 `agent-exporter` 作为 **project ski
 
 ## 当前最稳接法
 
-1. 在项目里加入 `.claude/commands/` 或 `.claude/skills/`
-2. 让命令直接调用本地 `agent-exporter`
-3. 如果你想走 MCP，再加 `.mcp.json` 指向 `scripts/agent_exporter_mcp.py`
+1. 先运行 `agent-exporter integrate claude-code --target <DIR>` 材料化一份可审计的 Claude Code pack
+2. 在项目里加入 `CLAUDE.md`
+3. 在项目里加入 `.claude/commands/` 或 `.claude/skills/`
+4. 让命令直接调用本地 `agent-exporter`
+5. 如果你想走 MCP，再加 `.mcp.json` 指向 `scripts/agent_exporter_mcp.py`
+
+## Doctor
+
+材料化后，可以用：
+
+```bash
+agent-exporter doctor integrations --platform claude-code --target <DIR>
+```
+
+去检查 `CLAUDE.md`、`.claude/commands/*`、`.mcp.json`、bridge script 路径和 launcher readiness。
 
 ## MCP first-run 说明
 
@@ -44,6 +56,7 @@ agent-exporter search hybrid --workspace-root . --query "$ARGUMENTS" --save-repo
 - `templates/claude-code/.claude/commands/publish-archive.md`
 - `templates/claude-code/.claude/commands/search-semantic-report.md`
 - `templates/claude-code/.claude/commands/search-hybrid-report.md`
+- `templates/claude-code/CLAUDE.md`
 - `templates/claude-code/.mcp.json`
 
 ## 当前诚实边界

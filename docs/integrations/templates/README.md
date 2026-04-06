@@ -12,8 +12,10 @@
 
 - `codex/`
   - `AGENTS.md`：可直接合并进项目级协作协议
-  - `config.toml`：可直接摘进 Codex 的 MCP 配置
+  - `.codex/config.toml`：可直接摘进 Codex 的 project-scoped MCP 配置
+  - `.agents/skills/export-archive/SKILL.md`：可直接放进 repo-shared Codex skills
 - `claude-code/`
+  - `CLAUDE.md`：可直接复制进项目根目录
   - `.claude/commands/*`：可直接复制进项目的 `.claude/commands/`
   - `.mcp.json`：Claude Code MCP snippet
 - `openclaw-codex-bundle/`
@@ -38,6 +40,33 @@ bridge 自己会按顺序尝试：
 
 - `AGENT_EXPORTER_BIN`
 - `AGENT_EXPORTER_ARGS`
+
+## Repo-Owned Materializer
+
+如果你不想手工复制模板目录，现在已经可以直接让仓库替你把这些材料化到一个显式 target：
+
+```bash
+agent-exporter integrate codex --target /absolute/path/to/codex-pack
+agent-exporter integrate claude-code --target /absolute/path/to/claude-pack
+agent-exporter integrate openclaw --target /absolute/path/to/openclaw-pack
+```
+
+它只会写到你明确给出的 target 下，不会静默改你的 `~/.codex`、`~/.claude` 或 OpenClaw host 目录。
+
+## Repo-Owned Doctor
+
+材料化之后，可以再用 doctor 做只读验收：
+
+```bash
+agent-exporter doctor integrations --platform codex --target /absolute/path/to/codex-pack
+```
+
+doctor 会检查：
+
+- target 里该有的模板文件是否齐
+- MCP bridge script 是否存在
+- repo-local launcher 解析是否可用
+- 当前 readiness 是 `ready / partial / missing` 哪一层
 
 ## OpenClaw 边界
 

@@ -61,6 +61,8 @@ The format is based on Keep a Changelog.
 - Minimal stdio MCP bridge for publish/search workflows
 - MCP bridge smoke coverage and MCP config templates
 - Integration template README for Codex / Claude Code / OpenClaw first-run setup
+- Repo-owned integration materializer for Codex / Claude Code / OpenClaw explicit targets
+- Repo-owned integration doctor for target-scoped readiness checks
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder
@@ -82,3 +84,4 @@ The format is based on Keep a Changelog.
 - Codex / Claude connector summaries now describe the shared archive transcript contract instead of a Markdown-only contract
 - MCP bridge templates now default to repo-local launcher discovery instead of requiring a hard-coded release binary path
 - Integration docs now spell out MCP first-run prerequisites and keep OpenClaw at bundle-content honesty
+- Integration pack is no longer docs-only; it now has explicit `integrate` and `doctor integrations` entry points

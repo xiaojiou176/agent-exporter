@@ -1,0 +1,539 @@
+use std::fs;
+use std::path::{Path, PathBuf};
+use std::process::Command;
+
+use anyhow::{Context, Result, bail};
+
+const MCP_SCRIPT_PLACEHOLDER: &str =
+    "/absolute/path/to/agent-exporter/scripts/agent_exporter_mcp.py";
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum IntegrationPlatform {
+    Codex,
+    ClaudeCode,
+    OpenClaw,
+}
+
+impl IntegrationPlatform {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Codex => "codex",
+            Self::ClaudeCode => "claude-code",
+            Self::OpenClaw => "openclaw",
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum IntegrationReadiness {
+    Ready,
+    Partial,
+    Missing,
+}
+
+impl IntegrationReadiness {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Ready => "ready",
+            Self::Partial => "partial",
+            Self::Missing => "missing",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IntegrationMaterializeRequest {
+    pub platform: IntegrationPlatform,
+    pub target_root: PathBuf,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IntegrationMaterializeOutcome {
+    pub platform: IntegrationPlatform,
+    pub target_root: PathBuf,
+    pub launcher: LauncherSpec,
+    pub written_files: Vec<PathBuf>,
+    pub unchanged_files: Vec<PathBuf>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IntegrationDoctorRequest {
+    pub platform: IntegrationPlatform,
+    pub target_root: PathBuf,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IntegrationDoctorCheck {
+    pub label: &'static str,
+    pub readiness: IntegrationReadiness,
+    pub detail: String,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IntegrationDoctorOutcome {
+    pub platform: IntegrationPlatform,
+    pub target_root: PathBuf,
+    pub overall_readiness: IntegrationReadiness,
+    pub launcher: LauncherSpec,
+    pub checks: Vec<IntegrationDoctorCheck>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct LauncherSpec {
+    pub kind: &'static str,
+    pub command: String,
+    pub args: Vec<String>,
+}
+
+impl LauncherSpec {
+    pub fn shell_command(&self) -> String {
+        let mut rendered = vec![quote_shell_arg(&self.command)];
+        rendered.extend(self.args.iter().map(|arg| quote_shell_arg(arg)));
+        rendered.join(" ")
+    }
+}
+
+#[derive(Clone, Copy)]
+enum RenderMode {
+    Plain,
+    LauncherCommands,
+    McpConfig,
+}
+
+#[derive(Clone, Copy)]
+struct TemplateAsset {
+    source_rel: &'static str,
+    destination_rel: &'static str,
+    mode: RenderMode,
+}
+
+pub fn materialize_integration(
+    request: &IntegrationMaterializeRequest,
+) -> Result<IntegrationMaterializeOutcome> {
+    let repo_root = repo_root();
+    let launcher = resolve_launcher(&repo_root)?;
+    prepare_target_dir(&request.target_root)?;
+
+    let mut written_files = Vec::new();
+    let mut unchanged_files = Vec::new();
+
+    for asset in assets_for(request.platform) {
+        let source_path = repo_root.join(asset.source_rel);
+        let raw = fs::read_to_string(&source_path).with_context(|| {
+            format!(
+                "failed to read integration template `{}`",
+                source_path.display()
+            )
+        })?;
+        let rendered = render_template(&raw, asset.mode, &repo_root, &launcher);
+        let destination_path = request.target_root.join(asset.destination_rel);
+        match write_materialized_file(&destination_path, &rendered)? {
+            WriteDisposition::Written => written_files.push(destination_path),
+            WriteDisposition::Unchanged => unchanged_files.push(destination_path),
+        }
+    }
+
+    Ok(IntegrationMaterializeOutcome {
+        platform: request.platform,
+        target_root: request.target_root.clone(),
+        launcher,
+        written_files,
+        unchanged_files,
+    })
+}
+
+pub fn doctor_integration(request: &IntegrationDoctorRequest) -> Result<IntegrationDoctorOutcome> {
+    let repo_root = repo_root();
+    let launcher = resolve_launcher(&repo_root)?;
+    let bridge_script = bridge_script_path(&repo_root);
+    let assets = assets_for(request.platform);
+    let mut checks = Vec::new();
+
+    checks.push(IntegrationDoctorCheck {
+        label: "bridge_script",
+        readiness: if bridge_script.is_file() {
+            IntegrationReadiness::Ready
+        } else {
+            IntegrationReadiness::Missing
+        },
+        detail: bridge_script.display().to_string(),
+    });
+
+    checks.push(IntegrationDoctorCheck {
+        label: "python3",
+        readiness: if python3_available() {
+            IntegrationReadiness::Ready
+        } else {
+            IntegrationReadiness::Partial
+        },
+        detail: "python3".to_string(),
+    });
+
+    let missing_assets = assets
+        .iter()
+        .filter(|asset| !repo_root.join(asset.source_rel).is_file())
+        .count();
+    checks.push(IntegrationDoctorCheck {
+        label: "repo_templates",
+        readiness: if missing_assets == 0 {
+            IntegrationReadiness::Ready
+        } else {
+            IntegrationReadiness::Missing
+        },
+        detail: format!(
+            "{}/{} template assets available",
+            assets.len() - missing_assets,
+            assets.len()
+        ),
+    });
+
+    if !request.target_root.exists() {
+        checks.push(IntegrationDoctorCheck {
+            label: "target_root",
+            readiness: IntegrationReadiness::Missing,
+            detail: request.target_root.display().to_string(),
+        });
+        return Ok(IntegrationDoctorOutcome {
+            platform: request.platform,
+            target_root: request.target_root.clone(),
+            overall_readiness: IntegrationReadiness::Missing,
+            launcher,
+            checks,
+        });
+    }
+
+    if !request.target_root.is_dir() {
+        bail!(
+            "doctor target must be a directory: {}",
+            request.target_root.display()
+        );
+    }
+
+    checks.push(IntegrationDoctorCheck {
+        label: "target_root",
+        readiness: IntegrationReadiness::Ready,
+        detail: request.target_root.display().to_string(),
+    });
+
+    let expected_destinations = assets
+        .iter()
+        .map(|asset| request.target_root.join(asset.destination_rel))
+        .collect::<Vec<_>>();
+    let existing_files = expected_destinations
+        .iter()
+        .filter(|path| path.is_file())
+        .count();
+
+    checks.push(IntegrationDoctorCheck {
+        label: "target_files",
+        readiness: if existing_files == 0 {
+            IntegrationReadiness::Missing
+        } else if existing_files == expected_destinations.len() {
+            IntegrationReadiness::Ready
+        } else {
+            IntegrationReadiness::Partial
+        },
+        detail: format!(
+            "{existing_files}/{} expected files present",
+            expected_destinations.len()
+        ),
+    });
+
+    let unresolved_paths = expected_destinations
+        .iter()
+        .filter_map(|path| fs::read_to_string(path).ok())
+        .filter(|content| {
+            content.contains(MCP_SCRIPT_PLACEHOLDER)
+                || content.contains("agent-exporter publish archive-index")
+                || content.contains("agent-exporter search semantic")
+                || content.contains("agent-exporter search hybrid")
+        })
+        .count();
+
+    checks.push(IntegrationDoctorCheck {
+        label: "materialized_paths",
+        readiness: if existing_files == 0 {
+            IntegrationReadiness::Missing
+        } else if unresolved_paths == 0 {
+            IntegrationReadiness::Ready
+        } else {
+            IntegrationReadiness::Partial
+        },
+        detail: if unresolved_paths == 0 {
+            "all detected templates use repo-local launcher/script paths".to_string()
+        } else {
+            format!(
+                "{unresolved_paths} files still contain placeholder or generic PATH launcher references"
+            )
+        },
+    });
+
+    let overall = collapse_readiness(&checks);
+    Ok(IntegrationDoctorOutcome {
+        platform: request.platform,
+        target_root: request.target_root.clone(),
+        overall_readiness: overall,
+        launcher,
+        checks,
+    })
+}
+
+fn collapse_readiness(checks: &[IntegrationDoctorCheck]) -> IntegrationReadiness {
+    let mut has_partial = false;
+    for check in checks {
+        match check.readiness {
+            IntegrationReadiness::Missing => return IntegrationReadiness::Missing,
+            IntegrationReadiness::Partial => has_partial = true,
+            IntegrationReadiness::Ready => {}
+        }
+    }
+    if has_partial {
+        IntegrationReadiness::Partial
+    } else {
+        IntegrationReadiness::Ready
+    }
+}
+
+fn repo_root() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+}
+
+fn bridge_script_path(repo_root: &Path) -> PathBuf {
+    repo_root.join("scripts").join("agent_exporter_mcp.py")
+}
+
+fn resolve_launcher(repo_root: &Path) -> Result<LauncherSpec> {
+    let release_bin = repo_root
+        .join("target")
+        .join("release")
+        .join("agent-exporter");
+    if release_bin.is_file() {
+        return Ok(LauncherSpec {
+            kind: "repo-local-release",
+            command: release_bin.display().to_string(),
+            args: Vec::new(),
+        });
+    }
+
+    let debug_bin = repo_root
+        .join("target")
+        .join("debug")
+        .join("agent-exporter");
+    if debug_bin.is_file() {
+        return Ok(LauncherSpec {
+            kind: "repo-local-debug",
+            command: debug_bin.display().to_string(),
+            args: Vec::new(),
+        });
+    }
+
+    if cargo_available() {
+        return Ok(LauncherSpec {
+            kind: "cargo-run",
+            command: "cargo".to_string(),
+            args: vec![
+                "run".to_string(),
+                "--quiet".to_string(),
+                "--manifest-path".to_string(),
+                repo_root.join("Cargo.toml").display().to_string(),
+                "--bin".to_string(),
+                "agent-exporter".to_string(),
+                "--".to_string(),
+            ],
+        });
+    }
+
+    bail!(
+        "failed to resolve a repo-owned launcher: no target/release, no target/debug, and `cargo` is unavailable"
+    )
+}
+
+fn cargo_available() -> bool {
+    Command::new("cargo")
+        .arg("--version")
+        .output()
+        .is_ok_and(|output| output.status.success())
+}
+
+fn python3_available() -> bool {
+    Command::new("python3")
+        .arg("--version")
+        .output()
+        .is_ok_and(|output| output.status.success())
+}
+
+fn prepare_target_dir(target_root: &Path) -> Result<()> {
+    if target_root.exists() && !target_root.is_dir() {
+        bail!(
+            "integration target must be a directory: {}",
+            target_root.display()
+        );
+    }
+    fs::create_dir_all(target_root).with_context(|| {
+        format!(
+            "failed to prepare integration target `{}`",
+            target_root.display()
+        )
+    })
+}
+
+fn render_template(
+    raw: &str,
+    mode: RenderMode,
+    repo_root: &Path,
+    launcher: &LauncherSpec,
+) -> String {
+    let with_bridge = raw.replace(
+        MCP_SCRIPT_PLACEHOLDER,
+        &bridge_script_path(repo_root).display().to_string(),
+    );
+    match mode {
+        RenderMode::Plain | RenderMode::McpConfig => with_bridge,
+        RenderMode::LauncherCommands => rewrite_launcher_commands(&with_bridge, launcher),
+    }
+}
+
+fn rewrite_launcher_commands(raw: &str, launcher: &LauncherSpec) -> String {
+    let launcher_shell = launcher.shell_command();
+    raw.replace(
+        "agent-exporter publish archive-index",
+        &format!("{launcher_shell} publish archive-index"),
+    )
+    .replace(
+        "agent-exporter search semantic",
+        &format!("{launcher_shell} search semantic"),
+    )
+    .replace(
+        "agent-exporter search hybrid",
+        &format!("{launcher_shell} search hybrid"),
+    )
+}
+
+fn quote_shell_arg(value: &str) -> String {
+    let safe = value
+        .chars()
+        .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '/' | '_' | '-' | '.' | ':' | '='));
+    if safe {
+        value.to_string()
+    } else {
+        format!("'{}'", value.replace('\'', "'\"'\"'"))
+    }
+}
+
+enum WriteDisposition {
+    Written,
+    Unchanged,
+}
+
+fn write_materialized_file(path: &Path, content: &str) -> Result<WriteDisposition> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent).with_context(|| {
+            format!(
+                "failed to prepare integration parent directory `{}`",
+                parent.display()
+            )
+        })?;
+    }
+
+    if path.exists() {
+        let existing = fs::read_to_string(path)
+            .with_context(|| format!("failed to read existing target `{}`", path.display()))?;
+        if existing == content {
+            return Ok(WriteDisposition::Unchanged);
+        }
+        bail!(
+            "integration materializer refuses to overwrite existing file `{}`; choose an empty target or remove the file first",
+            path.display()
+        );
+    }
+
+    fs::write(path, content)
+        .with_context(|| format!("failed to write integration file `{}`", path.display()))?;
+    Ok(WriteDisposition::Written)
+}
+
+fn assets_for(platform: IntegrationPlatform) -> &'static [TemplateAsset] {
+    match platform {
+        IntegrationPlatform::Codex => &[
+            TemplateAsset {
+                source_rel: "docs/integrations/templates/codex/AGENTS.md",
+                destination_rel: "AGENTS.md",
+                mode: RenderMode::LauncherCommands,
+            },
+            TemplateAsset {
+                source_rel: "docs/integrations/templates/codex/.agents/skills/export-archive/SKILL.md",
+                destination_rel: ".agents/skills/export-archive/SKILL.md",
+                mode: RenderMode::LauncherCommands,
+            },
+            TemplateAsset {
+                source_rel: "docs/integrations/templates/codex/config.toml",
+                destination_rel: ".codex/config.toml",
+                mode: RenderMode::McpConfig,
+            },
+        ],
+        IntegrationPlatform::ClaudeCode => &[
+            TemplateAsset {
+                source_rel: "docs/integrations/templates/claude-code/CLAUDE.md",
+                destination_rel: "CLAUDE.md",
+                mode: RenderMode::LauncherCommands,
+            },
+            TemplateAsset {
+                source_rel: "docs/integrations/templates/claude-code/.claude/commands/publish-archive.md",
+                destination_rel: ".claude/commands/publish-archive.md",
+                mode: RenderMode::LauncherCommands,
+            },
+            TemplateAsset {
+                source_rel: "docs/integrations/templates/claude-code/.claude/commands/search-semantic-report.md",
+                destination_rel: ".claude/commands/search-semantic-report.md",
+                mode: RenderMode::LauncherCommands,
+            },
+            TemplateAsset {
+                source_rel: "docs/integrations/templates/claude-code/.claude/commands/search-hybrid-report.md",
+                destination_rel: ".claude/commands/search-hybrid-report.md",
+                mode: RenderMode::LauncherCommands,
+            },
+            TemplateAsset {
+                source_rel: "docs/integrations/templates/claude-code/.mcp.json",
+                destination_rel: ".mcp.json",
+                mode: RenderMode::McpConfig,
+            },
+        ],
+        IntegrationPlatform::OpenClaw => &[
+            TemplateAsset {
+                source_rel: "docs/integrations/templates/openclaw-codex-bundle/.codex-plugin/plugin.json",
+                destination_rel: "openclaw-codex-bundle/.codex-plugin/plugin.json",
+                mode: RenderMode::Plain,
+            },
+            TemplateAsset {
+                source_rel: "docs/integrations/templates/openclaw-codex-bundle/skills/export-archive/SKILL.md",
+                destination_rel: "openclaw-codex-bundle/skills/export-archive/SKILL.md",
+                mode: RenderMode::LauncherCommands,
+            },
+            TemplateAsset {
+                source_rel: "docs/integrations/templates/openclaw-codex-bundle/.mcp.json",
+                destination_rel: "openclaw-codex-bundle/.mcp.json",
+                mode: RenderMode::McpConfig,
+            },
+            TemplateAsset {
+                source_rel: "docs/integrations/templates/openclaw-claude-bundle/.claude-plugin/plugin.json",
+                destination_rel: "openclaw-claude-bundle/.claude-plugin/plugin.json",
+                mode: RenderMode::Plain,
+            },
+            TemplateAsset {
+                source_rel: "docs/integrations/templates/openclaw-claude-bundle/commands/search-semantic-report.md",
+                destination_rel: "openclaw-claude-bundle/commands/search-semantic-report.md",
+                mode: RenderMode::LauncherCommands,
+            },
+            TemplateAsset {
+                source_rel: "docs/integrations/templates/openclaw-claude-bundle/commands/search-hybrid-report.md",
+                destination_rel: "openclaw-claude-bundle/commands/search-hybrid-report.md",
+                mode: RenderMode::LauncherCommands,
+            },
+            TemplateAsset {
+                source_rel: "docs/integrations/templates/openclaw-claude-bundle/.mcp.json",
+                destination_rel: "openclaw-claude-bundle/.mcp.json",
+                mode: RenderMode::McpConfig,
+            },
+        ],
+    }
+}

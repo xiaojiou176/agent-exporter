@@ -260,6 +260,19 @@
 - 现在 publish/search 的高价值本地工具面已经能通过 MCP 被外部 agent 客户端接入
 - 但 bridge 仍然是 local stdio server，不是 hosted MCP service
 
+### Phase 21
+
+已落地：
+
+- repo-owned integration materializer / doctor
+
+原因：
+
+- 现在 integration pack 不再只是 templates/docs
+- `integrate <platform> --target <dir>` 已经能把 Codex / Claude Code / OpenClaw 的 repo-owned 材料化资产写到显式 target
+- `doctor integrations --platform <platform> --target <dir>` 已经能诚实报告 `ready / partial / missing`
+- 但它仍然不会静默改用户 home/global config，也不会把 OpenClaw 写成 repo-native runtime
+
 ## 推荐 CLI 命令面
 
 当前已经落地的最小集合是：
@@ -278,6 +291,10 @@ agent-exporter search semantic --workspace-root <repo-root> --query <text>
 agent-exporter search hybrid --workspace-root <repo-root> --query <text>
 agent-exporter export claude-code --session-path <path> --format html
 agent-exporter publish archive-index --workspace-root <repo-root>
+agent-exporter integrate codex --target <dir>
+agent-exporter integrate claude-code --target <dir>
+agent-exporter integrate openclaw --target <dir>
+agent-exporter doctor integrations --platform <platform> --target <dir>
 agent-exporter export codex --source app-server --thread-id <id> --destination workspace-conversations --workspace-root <repo-root>
 ```
 
@@ -311,6 +328,8 @@ src/
 │   └── mod.rs
 ├── core/
 │   ├── archive.rs
+│   └── mod.rs
+├── integrations/
 │   └── mod.rs
 ├── model/
 │   └── mod.rs
@@ -356,4 +375,5 @@ src/
 - HTML export 已落地
 - archive index 已落地
 - local metadata search 已落地
+- repo-owned integration materializer / doctor 已落地
 - 未来扩展边界仍然保持收口

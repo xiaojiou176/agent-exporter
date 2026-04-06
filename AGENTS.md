@@ -6,7 +6,7 @@
 
 - 当前目标：**Codex canonical transcript/archive 导出**
 - 未来目标：Claude Code、以及其他本地 CLI
-- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + minimal stdio MCP bridge 已落地；当前已进入 post-Phase-20 产品裁决区；默认 Codex 主路径仍是 app-server**
+- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + minimal stdio MCP bridge + repo-owned integration materializer/doctor 已落地；当前已进入 post-Phase-21 产品裁决区；默认 Codex 主路径仍是 app-server**
 
 ---
 
@@ -79,10 +79,14 @@
 - reports-shell metadata search
 - minimal stdio MCP bridge
 - integration pack docs/templates
+- repo-owned integration materializer
+- repo-owned integration doctor
 - `export codex --thread-id ...` 真实 CLI 主链
 - `export claude-code --session-path ...` 真实 CLI 主链
 - `--format markdown|json|html`
 - `publish archive-index --workspace-root <repo>`
+- `integrate <platform> --target <dir>`
+- `doctor integrations --platform <platform> --target <dir>`
 - `--source app-server|local`
 - `degraded` archival semantics for local source
 - integration pack 默认按 repo-local MCP bridge 理解
@@ -94,7 +98,7 @@
 
 - hosted / remote semantic retrieval
 - hosted / remote publish
-- MCP server
+- hosted / remote MCP server
 - Web UI / GUI
 - Hosted service
 
@@ -121,6 +125,10 @@ cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "ho
 cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1"
 cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues" --save-report
 cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1" --save-report
+cargo run -- integrate codex --target /absolute/path/to/codex-pack
+cargo run -- integrate claude-code --target /absolute/path/to/claude-pack
+cargo run -- integrate openclaw --target /absolute/path/to/openclaw-pack
+cargo run -- doctor integrations --platform codex --target /absolute/path/to/codex-pack
 ```
 
 说明：
