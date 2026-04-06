@@ -342,6 +342,20 @@
 - `publish archive-index` 现在已经会把 transcript/search/evidence 三壳导航、baseline/candidate、verdict、changed checks 和 remediation order 组织成一个本地 decision desk
 - 现有 MCP bridge 也已经扩到 read-only evidence consumption surface
 
+### Phase 31
+
+已落地：
+
+- baseline registry / policy packs / decision promotion / decision history
+
+原因：
+
+- `agent-exporter evidence baseline list|show|promote` 现在已经能把 official baseline 记成 repo-local governance artifact
+- `agent-exporter evidence policy list|show` 现在已经能把 repo-owned policy packs 暴露成正式 contract
+- `agent-exporter evidence promote` / `evidence history` 现在已经能把 promotion eligibility 和 decision ledger 记成可审计历史
+- `publish archive-index` 现在已经会把 official baseline、active policy、promotion status 和 recent history 组织进本地 decision governance desk
+- 现有 MCP bridge 也已经扩到 read-only governance consumption surface
+
 ## 推荐 CLI 命令面
 
 当前已经落地的最小集合是：
@@ -366,6 +380,13 @@ agent-exporter integrate openclaw --target <dir>
 agent-exporter doctor integrations --platform <platform> --target <dir>
 agent-exporter doctor integrations --platform <platform> --target <dir> --save-report
 agent-exporter onboard codex --target <dir> --save-report
+agent-exporter evidence baseline list
+agent-exporter evidence baseline show --name <name>
+agent-exporter evidence baseline promote --report <report> --name <name>
+agent-exporter evidence policy list
+agent-exporter evidence policy show --name <name>
+agent-exporter evidence promote --candidate <report> --baseline-name <name>
+agent-exporter evidence history --baseline-name <name>
 agent-exporter export codex --source app-server --thread-id <id> --destination workspace-conversations --workspace-root <repo-root>
 ```
 

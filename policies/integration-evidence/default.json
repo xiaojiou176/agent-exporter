@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "name": "default",
+  "version": "1.0.0",
+  "description": "Fallback repo-owned governance policy for generic integration evidence comparisons.",
+  "platforms": ["*"],
+  "fail_on_readiness_regression": true,
+  "blocking_check_labels": [
+    "target_root",
+    "target_files",
+    "target_content_sync",
+    "materialized_paths",
+    "launcher_probe"
+  ],
+  "warning_check_labels": [
+    "repo_templates",
+    "bridge_script",
+    "python3"
+  ],
+  "ignorable_check_labels": [],
+  "allowed_verdicts": ["pass"],
+  "allowed_candidate_readiness": ["ready"],
+  "require_non_regression": true
+}

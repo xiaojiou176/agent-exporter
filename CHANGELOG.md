@@ -74,6 +74,8 @@ The format is based on Keep a Changelog.
 - Integration evidence shell search/facets for `platform` and `readiness`
 - Machine-readable integration evidence via paired `report.json + index.json`
 - `evidence diff` for comparing saved integration evidence snapshots
+- Baseline registry, policy packs, decision promotion/history, and read-only governance MCP tools
+- Decision governance rendering inside the local archive front door
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder

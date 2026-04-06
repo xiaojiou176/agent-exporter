@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use assert_cmd::Command;
 use predicates::prelude::*;
+use serde_json::Value;
 use tempfile::tempdir;
 
 fn python_command() -> String {
@@ -39,6 +40,16 @@ fn integration_reports_dir(workspace_root: &Path) -> PathBuf {
         .join(".agents")
         .join("Integration")
         .join("Reports")
+}
+
+fn report_readiness(path: &Path) -> String {
+    let document: Value =
+        serde_json::from_str(&fs::read_to_string(path).expect("report json should exist"))
+            .expect("valid report json");
+    document["readiness"]
+        .as_str()
+        .expect("top-level readiness")
+        .to_string()
 }
 
 fn build_codex_export_command(thread_id: &str, workspace_root: &Path) -> Command {
@@ -131,6 +142,84 @@ fn build_doctor_report_command(target: &Path, workspace_root: &Path) -> Command 
         .arg(target)
         .arg("--save-report");
     command
+}
+
+fn collect_integration_report_jsons(workspace_root: &Path) -> Vec<PathBuf> {
+    let reports_root = integration_reports_dir(workspace_root);
+    let mut report_jsons = fs::read_dir(&reports_root)
+        .expect("read reports root")
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .filter(|path| {
+            path.extension()
+                .and_then(|value| value.to_str())
+                .is_some_and(|value| value.eq_ignore_ascii_case("json"))
+                && path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| {
+                        name != "index.json"
+                            && name != "baseline-registry.json"
+                            && name != "decision-history.json"
+                    })
+        })
+        .collect::<Vec<_>>();
+    report_jsons.sort();
+    report_jsons
+}
+
+fn build_evidence_baseline_promote_command(report: &Path, workspace_root: &Path) -> Command {
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .current_dir(workspace_root)
+        .arg("evidence")
+        .arg("baseline")
+        .arg("promote")
+        .arg("--report")
+        .arg(report)
+        .arg("--name")
+        .arg("codex-main")
+        .arg("--policy")
+        .arg("codex")
+        .arg("--verdict")
+        .arg("bootstrap");
+    command
+}
+
+fn build_evidence_promote_command(candidate: &Path, workspace_root: &Path) -> Command {
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .current_dir(workspace_root)
+        .arg("evidence")
+        .arg("promote")
+        .arg("--candidate")
+        .arg(candidate)
+        .arg("--baseline-name")
+        .arg("codex-main");
+    command
+}
+
+fn integration_report_jsons(workspace_root: &Path) -> Vec<PathBuf> {
+    let mut report_jsons = fs::read_dir(integration_reports_dir(workspace_root))
+        .expect("read integration reports")
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .filter(|path| {
+            path.extension()
+                .and_then(|value| value.to_str())
+                .is_some_and(|value| value.eq_ignore_ascii_case("json"))
+                && path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| {
+                        name != "index.json"
+                            && name != "baseline-registry.json"
+                            && name != "decision-history.json"
+                    })
+        })
+        .collect::<Vec<_>>();
+    report_jsons.sort();
+    report_jsons
 }
 
 #[test]
@@ -267,6 +356,55 @@ fn publish_archive_index_renders_decision_desk_from_integration_evidence() {
         .assert()
         .success();
 
+    let reports_root = integration_reports_dir(workspace.path());
+    let mut report_jsons = fs::read_dir(&reports_root)
+        .expect("read reports")
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .filter(|path| {
+            path.extension()
+                .and_then(|value| value.to_str())
+                .is_some_and(|value| value.eq_ignore_ascii_case("json"))
+                && path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| name != "index.json")
+        })
+        .collect::<Vec<_>>();
+    report_jsons.sort();
+    let (baseline, candidate) = if report_readiness(&report_jsons[0]) == "ready" {
+        (&report_jsons[0], &report_jsons[1])
+    } else {
+        (&report_jsons[1], &report_jsons[0])
+    };
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("baseline")
+        .arg("promote")
+        .arg("--report")
+        .arg(baseline)
+        .arg("--name")
+        .arg("codex-main")
+        .arg("--policy")
+        .arg("codex")
+        .assert()
+        .success();
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("promote")
+        .arg("--candidate")
+        .arg(candidate)
+        .arg("--baseline-name")
+        .arg("codex-main")
+        .assert()
+        .success();
+
     build_publish_command(workspace.path()).assert().success();
 
     let content = fs::read_to_string(conversations_dir(workspace.path()).join("index.html"))
@@ -276,6 +414,12 @@ fn publish_archive_index_renders_decision_desk_from_integration_evidence() {
     assert!(content.contains("Candidate"));
     assert!(content.contains("Remediation order"));
     assert!(content.contains("Changed checks"));
+    assert!(content.contains("Official baseline / policy / promotion"));
+    assert!(content.contains("baseline name:"));
+    assert!(content.contains("active policy:"));
+    assert!(content.contains("promotion status:"));
+    assert!(content.contains("Decision history"));
+    assert!(content.contains("Recent governance ledger"));
     assert!(content.contains("Open integration reports"));
 
     let integration_index =
@@ -318,4 +462,124 @@ fn publish_archive_index_shows_insufficient_when_reports_are_not_comparable() {
     assert!(content.contains("insufficient"));
     assert!(content.contains("Insufficient comparison input"));
     assert!(content.contains("No artifact selected"));
+}
+
+#[test]
+fn publish_archive_index_renders_phase31_governance_fields() {
+    let workspace = tempdir().expect("workspace");
+    let target = tempdir().expect("target dir");
+
+    build_onboard_report_command(target.path(), workspace.path())
+        .assert()
+        .success();
+
+    let ready_report = collect_integration_report_jsons(workspace.path())
+        .into_iter()
+        .find(|path| report_readiness(path) == "ready")
+        .expect("ready report");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("baseline")
+        .arg("promote")
+        .arg("--report")
+        .arg(&ready_report)
+        .arg("--name")
+        .arg("codex-main")
+        .arg("--policy")
+        .arg("codex")
+        .assert()
+        .success();
+
+    fs::write(
+        target.path().join(".codex").join("config.toml"),
+        "[mcp_servers.agent_exporter]\ncommand = \"python3\"\n",
+    )
+    .expect("break codex config");
+
+    build_doctor_report_command(target.path(), workspace.path())
+        .assert()
+        .success();
+
+    let partial_report = collect_integration_report_jsons(workspace.path())
+        .into_iter()
+        .find(|path| report_readiness(path) == "partial")
+        .expect("partial report");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("promote")
+        .arg("--candidate")
+        .arg(&partial_report)
+        .arg("--baseline-name")
+        .arg("codex-main")
+        .arg("--policy")
+        .arg("codex")
+        .assert()
+        .success();
+
+    build_publish_command(workspace.path())
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Archive index published"));
+
+    let content = fs::read_to_string(conversations_dir(workspace.path()).join("index.html"))
+        .expect("archive index html");
+    assert!(content.contains("Official baseline"));
+    assert!(content.contains("baseline name: <code>codex-main</code>"));
+    assert!(content.contains("active policy: <code>codex</code> <code>1.0.0</code>"));
+    assert!(content.contains("promotion status: <code>"));
+    assert!(content.contains("Recent governance ledger"));
+    assert!(content.contains("codex-main"));
+}
+
+#[test]
+fn publish_archive_index_renders_governance_details_for_phase31() {
+    let workspace = tempdir().expect("workspace");
+    let target = tempdir().expect("target dir");
+
+    build_codex_export_command("complete-thread", workspace.path())
+        .assert()
+        .success();
+
+    build_onboard_report_command(target.path(), workspace.path())
+        .assert()
+        .success();
+
+    let baseline = integration_report_jsons(workspace.path())
+        .into_iter()
+        .next()
+        .expect("baseline report");
+
+    build_evidence_baseline_promote_command(&baseline, workspace.path())
+        .assert()
+        .success();
+
+    build_onboard_report_command(target.path(), workspace.path())
+        .assert()
+        .success();
+
+    let candidate = integration_report_jsons(workspace.path())
+        .into_iter()
+        .find(|path| path != &baseline)
+        .expect("candidate report");
+
+    build_evidence_promote_command(&candidate, workspace.path())
+        .assert()
+        .success();
+
+    build_publish_command(workspace.path()).assert().success();
+
+    let content = fs::read_to_string(conversations_dir(workspace.path()).join("index.html"))
+        .expect("archive index");
+    assert!(content.contains("Official baseline"));
+    assert!(content.contains("baseline name: <code>codex-main</code>"));
+    assert!(content.contains("active policy: <code>codex</code> <code>1.0.0</code>"));
+    assert!(content.contains("promotion status: <code>"));
+    assert!(content.contains("Decision history"));
+    assert!(content.contains("codex-main"));
 }

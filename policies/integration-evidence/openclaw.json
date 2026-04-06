@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "name": "openclaw",
+  "version": "1.0.0",
+  "description": "Platform-aware governance policy for OpenClaw bundle-content evidence.",
+  "platforms": ["openclaw"],
+  "fail_on_readiness_regression": true,
+  "blocking_check_labels": [
+    "target_root",
+    "target_files",
+    "target_content_sync",
+    "materialized_paths",
+    "launcher_probe",
+    "openclaw_bundle_shape"
+  ],
+  "warning_check_labels": [
+    "repo_templates",
+    "bridge_script",
+    "python3"
+  ],
+  "ignorable_check_labels": [],
+  "allowed_verdicts": ["pass"],
+  "allowed_candidate_readiness": ["ready"],
+  "require_non_regression": true
+}

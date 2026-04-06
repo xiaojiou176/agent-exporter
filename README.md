@@ -72,8 +72,9 @@
 - machine-readable integration evidence
 - integration evidence timeline/diff
 - evidence gate / explain
-- read-only evidence MCP surface
-- local evidence decision desk
+- baseline registry / policy packs / decision promotion/history
+- read-only governance MCP surface
+- local decision governance desk
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -84,7 +85,7 @@
 
 当前阶段**还没有**完成的是：
 
-- 当前 Phase 30 之后的新一轮产品裁决
+- 当前 Phase 31 之后的新一轮产品裁决
 
 ---
 
@@ -152,7 +153,8 @@
 28. **现在已经落地：machine-readable integration evidence via `report.json + index.json`**
 29. **现在已经落地：integration evidence timeline/diff via `agent-exporter evidence diff --left <report> --right <report>`**
 30. **现在已经落地：Local Evidence Decision Plane / Remediation Studio**
-31. **当前已进入 post-Phase-30 product decision 区，默认仍不膨胀成 hosted search / service**
+31. **现在已经落地：Baseline Registry / Policy Packs / Decision Promotion / Decision History**
+32. **当前已进入 post-Phase-31 product decision 区，默认仍不膨胀成 hosted search / service**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -402,7 +404,7 @@ codex app-server
 
 后续文档和实现若继续推进，会先进入：
 
-1. 新的 post-Phase-30 产品裁决
+1. 新的 post-Phase-31 产品裁决
 
 ---
 
@@ -428,6 +430,13 @@ cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thre
 cargo run -- evidence diff --left /absolute/path/to/report-a.json --right /absolute/path/to/report-b.json
 cargo run -- evidence gate --baseline /absolute/path/to/report-a.json --candidate /absolute/path/to/report-b.json
 cargo run -- evidence explain --report /absolute/path/to/report-b.json
+cargo run -- evidence baseline list
+cargo run -- evidence baseline show --name codex-main
+cargo run -- evidence baseline promote --report /absolute/path/to/report-a.json --name codex-main
+cargo run -- evidence policy list
+cargo run -- evidence policy show --name codex
+cargo run -- evidence promote --candidate /absolute/path/to/report-b.json --baseline-name codex-main
+cargo run -- evidence history --baseline-name codex-main
 cargo run -- integrate codex --target /absolute/path/to/codex-pack
 cargo run -- integrate claude-code --target /absolute/path/to/claude-pack
 cargo run -- integrate openclaw --target /absolute/path/to/openclaw-pack
@@ -469,10 +478,10 @@ cargo run -- doctor integrations --platform codex --target /absolute/path/to/cod
   - `agent-exporter evidence gate --baseline <report> --candidate <report>`
   - `agent-exporter evidence explain --report <report>`
   - `agent-exporter doctor integrations --platform <platform> --target <dir> --explain`
-- 当前 repo 现在还多了一层只读 evidence 工作台：
+- 当前 repo 现在还多了一层只读 evidence/governance 工作台：
   - `publish archive-index` 会把 transcript/search/evidence 三壳导航和 Decision Desk 组织进同一个本地 front door
-  - MCP bridge 现在也已经扩到 read-only evidence tools，不再只覆盖 publish/search
-- 当前 bridge 现在已经覆盖 publish/search/evidence 只读工具，不代表整个 CLI 全量变成 MCP
+  - MCP bridge 现在也已经扩到 read-only evidence/governance tools，不再只覆盖 publish/search
+- 当前 bridge 现在已经覆盖 publish/search/evidence/governance 只读工具，不代表整个 CLI 全量变成 MCP
 - 当前 MCP bridge 默认依赖 repo 内的 `scripts/agent_exporter_mcp.py`
   - first-run 会优先尝试 repo-local `target/release/agent-exporter`
   - 没有 release binary 时，会继续尝试 repo-local `target/debug/agent-exporter`

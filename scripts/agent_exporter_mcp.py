@@ -86,19 +86,6 @@ def tool_specs() -> list[dict[str, Any]]:
             },
         },
         {
-            "name": "integration_evidence_list",
-            "description": "Read the saved integration evidence timeline from a workspace",
-            "inputSchema": {
-                "type": "object",
-                "properties": {
-                    "workspace_root": {"type": "string", "description": "Workspace root path"},
-                    "limit": {"type": "integer", "description": "Maximum timeline entries to return", "default": 10},
-                },
-                "required": ["workspace_root"],
-                "additionalProperties": False,
-            },
-        },
-        {
             "name": "integration_evidence_diff",
             "description": "Diff two saved integration evidence snapshots",
             "inputSchema": {
@@ -120,6 +107,7 @@ def tool_specs() -> list[dict[str, Any]]:
                     "baseline": {"type": "string", "description": "Baseline report path"},
                     "candidate": {"type": "string", "description": "Candidate report path"},
                     "policy": {"type": "string", "description": "Optional local JSON policy path"},
+                    "workspace_root": {"type": "string", "description": "Optional workspace root when baseline is a registered name"},
                 },
                 "required": ["baseline", "candidate"],
                 "additionalProperties": False,
@@ -134,6 +122,66 @@ def tool_specs() -> list[dict[str, Any]]:
                     "report": {"type": "string", "description": "Saved report path"},
                 },
                 "required": ["report"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "integration_evidence_baseline_list",
+            "description": "Read the saved baseline registry from a workspace",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "workspace_root": {"type": "string", "description": "Workspace root path"},
+                },
+                "required": ["workspace_root"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "integration_evidence_baseline_show",
+            "description": "Read one saved baseline entry by name from a workspace",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "workspace_root": {"type": "string", "description": "Workspace root path"},
+                    "name": {"type": "string", "description": "Registered baseline name"},
+                },
+                "required": ["workspace_root", "name"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "integration_evidence_policy_list",
+            "description": "Read the repo-owned governance policy pack list",
+            "inputSchema": {
+                "type": "object",
+                "properties": {},
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "integration_evidence_policy_show",
+            "description": "Read one repo-owned governance policy pack by name",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "name": {"type": "string", "description": "Policy pack name"},
+                },
+                "required": ["name"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "integration_evidence_decision_history",
+            "description": "Read saved decision history entries from a workspace",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "workspace_root": {"type": "string", "description": "Workspace root path"},
+                    "baseline_name": {"type": "string", "description": "Optional baseline filter"},
+                    "limit": {"type": "integer", "description": "Maximum history entries to return", "default": 10},
+                },
+                "required": ["workspace_root"],
                 "additionalProperties": False,
             },
         },
@@ -168,12 +216,13 @@ def base_command() -> list[str]:
     return parts
 
 
-def run_cli(args: list[str]) -> dict[str, Any]:
+def run_cli(args: list[str], cwd: str | None = None) -> dict[str, Any]:
     completed = subprocess.run(
         base_command() + args,
         text=True,
         capture_output=True,
         check=False,
+        cwd=cwd,
     )
     output = (completed.stdout or "") + (("\n" + completed.stderr.strip()) if completed.stderr.strip() else "")
     if completed.returncode == 0:
@@ -183,6 +232,18 @@ def run_cli(args: list[str]) -> dict[str, Any]:
 
 def resolve_integration_reports_dir(workspace_root: str) -> Path:
     return Path(workspace_root) / ".agents" / "Integration" / "Reports"
+
+
+def resolve_baseline_registry_path(workspace_root: str) -> Path:
+    return resolve_integration_reports_dir(workspace_root) / "baseline-registry.json"
+
+
+def resolve_decision_history_path(workspace_root: str) -> Path:
+    return resolve_integration_reports_dir(workspace_root) / "decision-history.json"
+
+
+def resolve_policy_dir() -> Path:
+    return REPO_ROOT / "policies" / "integration-evidence"
 
 
 def read_json_file(path: Path) -> dict[str, Any]:
@@ -204,21 +265,6 @@ def handle_tool_call(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         if arguments.get("save_report"):
             command.append("--save-report")
         return run_cli(command)
-
-    if name == "integration_evidence_list":
-        reports_dir = resolve_integration_reports_dir(arguments["workspace_root"])
-        index_path = reports_dir / "index.json"
-        if not index_path.is_file():
-            return error_text(f"missing integration evidence index: {index_path}")
-        index_document = read_json_file(index_path)
-        limit = int(arguments.get("limit", 10))
-        timeline = index_document.get("timeline", [])[:limit]
-        payload = {
-            "title": index_document.get("title"),
-            "report_count": index_document.get("report_count"),
-            "timeline": timeline,
-        }
-        return success_text(json.dumps(payload, ensure_ascii=False, indent=2))
 
     if name == "integration_evidence_diff":
         return run_cli(
@@ -243,10 +289,85 @@ def handle_tool_call(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         ]
         if arguments.get("policy"):
             command.extend(["--policy", arguments["policy"]])
-        return run_cli(command)
+        return run_cli(command, cwd=arguments.get("workspace_root"))
 
     if name == "integration_evidence_explain":
         return run_cli(["evidence", "explain", "--report", arguments["report"]])
+
+    if name == "integration_evidence_baseline_list":
+        registry_path = resolve_baseline_registry_path(arguments["workspace_root"])
+        if not registry_path.is_file():
+            return error_text(f"missing baseline registry: {registry_path}")
+        registry = read_json_file(registry_path)
+        payload = {
+            "generated_at": registry.get("generated_at"),
+            "baseline_count": len(registry.get("baselines", [])),
+            "baselines": registry.get("baselines", []),
+        }
+        return success_text(json.dumps(payload, ensure_ascii=False, indent=2))
+
+    if name == "integration_evidence_baseline_show":
+        registry_path = resolve_baseline_registry_path(arguments["workspace_root"])
+        if not registry_path.is_file():
+            return error_text(f"missing baseline registry: {registry_path}")
+        registry = read_json_file(registry_path)
+        name_filter = arguments["name"]
+        baseline = next(
+            (
+                entry
+                for entry in registry.get("baselines", [])
+                if entry.get("name") == name_filter
+            ),
+            None,
+        )
+        if baseline is None:
+            return error_text(f"baseline not found: {name_filter}")
+        return success_text(json.dumps(baseline, ensure_ascii=False, indent=2))
+
+    if name == "integration_evidence_policy_list":
+        policy_dir = resolve_policy_dir()
+        policies = []
+        if policy_dir.is_dir():
+            for path in sorted(policy_dir.glob("*.json")):
+                document = read_json_file(path)
+                policies.append(
+                    {
+                        "name": document.get("name"),
+                        "version": document.get("version"),
+                        "path": str(path),
+                    }
+                )
+        payload = {"policy_count": len(policies), "policies": policies}
+        return success_text(json.dumps(payload, ensure_ascii=False, indent=2))
+
+    if name == "integration_evidence_policy_show":
+        policy_path = resolve_policy_dir() / f"{arguments['name']}.json"
+        if not policy_path.is_file():
+            return error_text(f"missing policy pack: {policy_path}")
+        return success_text(
+            json.dumps(read_json_file(policy_path), ensure_ascii=False, indent=2)
+        )
+
+    if name == "integration_evidence_decision_history":
+        history_path = resolve_decision_history_path(arguments["workspace_root"])
+        if not history_path.is_file():
+            return error_text(f"missing decision history: {history_path}")
+        history = read_json_file(history_path)
+        entries = history.get("decisions", [])
+        baseline_name = arguments.get("baseline_name")
+        if baseline_name:
+            entries = [
+                entry
+                for entry in entries
+                if entry.get("baseline_name") == baseline_name
+            ]
+        limit = int(arguments.get("limit", 10))
+        payload = {
+            "generated_at": history.get("generated_at"),
+            "decision_count": len(entries),
+            "decisions": entries[:limit],
+        }
+        return success_text(json.dumps(payload, ensure_ascii=False, indent=2))
 
     return error_text(f"unknown tool: {name}")
 

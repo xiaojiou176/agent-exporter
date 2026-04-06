@@ -36,6 +36,48 @@ fn report_readiness(path: &Path) -> String {
         .to_string()
 }
 
+fn integration_reports_root(workspace_root: &Path) -> PathBuf {
+    workspace_root
+        .join(".agents")
+        .join("Integration")
+        .join("Reports")
+}
+
+fn baseline_registry_path(workspace_root: &Path) -> PathBuf {
+    integration_reports_root(workspace_root).join("baseline-registry.json")
+}
+
+fn decision_history_path(workspace_root: &Path) -> PathBuf {
+    integration_reports_root(workspace_root).join("decision-history.json")
+}
+
+fn collect_integration_report_jsons(workspace_root: &Path) -> Vec<PathBuf> {
+    let reports_root = workspace_root
+        .join(".agents")
+        .join("Integration")
+        .join("Reports");
+    let mut report_jsons = fs::read_dir(&reports_root)
+        .expect("read reports root")
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .filter(|path| {
+            path.extension()
+                .and_then(|value| value.to_str())
+                .is_some_and(|value| value.eq_ignore_ascii_case("json"))
+                && path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| {
+                        name != "index.json"
+                            && name != "baseline-registry.json"
+                            && name != "decision-history.json"
+                    })
+        })
+        .collect::<Vec<_>>();
+    report_jsons.sort();
+    report_jsons
+}
+
 #[test]
 fn integrate_codex_materializes_target_with_resolved_paths() {
     let target = tempdir().expect("target dir");
@@ -365,6 +407,113 @@ fn evidence_gate_and_explain_surfaces_verdict_and_steps() {
 }
 
 #[test]
+fn evidence_baseline_list_show_and_promote_happy_path() {
+    let workspace = tempdir().expect("workspace");
+    let target = tempdir().expect("target dir");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("onboard")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .arg("--save-report")
+        .assert()
+        .success();
+
+    let report_path = integration_reports_root(workspace.path())
+        .join("integration-report-onboard-codex-2026-04-06t12-00-00z.json");
+    let report = fs::read_dir(integration_reports_root(workspace.path()))
+        .expect("read reports")
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .find(|path| {
+            path.extension()
+                .and_then(|value| value.to_str())
+                .is_some_and(|value| value == "json")
+                && path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| name != "index.json")
+        })
+        .unwrap_or(report_path);
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("baseline")
+        .arg("promote")
+        .arg("--report")
+        .arg(&report)
+        .arg("--name")
+        .arg("codex-main")
+        .arg("--policy")
+        .arg("codex")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration baseline promoted"))
+        .stdout(predicate::str::contains("codex-main"))
+        .stdout(predicate::str::contains("Policy       : codex v1.0.0"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("baseline")
+        .arg("list")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Baselines    : 1"))
+        .stdout(predicate::str::contains("codex-main"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("baseline")
+        .arg("show")
+        .arg("--name")
+        .arg("codex-main")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration baseline"))
+        .stdout(predicate::str::contains("Identity"))
+        .stdout(predicate::str::contains("Policy       : codex v1.0.0"));
+
+    assert!(baseline_registry_path(workspace.path()).is_file());
+    assert!(decision_history_path(workspace.path()).is_file());
+}
+
+#[test]
+fn evidence_policy_list_and_show_surface_repo_owned_packs() {
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .arg("evidence")
+        .arg("policy")
+        .arg("list")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Policies"))
+        .stdout(predicate::str::contains("default v1.0.0"))
+        .stdout(predicate::str::contains("codex v1.0.0"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .arg("evidence")
+        .arg("policy")
+        .arg("show")
+        .arg("--name")
+        .arg("codex")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration governance policy"))
+        .stdout(predicate::str::contains("\"name\": \"codex\""))
+        .stdout(predicate::str::contains("\"allowed_verdicts\""));
+}
+
+#[test]
 fn evidence_diff_reports_readiness_and_check_changes() {
     let workspace = tempdir().expect("workspace");
     let target = tempdir().expect("target dir");
@@ -447,6 +596,382 @@ fn evidence_diff_reports_readiness_and_check_changes() {
         .stdout(predicate::str::contains("Readiness    : ready -> partial"))
         .stdout(predicate::str::contains("codex_config_shape"))
         .stdout(predicate::str::contains("Added Next Steps"));
+}
+
+#[test]
+fn evidence_baseline_policy_promotion_and_history_commands_work() {
+    let workspace = tempdir().expect("workspace");
+    let target = tempdir().expect("target dir");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("onboard")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .arg("--save-report")
+        .assert()
+        .success();
+
+    let config_path = target.path().join(".codex").join("config.toml");
+    let original_config = read(&config_path);
+    fs::write(
+        &config_path,
+        "[mcp_servers.agent_exporter]\ncommand = \"python3\"\n",
+    )
+    .expect("break config");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("doctor")
+        .arg("integrations")
+        .arg("--platform")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .arg("--save-report")
+        .assert()
+        .success();
+
+    fs::write(&config_path, original_config).expect("restore config");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("doctor")
+        .arg("integrations")
+        .arg("--platform")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .arg("--save-report")
+        .assert()
+        .success();
+
+    let report_jsons = collect_integration_report_jsons(workspace.path());
+    assert_eq!(report_jsons.len(), 3);
+
+    let ready_reports = report_jsons
+        .iter()
+        .filter(|path| report_readiness(path) == "ready")
+        .collect::<Vec<_>>();
+    let partial_report = report_jsons
+        .iter()
+        .find(|path| report_readiness(path) == "partial")
+        .expect("partial report should exist");
+    assert_eq!(ready_reports.len(), 2);
+    let baseline_seed = ready_reports[0];
+    let promotion_candidate = ready_reports[1];
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("baseline")
+        .arg("promote")
+        .arg("--report")
+        .arg(baseline_seed)
+        .arg("--name")
+        .arg("codex-main")
+        .arg("--policy")
+        .arg("codex")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration baseline promoted"))
+        .stdout(predicate::str::contains("codex-main"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("baseline")
+        .arg("list")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration baseline registry"))
+        .stdout(predicate::str::contains("codex-main"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("policy")
+        .arg("show")
+        .arg("--name")
+        .arg("codex")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration governance policy"))
+        .stdout(predicate::str::contains("codex"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("gate")
+        .arg("--baseline")
+        .arg("codex-main")
+        .arg("--candidate")
+        .arg(partial_report)
+        .arg("--policy")
+        .arg("codex")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Verdict      : fail"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("promote")
+        .arg("--candidate")
+        .arg(partial_report)
+        .arg("--baseline-name")
+        .arg("codex-main")
+        .arg("--policy")
+        .arg("codex")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Promoted     : no"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("promote")
+        .arg("--candidate")
+        .arg(promotion_candidate)
+        .arg("--baseline-name")
+        .arg("codex-main")
+        .arg("--policy")
+        .arg("codex")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Promoted     : yes"))
+        .stdout(predicate::str::contains("Summary"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("baseline")
+        .arg("show")
+        .arg("--name")
+        .arg("codex-main")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration baseline"))
+        .stdout(predicate::str::contains("codex-main"))
+        .stdout(predicate::str::contains("Verdict      : pass"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("history")
+        .arg("--baseline-name")
+        .arg("codex-main")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration decision history"))
+        .stdout(predicate::str::contains("codex-main"))
+        .stdout(predicate::str::contains("promoted yes"));
+}
+
+#[test]
+fn evidence_baseline_and_policy_commands_cover_phase31_governance_surfaces() {
+    let workspace = tempdir().expect("workspace");
+    let target = tempdir().expect("target dir");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("onboard")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .arg("--save-report")
+        .assert()
+        .success();
+
+    let reports = collect_integration_report_jsons(workspace.path());
+    assert_eq!(reports.len(), 1);
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("baseline")
+        .arg("promote")
+        .arg("--report")
+        .arg(&reports[0])
+        .arg("--name")
+        .arg("codex-main")
+        .arg("--policy")
+        .arg("codex")
+        .arg("--verdict")
+        .arg("bootstrap")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration baseline promoted"))
+        .stdout(predicate::str::contains("codex-main"))
+        .stdout(predicate::str::contains("Policy       : codex v1.0.0"));
+
+    let registry = read(&integration_reports_root(workspace.path()).join("baseline-registry.json"));
+    assert!(registry.contains("\"name\": \"codex-main\""));
+    assert!(registry.contains("\"policy_name\": \"codex\""));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("baseline")
+        .arg("list")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration baseline registry"))
+        .stdout(predicate::str::contains("codex-main"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("baseline")
+        .arg("show")
+        .arg("--name")
+        .arg("codex-main")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Identity"))
+        .stdout(predicate::str::contains("codex-main"))
+        .stdout(predicate::str::contains("bootstrap"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .arg("evidence")
+        .arg("policy")
+        .arg("list")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("default v1.0.0"))
+        .stdout(predicate::str::contains("codex v1.0.0"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .arg("evidence")
+        .arg("policy")
+        .arg("show")
+        .arg("--name")
+        .arg("codex")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("\"name\": \"codex\""))
+        .stdout(predicate::str::contains("allowed_verdicts"))
+        .stdout(predicate::str::contains("allowed_candidate_readiness"));
+}
+
+#[test]
+fn evidence_promote_uses_baseline_name_and_records_decision_history() {
+    let workspace = tempdir().expect("workspace");
+    let target = tempdir().expect("target dir");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("onboard")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .arg("--save-report")
+        .assert()
+        .success();
+
+    let baseline_report = collect_integration_report_jsons(workspace.path())
+        .into_iter()
+        .next()
+        .expect("baseline report");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("baseline")
+        .arg("promote")
+        .arg("--report")
+        .arg(&baseline_report)
+        .arg("--name")
+        .arg("codex-main")
+        .arg("--policy")
+        .arg("codex")
+        .arg("--verdict")
+        .arg("bootstrap")
+        .assert()
+        .success();
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("onboard")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .arg("--save-report")
+        .assert()
+        .success();
+
+    let reports = collect_integration_report_jsons(workspace.path());
+    assert_eq!(reports.len(), 2);
+    let candidate = reports
+        .into_iter()
+        .find(|path| path != &baseline_report)
+        .expect("candidate report");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("gate")
+        .arg("--baseline")
+        .arg("codex-main")
+        .arg("--candidate")
+        .arg(&candidate)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration evidence gate"))
+        .stdout(predicate::str::contains("Verdict      : pass"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("promote")
+        .arg("--candidate")
+        .arg(&candidate)
+        .arg("--baseline-name")
+        .arg("codex-main")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration evidence promote"))
+        .stdout(predicate::str::contains("Promoted     : yes"));
+
+    let history_path = integration_reports_root(workspace.path()).join("decision-history.json");
+    let history = read(&history_path);
+    assert!(history.contains("\"baseline_name\": \"codex-main\""));
+    assert!(history.contains("\"promoted\": true"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("history")
+        .arg("--baseline-name")
+        .arg("codex-main")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration decision history"))
+        .stdout(predicate::str::contains("promoted yes"));
 }
 
 #[test]

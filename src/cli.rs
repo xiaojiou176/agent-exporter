@@ -10,12 +10,21 @@ use crate::core::archive::{
 };
 use crate::core::archive_index;
 use crate::core::integration_report::{
-    IntegrationEvidenceDiff, IntegrationEvidenceGateOutcome, IntegrationEvidenceGatePolicy,
+    IntegrationBaselineRecord, IntegrationDecisionRecord, IntegrationEvidenceDiff,
+    IntegrationEvidenceGateOutcome, IntegrationEvidenceGatePolicy, IntegrationEvidencePolicyPack,
     IntegrationReportCheckRecord, IntegrationReportJsonDocument,
-    build_integration_evidence_explain, collect_integration_report_entries,
-    collect_integration_report_json_documents, default_integration_evidence_gate_policy,
-    diff_integration_reports, gate_integration_reports, read_integration_evidence_gate_policy,
-    read_integration_report_json_document, resolve_integration_reports_dir,
+    append_integration_decision_record, assess_promotion_eligibility, build_baseline_record,
+    build_integration_evidence_explain, canonical_report_json_path,
+    collect_integration_report_entries, collect_integration_report_json_documents,
+    collect_repo_owned_integration_policy_packs, diff_integration_reports,
+    effective_gate_policy_for_platform, find_integration_baseline_for_identity,
+    find_integration_baseline_record, gate_integration_reports, integration_target_identity,
+    latest_integration_decision_for_candidate, read_integration_baseline_registry_document,
+    read_integration_decision_history_document, read_integration_report_json_document,
+    repo_owned_integration_policy_dir, resolve_integration_baseline_registry_path,
+    resolve_integration_decision_history_path, resolve_integration_evidence_policy_pack,
+    resolve_integration_reports_dir, upsert_integration_baseline_record,
+    write_integration_baseline_registry_document, write_integration_decision_history_document,
     write_integration_report_document, write_integration_report_json_document,
     write_integration_reports_index_document, write_integration_reports_index_json_document,
 };
@@ -163,6 +172,38 @@ enum EvidenceCommands {
     Gate(EvidenceGateArgs),
     /// Explain the ordered remediation sequence for one saved integration evidence report.
     Explain(EvidenceExplainArgs),
+    /// Manage official baselines for saved integration evidence.
+    Baseline {
+        #[command(subcommand)]
+        command: EvidenceBaselineCommands,
+    },
+    /// Inspect repo-owned policy packs for integration governance.
+    Policy {
+        #[command(subcommand)]
+        command: EvidencePolicyCommands,
+    },
+    /// Compare a candidate against the official baseline, record decision history, and promote when eligible.
+    Promote(EvidencePromoteArgs),
+    /// Show recent decision history.
+    History(EvidenceHistoryArgs),
+}
+
+#[derive(Debug, Subcommand)]
+enum EvidenceBaselineCommands {
+    /// List registered official baselines under the current workspace.
+    List,
+    /// Show one registered baseline by name.
+    Show(EvidenceBaselineShowArgs),
+    /// Seed or update an official baseline directly from one saved report.
+    Promote(EvidenceBaselinePromoteArgs),
+}
+
+#[derive(Debug, Subcommand)]
+enum EvidencePolicyCommands {
+    /// List repo-owned governance policy packs.
+    List,
+    /// Show one repo-owned governance policy pack by name.
+    Show(EvidencePolicyShowArgs),
 }
 
 #[derive(Debug, clap::Args)]
@@ -307,15 +348,15 @@ struct EvidenceDiffArgs {
 
 #[derive(Debug, clap::Args)]
 struct EvidenceGateArgs {
-    /// Baseline report path (`.json` preferred; `.html` resolves to sibling `.json`).
+    /// Baseline report path or registered baseline name.
     #[arg(long)]
-    baseline: PathBuf,
+    baseline: String,
     /// Candidate report path (`.json` preferred; `.html` resolves to sibling `.json`).
     #[arg(long)]
     candidate: PathBuf,
-    /// Optional local JSON policy file that overrides the repo-owned default gate policy.
+    /// Optional policy pack name or local JSON policy path.
     #[arg(long)]
-    policy: Option<PathBuf>,
+    policy: Option<String>,
 }
 
 #[derive(Debug, clap::Args)]
@@ -323,6 +364,65 @@ struct EvidenceExplainArgs {
     /// Saved report path (`.json` preferred; `.html` resolves to sibling `.json`).
     #[arg(long)]
     report: PathBuf,
+}
+
+#[derive(Debug, clap::Args)]
+struct EvidenceBaselineShowArgs {
+    /// Registered baseline name.
+    #[arg(long)]
+    name: String,
+}
+
+#[derive(Debug, clap::Args)]
+struct EvidenceBaselinePromoteArgs {
+    /// Saved report path (`.json` preferred; `.html` resolves to sibling `.json`).
+    #[arg(long)]
+    report: PathBuf,
+    /// Official baseline name.
+    #[arg(long)]
+    name: String,
+    /// Optional policy pack name or local JSON policy path.
+    #[arg(long)]
+    policy: Option<String>,
+    /// Optional human note or rationale.
+    #[arg(long)]
+    note: Option<String>,
+    /// Source verdict recorded into the baseline registry entry.
+    #[arg(long, default_value = "manual")]
+    verdict: String,
+}
+
+#[derive(Debug, clap::Args)]
+struct EvidencePolicyShowArgs {
+    /// Repo-owned policy pack name.
+    #[arg(long)]
+    name: String,
+}
+
+#[derive(Debug, clap::Args)]
+struct EvidencePromoteArgs {
+    /// Candidate report path (`.json` preferred; `.html` resolves to sibling `.json`).
+    #[arg(long)]
+    candidate: PathBuf,
+    /// Baseline registry name whose official report should be used.
+    #[arg(long)]
+    baseline_name: String,
+    /// Optional policy pack name or local JSON policy path.
+    #[arg(long)]
+    policy: Option<String>,
+    /// Optional human note or rationale.
+    #[arg(long)]
+    note: Option<String>,
+}
+
+#[derive(Debug, clap::Args)]
+struct EvidenceHistoryArgs {
+    /// Optional baseline name filter.
+    #[arg(long)]
+    baseline_name: Option<String>,
+    /// Maximum entries to print.
+    #[arg(long, default_value_t = 10)]
+    limit: usize,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
@@ -489,6 +589,17 @@ pub fn run() -> Result<()> {
             EvidenceCommands::Diff(args) => evidence_diff(args)?,
             EvidenceCommands::Gate(args) => evidence_gate(args)?,
             EvidenceCommands::Explain(args) => evidence_explain(args)?,
+            EvidenceCommands::Baseline { command } => match command {
+                EvidenceBaselineCommands::List => evidence_baseline_list()?,
+                EvidenceBaselineCommands::Show(args) => evidence_baseline_show(args)?,
+                EvidenceBaselineCommands::Promote(args) => evidence_baseline_promote(args)?,
+            },
+            EvidenceCommands::Policy { command } => match command {
+                EvidencePolicyCommands::List => evidence_policy_list()?,
+                EvidencePolicyCommands::Show(args) => evidence_policy_show(args)?,
+            },
+            EvidenceCommands::Promote(args) => evidence_promote(args)?,
+            EvidenceCommands::History(args) => evidence_history(args)?,
         },
     }
     Ok(())
@@ -513,7 +624,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails + integration evidence pack reports + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff + evidence gate/explain + read-only evidence MCP surface + local evidence decision desk."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails + integration evidence pack reports + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff + evidence gate/explain + baseline registry + policy packs + decision promotion/history + read-only governance MCP surface + local decision governance desk."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -529,7 +640,7 @@ fn print_scaffold_status() {
         "- Real reports shell path: generated by `agent-exporter publish archive-index --workspace-root <repo>` into `.agents/Search/Reports/index.html`."
     );
     println!(
-        "- Real decision desk path: generated by `agent-exporter publish archive-index --workspace-root <repo>` into `.agents/Conversations/index.html`, using saved integration evidence as a read-only decision panel."
+        "- Real decision desk path: generated by `agent-exporter publish archive-index --workspace-root <repo>` into `.agents/Conversations/index.html`, using saved integration evidence plus baseline/policy/history governance artifacts as a read-only decision panel."
     );
     println!(
         "- Real semantic retrieval path: `agent-exporter search semantic --workspace-root <repo> --query <text>`."
@@ -538,7 +649,7 @@ fn print_scaffold_status() {
         "- Real hybrid retrieval path: `agent-exporter search hybrid --workspace-root <repo> --query <text>`."
     );
     println!(
-        "- Real MCP bridge path: `python3 scripts/agent_exporter_mcp.py` with local stdio tool exposure for publish/search/evidence read-only workflows."
+        "- Real MCP bridge path: `python3 scripts/agent_exporter_mcp.py` with local stdio tool exposure for publish/search/evidence/governance read-only workflows."
     );
     println!(
         "- Real integration materializer path: `agent-exporter integrate <platform> --target <dir>`."
@@ -560,7 +671,19 @@ fn print_scaffold_status() {
         "- Real evidence explain path: `agent-exporter evidence explain --report <report.json|html>`."
     );
     println!(
-        "- Next step: a new post-Phase-30 product decision, while staying local-first and non-hosted."
+        "- Real baseline registry path: `agent-exporter evidence baseline list|show|promote` backed by `.agents/Integration/Reports/baseline-registry.json`."
+    );
+    println!(
+        "- Real policy pack path: `agent-exporter evidence policy list|show` backed by `policies/integration-evidence/*.json`."
+    );
+    println!(
+        "- Real decision promotion path: `agent-exporter evidence promote --candidate <report> --baseline-name <name>`."
+    );
+    println!(
+        "- Real decision history path: `agent-exporter evidence history` backed by `.agents/Integration/Reports/decision-history.json`."
+    );
+    println!(
+        "- Next step: a new post-Phase-31 product decision, while staying local-first and non-hosted."
     );
 }
 
@@ -593,7 +716,7 @@ fn publish_archive_index(args: PublishArchiveIndexArgs) -> Result<()> {
         &entries,
         &reports,
         &integration_reports,
-        build_decision_desk_summary(&integration_json_reports).as_ref(),
+        build_decision_desk_summary(&args.workspace_root, &integration_json_reports).as_ref(),
     );
     let reports_document = render_search_reports_index_document(
         &format!("{archive_title} search reports"),
@@ -1041,6 +1164,55 @@ fn integration_reports_workspace_root() -> Result<PathBuf> {
         .context("failed to resolve current working directory for integration reports")
 }
 
+fn resolve_baseline_report_reference(
+    workspace_root: &std::path::Path,
+    reference: &str,
+) -> Result<(PathBuf, Option<IntegrationBaselineRecord>)> {
+    let candidate_path = PathBuf::from(reference);
+    if candidate_path.exists()
+        || candidate_path.is_absolute()
+        || reference.contains(std::path::MAIN_SEPARATOR)
+        || reference.ends_with(".json")
+        || reference.ends_with(".html")
+    {
+        return Ok((canonical_report_json_path(&candidate_path)?, None));
+    }
+
+    let registry = read_integration_baseline_registry_document(workspace_root)?;
+    let record = find_integration_baseline_record(&registry, reference)
+        .cloned()
+        .with_context(|| {
+            format!(
+                "failed to resolve baseline `{reference}` from `{}`",
+                resolve_integration_baseline_registry_path(workspace_root).display()
+            )
+        })?;
+
+    Ok((PathBuf::from(&record.report_json_path), Some(record)))
+}
+
+fn build_baseline_registry_record(
+    workspace_root: &std::path::Path,
+    name: &str,
+    report: &IntegrationReportJsonDocument,
+    report_json_path: &std::path::Path,
+    policy: &IntegrationEvidencePolicyPack,
+    promoted_at: &str,
+    promoted_from_verdict: &str,
+    note: Option<String>,
+) -> IntegrationBaselineRecord {
+    build_baseline_record(
+        workspace_root,
+        name,
+        report_json_path,
+        report,
+        promoted_at,
+        promoted_from_verdict,
+        &policy.gate,
+        note,
+    )
+}
+
 fn integration_reports_title(workspace_root: &std::path::Path) -> String {
     workspace_root
         .file_name()
@@ -1050,28 +1222,103 @@ fn integration_reports_title(workspace_root: &std::path::Path) -> String {
         .unwrap_or_else(|| "agent-exporter integration reports".to_string())
 }
 
+fn decision_desk_report_json_path(
+    workspace_root: &std::path::Path,
+    report: &IntegrationReportJsonDocument,
+) -> PathBuf {
+    resolve_integration_reports_dir(workspace_root).join(&report.artifact_links.json_report)
+}
+
 fn build_decision_desk_summary(
+    workspace_root: &std::path::Path,
     reports: &[IntegrationReportJsonDocument],
 ) -> Option<archive_index_output::DecisionDeskSummary> {
     let candidate = reports.first()?;
-    let baseline = reports
-        .iter()
-        .skip(1)
-        .find(|report| report.platform == candidate.platform && report.target == candidate.target);
-    let gate = baseline.and_then(|baseline| {
-        gate_integration_reports(
-            baseline,
-            candidate,
-            &default_integration_evidence_gate_policy(),
-        )
-        .ok()
+    let registry = read_integration_baseline_registry_document(workspace_root).ok()?;
+    let history = read_integration_decision_history_document(workspace_root).ok()?;
+    let baseline_record =
+        find_integration_baseline_for_identity(&registry, &candidate.platform, &candidate.target);
+    let baseline = baseline_record.and_then(|record| {
+        read_integration_report_json_document(PathBuf::from(&record.report_json_path).as_path())
+            .ok()
     });
+    let policy_reference = baseline_record.map(|record| record.policy_name.clone());
+    let (_, policy_pack) =
+        resolve_integration_evidence_policy_pack(policy_reference.as_deref()).ok()?;
+    let gate_policy = effective_gate_policy_for_platform(&policy_pack, &candidate.platform);
+    let gate = baseline
+        .as_ref()
+        .and_then(|baseline| gate_integration_reports(baseline, candidate, &gate_policy).ok());
+    let promotion = if let Some(outcome) = gate.as_ref() {
+        let candidate_path = decision_desk_report_json_path(workspace_root, candidate)
+            .canonicalize()
+            .ok()
+            .map(|path| path.display().to_string());
+        if let Some(candidate_path) = candidate_path.as_deref() {
+            if let Some(record) =
+                latest_integration_decision_for_candidate(&history, candidate_path)
+            {
+                archive_index_output::DecisionDeskPromotionSummary {
+                    state: if record.promoted {
+                        "promoted".to_string()
+                    } else {
+                        "not-promoted".to_string()
+                    },
+                    summary: record.summary.clone(),
+                }
+            } else {
+                let assessment = assess_promotion_eligibility(outcome, candidate, &policy_pack);
+                archive_index_output::DecisionDeskPromotionSummary {
+                    state: if assessment.eligible {
+                        "not-promoted".to_string()
+                    } else {
+                        "ineligible".to_string()
+                    },
+                    summary: assessment.summary,
+                }
+            }
+        } else {
+            archive_index_output::DecisionDeskPromotionSummary {
+                state: "insufficient".to_string(),
+                summary:
+                    "candidate report path could not be resolved for decision-history matching"
+                        .to_string(),
+            }
+        }
+    } else {
+        archive_index_output::DecisionDeskPromotionSummary {
+            state: "insufficient".to_string(),
+            summary: "save an official baseline for this platform/target before expecting promotion status".to_string(),
+        }
+    };
+    let recent_history = history
+        .decisions
+        .iter()
+        .filter(|entry| entry.platform == candidate.platform && entry.target == candidate.target)
+        .take(5)
+        .map(|entry| archive_index_output::DecisionDeskHistoryEntry {
+            decided_at: entry.decided_at.clone(),
+            baseline_name: entry.baseline_name.clone(),
+            verdict: entry.verdict.clone(),
+            promoted: entry.promoted,
+            summary: entry.summary.clone(),
+        })
+        .collect::<Vec<_>>();
 
     Some(archive_index_output::DecisionDeskSummary {
         evidence_report_count: reports.len(),
         evidence_shell_href: "../Integration/Reports/index.html".to_string(),
-        baseline: baseline.map(|report| decision_desk_snapshot_from_report(report)),
+        baseline_name: baseline_record.map(|record| record.name.clone()),
+        baseline: baseline
+            .as_ref()
+            .map(|report| decision_desk_snapshot_from_report(report)),
         candidate: Some(decision_desk_snapshot_from_report(candidate)),
+        active_policy: archive_index_output::DecisionDeskPolicySummary {
+            name: policy_pack.name.clone(),
+            version: policy_pack.version.clone(),
+        },
+        promotion,
+        history: recent_history,
         gate,
     })
 }
@@ -1215,14 +1462,28 @@ fn evidence_diff(args: EvidenceDiffArgs) -> Result<()> {
 }
 
 fn evidence_gate(args: EvidenceGateArgs) -> Result<()> {
-    let baseline = read_integration_report_json_document(&args.baseline)?;
-    let candidate = read_integration_report_json_document(&args.candidate)?;
-    let policy = match args.policy {
-        Some(path) => read_integration_evidence_gate_policy(&path)?,
-        None => default_integration_evidence_gate_policy(),
-    };
-    let outcome = gate_integration_reports(&baseline, &candidate, &policy)?;
-    print_integration_evidence_gate(&outcome, &args.baseline, &args.candidate, &policy);
+    let workspace_root = integration_reports_workspace_root()?;
+    let (baseline_path, baseline_record) =
+        resolve_baseline_report_reference(&workspace_root, &args.baseline)?;
+    let candidate_path = canonical_report_json_path(&args.candidate)?;
+    let baseline = read_integration_report_json_document(&baseline_path)?;
+    let candidate = read_integration_report_json_document(&candidate_path)?;
+    let policy_reference = args
+        .policy
+        .clone()
+        .or_else(|| baseline_record.map(|record| record.policy_name));
+    let (policy_path, policy_pack) =
+        resolve_integration_evidence_policy_pack(policy_reference.as_deref())?;
+    let gate_policy = effective_gate_policy_for_platform(&policy_pack, &candidate.platform);
+    let outcome = gate_integration_reports(&baseline, &candidate, &gate_policy)?;
+    print_integration_evidence_gate(
+        &outcome,
+        &baseline_path.display().to_string(),
+        &candidate_path.display().to_string(),
+        &policy_path.display().to_string(),
+        &policy_pack,
+        &gate_policy,
+    );
     Ok(())
 }
 
@@ -1240,6 +1501,311 @@ fn evidence_explain(args: EvidenceExplainArgs) -> Result<()> {
     println!("- Target       : {}", report.target);
     println!("- Readiness    : {}", report.readiness);
     print_integration_explain_steps(&explain_steps);
+    Ok(())
+}
+
+fn evidence_baseline_list() -> Result<()> {
+    let workspace_root = integration_reports_workspace_root()?;
+    let registry = read_integration_baseline_registry_document(&workspace_root)?;
+    println!("Integration baseline registry");
+    println!(
+        "- Registry     : {}",
+        resolve_integration_baseline_registry_path(&workspace_root).display()
+    );
+    println!("- Baselines    : {}", registry.baselines.len());
+    if registry.baselines.is_empty() {
+        println!("- Entries      : none");
+        return Ok(());
+    }
+
+    println!("- Entries");
+    for record in &registry.baselines {
+        println!(
+            "  - {} | {} | {} | {}",
+            record.name, record.platform, record.policy_name, record.promoted_at
+        );
+    }
+    Ok(())
+}
+
+fn evidence_baseline_show(args: EvidenceBaselineShowArgs) -> Result<()> {
+    let workspace_root = integration_reports_workspace_root()?;
+    let registry = read_integration_baseline_registry_document(&workspace_root)?;
+    let record = find_integration_baseline_record(&registry, &args.name)
+        .with_context(|| format!("baseline `{}` is not registered", args.name))?;
+
+    println!("Integration baseline");
+    println!("- Name         : {}", record.name);
+    println!("- Platform     : {}", record.platform);
+    println!("- Target       : {}", record.target);
+    println!("- Identity     : {}", record.target_identity);
+    println!("- Report       : {}", record.report_json_path);
+    println!("- Promoted At  : {}", record.promoted_at);
+    println!("- Verdict      : {}", record.promoted_from_verdict);
+    println!(
+        "- Policy       : {} v{}",
+        record.policy_name, record.policy_version
+    );
+    println!(
+        "- Note         : {}",
+        record.note.as_deref().unwrap_or("none")
+    );
+    Ok(())
+}
+
+fn evidence_baseline_promote(args: EvidenceBaselinePromoteArgs) -> Result<()> {
+    let workspace_root = integration_reports_workspace_root()?;
+    let report_path = canonical_report_json_path(&args.report)?;
+    let report = read_integration_report_json_document(&report_path)?;
+    let promoted_at = Utc::now().to_rfc3339();
+    let (policy_path, policy_pack) =
+        resolve_integration_evidence_policy_pack(args.policy.as_deref())?;
+
+    let mut registry = read_integration_baseline_registry_document(&workspace_root)?;
+    registry.generated_at = promoted_at.clone();
+    let record = build_baseline_registry_record(
+        &workspace_root,
+        &args.name,
+        &report,
+        &report_path,
+        &policy_pack,
+        &promoted_at,
+        &args.verdict,
+        args.note.clone(),
+    );
+    upsert_integration_baseline_record(&mut registry, record.clone());
+    write_integration_baseline_registry_document(&workspace_root, &registry)?;
+
+    let mut history = read_integration_decision_history_document(&workspace_root)?;
+    history.generated_at = promoted_at.clone();
+    append_integration_decision_record(
+        &mut history,
+        IntegrationDecisionRecord {
+            baseline_name: record.name.clone(),
+            platform: record.platform.clone(),
+            target: record.target.clone(),
+            target_identity: record.target_identity.clone(),
+            baseline_report_json_path: None,
+            baseline_report_title: None,
+            candidate_report_json_path: record.report_json_path.clone(),
+            candidate_report_title: record.report_title.clone(),
+            policy_name: record.policy_name.clone(),
+            policy_version: record.policy_version.clone(),
+            verdict: args.verdict.clone(),
+            promoted: true,
+            decided_at: promoted_at.clone(),
+            summary: args.note.clone().unwrap_or_else(|| {
+                "official baseline seeded directly from saved report".to_string()
+            }),
+        },
+    );
+    write_integration_decision_history_document(&workspace_root, &history)?;
+
+    println!("Integration baseline promoted");
+    println!("- Name         : {}", record.name);
+    println!("- Platform     : {}", record.platform);
+    println!("- Target       : {}", record.target);
+    println!("- Report       : {}", record.report_json_path);
+    println!("- Verdict      : {}", record.promoted_from_verdict);
+    println!(
+        "- Policy       : {} v{}",
+        policy_pack.name, policy_pack.version
+    );
+    println!("- Policy Path  : {}", policy_path.display());
+    println!("- Promoted At  : {}", promoted_at);
+    Ok(())
+}
+
+fn evidence_policy_list() -> Result<()> {
+    let policies = collect_repo_owned_integration_policy_packs()?;
+    println!("Integration governance policies");
+    println!(
+        "- Directory    : {}",
+        repo_owned_integration_policy_dir().display()
+    );
+    println!("- Policies     : {}", policies.len());
+    if policies.is_empty() {
+        println!("- Entries      : none");
+        return Ok(());
+    }
+
+    println!("- Entries");
+    for (path, policy) in policies {
+        println!(
+            "  - {} v{} | {}",
+            policy.name,
+            policy.version,
+            path.display()
+        );
+    }
+    Ok(())
+}
+
+fn evidence_policy_show(args: EvidencePolicyShowArgs) -> Result<()> {
+    let path = repo_owned_integration_policy_dir().join(format!("{}.json", args.name));
+    let policy = resolve_integration_evidence_policy_pack(Some(&args.name))?.1;
+    let raw_json = std::fs::read_to_string(&path)
+        .with_context(|| format!("failed to read `{}`", path.display()))?;
+    println!("Integration governance policy");
+    println!("- Name         : {}", policy.name);
+    println!("- Version      : {}", policy.version);
+    println!("- Path         : {}", path.display());
+    println!("- Description  : {}", policy.description);
+    println!(
+        "- Gate         : {} blocking / {} warning labels",
+        policy.gate.blocking_check_labels.len(),
+        policy.gate.warning_check_labels.len()
+    );
+    println!(
+        "- Promotion    : verdicts [{}], readiness [{}], non-regression {}",
+        policy.promotion.allowed_verdicts.join(", "),
+        policy.promotion.allowed_candidate_readiness.join(", "),
+        if policy.promotion.require_non_regression {
+            "required"
+        } else {
+            "optional"
+        }
+    );
+    println!("- JSON");
+    println!("{}", raw_json.trim_end());
+    Ok(())
+}
+
+fn evidence_promote(args: EvidencePromoteArgs) -> Result<()> {
+    let workspace_root = integration_reports_workspace_root()?;
+    let candidate_path = canonical_report_json_path(&args.candidate)?;
+    let candidate = read_integration_report_json_document(&candidate_path)?;
+    let mut registry = read_integration_baseline_registry_document(&workspace_root)?;
+    let baseline_record = find_integration_baseline_record(&registry, &args.baseline_name)
+        .cloned()
+        .with_context(|| format!("baseline `{}` is not registered", args.baseline_name))?;
+    let baseline = read_integration_report_json_document(
+        PathBuf::from(&baseline_record.report_json_path).as_path(),
+    )?;
+    let policy_reference = args
+        .policy
+        .clone()
+        .or_else(|| Some(baseline_record.policy_name.clone()));
+    let (policy_path, policy_pack) =
+        resolve_integration_evidence_policy_pack(policy_reference.as_deref())?;
+    let gate_policy = effective_gate_policy_for_platform(&policy_pack, &candidate.platform);
+    let outcome = gate_integration_reports(&baseline, &candidate, &gate_policy)?;
+    let assessment = assess_promotion_eligibility(&outcome, &candidate, &policy_pack);
+    let decided_at = Utc::now().to_rfc3339();
+
+    let summary = args
+        .note
+        .clone()
+        .unwrap_or_else(|| assessment.summary.clone());
+    let mut history = read_integration_decision_history_document(&workspace_root)?;
+    history.generated_at = decided_at.clone();
+    append_integration_decision_record(
+        &mut history,
+        IntegrationDecisionRecord {
+            baseline_name: baseline_record.name.clone(),
+            platform: candidate.platform.clone(),
+            target: candidate.target.clone(),
+            target_identity: integration_target_identity(&candidate.platform, &candidate.target),
+            baseline_report_json_path: Some(baseline_record.report_json_path.clone()),
+            baseline_report_title: Some(baseline_record.report_title.clone()),
+            candidate_report_json_path: candidate_path.display().to_string(),
+            candidate_report_title: candidate.title.clone(),
+            policy_name: policy_pack.name.clone(),
+            policy_version: policy_pack.version.clone(),
+            verdict: outcome.verdict.as_str().to_string(),
+            promoted: assessment.eligible,
+            decided_at: decided_at.clone(),
+            summary: summary.clone(),
+        },
+    );
+    write_integration_decision_history_document(&workspace_root, &history)?;
+
+    if assessment.eligible {
+        registry.generated_at = decided_at.clone();
+        upsert_integration_baseline_record(
+            &mut registry,
+            build_baseline_registry_record(
+                &workspace_root,
+                &baseline_record.name,
+                &candidate,
+                &candidate_path,
+                &policy_pack,
+                &decided_at,
+                outcome.verdict.as_str(),
+                args.note.clone(),
+            ),
+        );
+        write_integration_baseline_registry_document(&workspace_root, &registry)?;
+    }
+
+    println!("Integration evidence promote");
+    println!("- Baseline     : {}", baseline_record.name);
+    println!("- Candidate    : {}", candidate_path.display());
+    println!("- Verdict      : {}", outcome.verdict.as_str());
+    println!(
+        "- Promoted     : {}",
+        if assessment.eligible { "yes" } else { "no" }
+    );
+    println!(
+        "- Policy       : {} v{}",
+        policy_pack.name, policy_pack.version
+    );
+    println!("- Policy Path  : {}", policy_path.display());
+    println!("- Summary      : {}", summary);
+    if !assessment.reasons.is_empty() {
+        println!("- Reasons");
+        for reason in &assessment.reasons {
+            println!("  - {}", reason);
+        }
+    }
+    print_integration_evidence_gate(
+        &outcome,
+        &baseline_record.report_json_path,
+        &candidate_path.display().to_string(),
+        &policy_path.display().to_string(),
+        &policy_pack,
+        &gate_policy,
+    );
+    Ok(())
+}
+
+fn evidence_history(args: EvidenceHistoryArgs) -> Result<()> {
+    let workspace_root = integration_reports_workspace_root()?;
+    let history = read_integration_decision_history_document(&workspace_root)?;
+    println!("Integration decision history");
+    println!(
+        "- History      : {}",
+        resolve_integration_decision_history_path(&workspace_root).display()
+    );
+
+    let entries = history
+        .decisions
+        .iter()
+        .filter(|entry| {
+            args.baseline_name
+                .as_deref()
+                .is_none_or(|name| entry.baseline_name == name)
+        })
+        .take(args.limit)
+        .collect::<Vec<_>>();
+
+    println!("- Decisions    : {}", entries.len());
+    if entries.is_empty() {
+        println!("- Entries      : none");
+        return Ok(());
+    }
+
+    println!("- Entries");
+    for entry in entries {
+        println!(
+            "  - {} | {} | verdict {} | promoted {} | {}",
+            entry.decided_at,
+            entry.baseline_name,
+            entry.verdict,
+            if entry.promoted { "yes" } else { "no" },
+            entry.summary
+        );
+    }
     Ok(())
 }
 
@@ -1290,13 +1856,15 @@ fn print_integration_evidence_diff(
 
 fn print_integration_evidence_gate(
     outcome: &IntegrationEvidenceGateOutcome,
-    baseline: &std::path::Path,
-    candidate: &std::path::Path,
+    baseline: &str,
+    candidate: &str,
+    policy_path: &str,
+    policy_pack: &IntegrationEvidencePolicyPack,
     policy: &IntegrationEvidenceGatePolicy,
 ) {
     println!("Integration evidence gate");
-    println!("- Baseline     : {}", baseline.display());
-    println!("- Candidate    : {}", candidate.display());
+    println!("- Baseline     : {}", baseline);
+    println!("- Candidate    : {}", candidate);
     println!("- Verdict      : {}", outcome.verdict.as_str());
     println!(
         "- Readiness    : {} -> {}",
@@ -1307,9 +1875,15 @@ fn print_integration_evidence_gate(
         if outcome.regression { "yes" } else { "no" }
     );
     println!(
-        "- Policy       : {} blocking labels / {} warning labels",
+        "- Policy       : {} v{}",
+        policy_pack.name, policy_pack.version
+    );
+    println!("- Policy Path  : {}", policy_path);
+    println!(
+        "- Policy Rules : {} blocking labels / {} warning labels / {} ignorable labels",
         policy.blocking_check_labels.len(),
-        policy.warning_check_labels.len()
+        policy.warning_check_labels.len(),
+        policy.ignorable_check_labels.len()
     );
 
     if !outcome.blocking_changes.is_empty() {

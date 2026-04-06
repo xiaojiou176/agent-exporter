@@ -90,5 +90,5 @@ agent-exporter search hybrid --workspace-root <repo> --query "thread-1" --save-r
 
 - 这条接法今天是 **真实可用** 的
 - 当前 repo 已经内建一个最小 stdio MCP bridge：`scripts/agent_exporter_mcp.py`
-- 当前 bridge 暴露的是 publish/search/evidence 只读工具面，不是全量 CLI
-- CLI-first 仍然是最稳 front door；MCP 是对 publish/search/evidence 的轻量接线，不是第二套产品面
+- 当前 bridge 暴露的是 publish/search/evidence/governance 只读工具面，不是全量 CLI
+- CLI-first 仍然是最稳 front door；MCP 是对 publish/search/evidence/governance 的轻量接线，不是第二套产品面

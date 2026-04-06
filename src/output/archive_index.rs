@@ -17,11 +17,36 @@ pub struct DecisionDeskSnapshot {
 }
 
 #[derive(Clone, Debug, PartialEq)]
+pub struct DecisionDeskPolicySummary {
+    pub name: String,
+    pub version: String,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct DecisionDeskPromotionSummary {
+    pub state: String,
+    pub summary: String,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct DecisionDeskHistoryEntry {
+    pub decided_at: String,
+    pub baseline_name: String,
+    pub verdict: String,
+    pub promoted: bool,
+    pub summary: String,
+}
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct DecisionDeskSummary {
     pub evidence_report_count: usize,
     pub evidence_shell_href: String,
+    pub baseline_name: Option<String>,
     pub baseline: Option<DecisionDeskSnapshot>,
     pub candidate: Option<DecisionDeskSnapshot>,
+    pub active_policy: DecisionDeskPolicySummary,
+    pub promotion: DecisionDeskPromotionSummary,
+    pub history: Vec<DecisionDeskHistoryEntry>,
     pub gate: Option<IntegrationEvidenceGateOutcome>,
 }
 
@@ -374,10 +399,12 @@ fn render_decision_desk(summary: Option<&DecisionDeskSummary>) -> String {
         })
         .unwrap_or("awaiting-pair");
 
-    let baseline_card = render_decision_snapshot("Baseline", summary.baseline.as_ref());
+    let baseline_card = render_decision_snapshot("Official baseline", summary.baseline.as_ref());
     let candidate_card = render_decision_snapshot("Candidate", summary.candidate.as_ref());
+    let governance_card = render_decision_governance(summary);
     let remediation = render_decision_remediation(summary);
     let changed_checks = render_decision_changes(summary);
+    let history = render_decision_history(summary);
 
     format!(
         concat!(
@@ -396,9 +423,11 @@ fn render_decision_desk(summary: Option<&DecisionDeskSummary>) -> String {
             "  <div class=\"decision-grid\">\n",
             "{baseline_card}\n",
             "{candidate_card}\n",
+            "{governance_card}\n",
             "{remediation}\n",
             "  </div>\n",
             "{changed_checks}\n",
+            "{history}\n",
             "  <section class=\"summary-card decision-nav\">\n",
             "    <p class=\"eyebrow\">Cross-shell navigation</p>\n",
             "    <h2>Stay in one front door, keep three corpora</h2>\n",
@@ -416,8 +445,10 @@ fn render_decision_desk(summary: Option<&DecisionDeskSummary>) -> String {
         evidence_shell_href = escape_html(&summary.evidence_shell_href),
         baseline_card = baseline_card,
         candidate_card = candidate_card,
+        governance_card = governance_card,
         remediation = remediation,
         changed_checks = changed_checks,
+        history = history,
     )
 }
 
@@ -506,6 +537,27 @@ fn render_decision_remediation(summary: &DecisionDeskSummary) -> String {
     )
 }
 
+fn render_decision_governance(summary: &DecisionDeskSummary) -> String {
+    let baseline_name = summary.baseline_name.as_deref().unwrap_or("unregistered");
+    format!(
+        concat!(
+            "<article class=\"summary-card decision-card governance-card\">",
+            "<p class=\"eyebrow\">Governance</p>",
+            "<h2>Official baseline / policy / promotion</h2>",
+            "<p class=\"mono-inline\">baseline name: <code>{baseline_name}</code></p>",
+            "<p class=\"mono-inline\">active policy: <code>{policy_name}</code> <code>{policy_version}</code></p>",
+            "<p class=\"mono-inline\">promotion status: <code>{promotion_state}</code></p>",
+            "<p>{promotion_summary}</p>",
+            "</article>"
+        ),
+        baseline_name = escape_html(baseline_name),
+        policy_name = escape_html(&summary.active_policy.name),
+        policy_version = escape_html(&summary.active_policy.version),
+        promotion_state = escape_html(&summary.promotion.state),
+        promotion_summary = escape_html(&summary.promotion.summary),
+    )
+}
+
 fn render_decision_changes(summary: &DecisionDeskSummary) -> String {
     let Some(gate) = summary.gate.as_ref() else {
         return "<section class=\"summary-card decision-changes\"><p class=\"eyebrow\">Changed checks</p><h2>Insufficient comparison input</h2><p>Save at least two related evidence reports before expecting a changed-checks ledger.</p></section>".to_string();
@@ -534,6 +586,52 @@ fn render_decision_changes(summary: &DecisionDeskSummary) -> String {
             "<section class=\"summary-card decision-changes\">",
             "<p class=\"eyebrow\">Changed checks</p>",
             "<h2>What moved between baseline and candidate</h2>",
+            "{body}",
+            "</section>"
+        ),
+        body = body,
+    )
+}
+
+fn render_decision_history(summary: &DecisionDeskSummary) -> String {
+    let body = if summary.history.is_empty() {
+        "<p class=\"empty-inline\">No governance decisions have been recorded for this platform/target yet.</p>".to_string()
+    } else {
+        format!(
+            "<ul class=\"check-list\">{}</ul>",
+            summary
+                .history
+                .iter()
+                .map(|entry| {
+                    format!(
+                        concat!(
+                            "<li class=\"change-item\">",
+                            "<div class=\"chip-row\">",
+                            "<span class=\"chip\">{verdict}</span>",
+                            "<span class=\"chip\">promoted {promoted}</span>",
+                            "<span class=\"chip\">{baseline_name}</span>",
+                            "</div>",
+                            "<p class=\"mono-inline\">{decided_at}</p>",
+                            "<p>{summary}</p>",
+                            "</li>"
+                        ),
+                        verdict = escape_html(&entry.verdict),
+                        promoted = if entry.promoted { "yes" } else { "no" },
+                        baseline_name = escape_html(&entry.baseline_name),
+                        decided_at = escape_html(&entry.decided_at),
+                        summary = escape_html(&entry.summary),
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join("")
+        )
+    };
+
+    format!(
+        concat!(
+            "<section class=\"summary-card decision-changes\">",
+            "<p class=\"eyebrow\">Decision history</p>",
+            "<h2>Recent governance ledger</h2>",
             "{body}",
             "</section>"
         ),

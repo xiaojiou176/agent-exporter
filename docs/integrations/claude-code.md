@@ -89,5 +89,5 @@ agent-exporter search hybrid --workspace-root . --query "$ARGUMENTS" --save-repo
 ## 当前诚实边界
 
 - 这些命令模板今天就能用
-- 当前 repo 已经内建最小 stdio MCP bridge，但当前工具面已覆盖 publish/search/evidence 只读消费
+- 当前 repo 已经内建最小 stdio MCP bridge，但当前工具面已覆盖 publish/search/evidence/governance 只读消费
 - Claude Code 当前最稳的入口仍然是 commands / skills；MCP 是可选接线层，不是替代整个命令面
