@@ -50,6 +50,8 @@ The format is based on Keep a Changelog.
 - Archive shell rendering coverage
 - Static retrieval report artifacts for semantic / hybrid searches
 - Retrieval report rendering coverage and report-link coverage in archive shell
+- Workspace-local transcript backlinks for HTML exports
+- HTML workspace-navigation coverage
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder
@@ -64,4 +66,5 @@ The format is based on Keep a Changelog.
 - Hybrid retrieval now lands as a separate command instead of mutating `search semantic`
 - `publish archive-index` now renders a richer local archive shell instead of a flat archive list
 - Search commands can now persist HTML retrieval reports under `.agents/Search/Reports`
+- Workspace conversations HTML exports now link back to the local archive shell without changing Downloads behavior
 - Codex / Claude connector summaries now describe the shared archive transcript contract instead of a Markdown-only contract

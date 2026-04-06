@@ -321,7 +321,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -340,7 +340,7 @@ fn print_scaffold_status() {
         "- Real hybrid retrieval path: `agent-exporter search hybrid --workspace-root <repo> --query <text>`."
     );
     println!(
-        "- Next step: a new post-Phase-13 product decision, while staying local-first and non-hosted."
+        "- Next step: a new post-Phase-14 product decision, while staying local-first and non-hosted."
     );
 }
 
@@ -604,8 +604,12 @@ fn export_request(request: ExportRequest) -> Result<()> {
             )?
         }
         OutputFormat::Html => {
-            let document =
-                html_output::render_html_document(&transcript, &archive_title, &exported_at);
+            let document = html_output::render_html_document(
+                &transcript,
+                &archive_title,
+                &exported_at,
+                workspace_html_navigation(&request.output_target).as_ref(),
+            );
             crate::core::archive::write_html_document(
                 &transcript,
                 &request.output_target,
@@ -630,4 +634,16 @@ fn export_request(request: ExportRequest) -> Result<()> {
     }
 
     Ok(())
+}
+
+fn workspace_html_navigation(
+    output_target: &OutputTarget,
+) -> Option<html_output::WorkspaceHtmlNavigation> {
+    match output_target {
+        OutputTarget::Downloads => None,
+        OutputTarget::WorkspaceConversations { .. } => Some(html_output::WorkspaceHtmlNavigation {
+            archive_shell_href: "index.html".to_string(),
+            reports_dir_hint: "../Search/Reports".to_string(),
+        }),
+    }
 }

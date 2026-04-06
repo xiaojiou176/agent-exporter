@@ -11,13 +11,35 @@ struct RenderedRound {
     content: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct WorkspaceHtmlNavigation {
+    pub archive_shell_href: String,
+    pub reports_dir_hint: String,
+}
+
 pub fn render_html_document(
     transcript: &ArchiveTranscript,
     archive_title: &str,
     exported_at: &str,
+    workspace_navigation: Option<&WorkspaceHtmlNavigation>,
 ) -> String {
     let rounds = render_rounds(transcript);
     let title = format!("{archive_title} 对话归档");
+    let workspace_meta = workspace_navigation
+        .map(|navigation| {
+            format!(
+                concat!(
+                    "  <meta name=\"agent-exporter:workspace-shell-href\" content=\"{shell}\">\n",
+                    "  <meta name=\"agent-exporter:workspace-reports-dir\" content=\"{reports}\">\n"
+                ),
+                shell = escape_html(&navigation.archive_shell_href),
+                reports = escape_html(&navigation.reports_dir_hint),
+            )
+        })
+        .unwrap_or_default();
+    let workspace_nav = workspace_navigation
+        .map(render_workspace_navigation)
+        .unwrap_or_default();
     let body = if rounds.is_empty() {
         String::new()
     } else {
@@ -43,6 +65,7 @@ pub fn render_html_document(
             "  <meta name=\"agent-exporter:exported-at\" content=\"{exported_at_meta}\">\n",
             "  <meta name=\"agent-exporter:completeness\" content=\"{completeness_meta}\">\n",
             "  <meta name=\"agent-exporter:source-kind\" content=\"{source_kind_meta}\">\n",
+            "{workspace_meta}",
             "  <style>\n{style}\n  </style>\n",
             "</head>\n",
             "<body>\n",
@@ -61,6 +84,7 @@ pub fn render_html_document(
             "        <div><dt>轮次</dt><dd><code>{round_count}</code></dd></div>\n",
             "        <div><dt>条目数</dt><dd><code>{item_count}</code></dd></div>\n",
             "      </dl>\n",
+            "{workspace_nav}",
             "    </header>\n",
             "    <section class=\"transcript-stack\">\n",
             "{body}\n",
@@ -91,7 +115,26 @@ pub fn render_html_document(
         thread_status = escape_html(transcript.thread_status.as_str()),
         round_count = transcript.round_count(),
         item_count = transcript.item_count(),
+        workspace_meta = workspace_meta,
+        workspace_nav = workspace_nav,
         body = body,
+    )
+}
+
+fn render_workspace_navigation(navigation: &WorkspaceHtmlNavigation) -> String {
+    format!(
+        concat!(
+            "<section class=\"workspace-nav\">",
+            "<p class=\"eyebrow\">Workspace navigation</p>",
+            "<p class=\"hero-copy\">这份 transcript 当前位于 workspace-local archive 里。你可以把它理解成“从单张打印稿回到前厅”的返回线：阅读完之后，直接回 archive shell；saved retrieval reports 也仍然留在本地 report 目录里。</p>",
+            "<div class=\"link-row\">",
+            "<a class=\"open-link\" href=\"{shell_href}\">Open archive shell</a>",
+            "</div>",
+            "<p class=\"mono-note\">saved reports dir: <code>{reports_dir}</code></p>",
+            "</section>"
+        ),
+        shell_href = escape_html(&navigation.archive_shell_href),
+        reports_dir = escape_html(&navigation.reports_dir_hint),
     )
 }
 
@@ -633,6 +676,14 @@ fn html_style() -> &'static str {
       border-radius: 16px;
     }
 
+    .workspace-nav {
+      margin-top: 18px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      border: 1px solid rgba(168, 100, 35, 0.18);
+      background: rgba(255, 255, 255, 0.7);
+    }
+
     dt {
       margin-bottom: 6px;
       font-size: 12px;
@@ -651,6 +702,13 @@ fn html_style() -> &'static str {
     .mono-inline {
       font-family: var(--mono);
       font-size: 0.95em;
+    }
+
+    .mono-note {
+      margin-top: 12px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 13px;
     }
 
     .transcript-stack {
@@ -739,6 +797,10 @@ fn html_style() -> &'static str {
       font-size: 12px;
     }
 
+    .link-row {
+      margin-top: 14px;
+    }
+
     .bullet-list,
     .tool-list {
       margin: 0;
@@ -798,7 +860,7 @@ fn html_style() -> &'static str {
 
 #[cfg(test)]
 mod tests {
-    use super::render_html_document;
+    use super::{WorkspaceHtmlNavigation, render_html_document};
     use crate::core::archive::{
         ArchiveCompleteness, ArchiveRound, ArchiveThreadStatus, ArchiveToolCall, ArchiveTranscript,
         ArchiveTurnItem, ArchiveTurnStatus, CommandExecutionRecord, ConnectorSourceKind,
@@ -850,6 +912,7 @@ mod tests {
             &sample_transcript(),
             "agent-exporter",
             "2026-04-05T00:00:00Z",
+            None,
         );
 
         assert!(document.contains("<!DOCTYPE html>"));
@@ -859,6 +922,7 @@ mod tests {
         assert!(document.contains("用户"));
         assert!(document.contains("助手") || document.contains("工具"));
         assert!(document.contains("claude-session-path"));
+        assert!(!document.contains("Open archive shell"));
     }
 
     #[test]
@@ -867,6 +931,7 @@ mod tests {
             &sample_transcript(),
             "agent-exporter",
             "2026-04-05T00:00:00Z",
+            None,
         );
 
         assert!(document.contains("hello &lt;world&gt;"));
@@ -883,9 +948,28 @@ mod tests {
         }];
         transcript.preview = Some("preview fallback".to_string());
 
-        let document = render_html_document(&transcript, "agent-exporter", "2026-04-05T00:00:00Z");
+        let document =
+            render_html_document(&transcript, "agent-exporter", "2026-04-05T00:00:00Z", None);
 
         assert!(document.contains("preview fallback"));
         assert!(document.contains("第1轮"));
+    }
+
+    #[test]
+    fn render_html_document_can_embed_workspace_navigation() {
+        let navigation = WorkspaceHtmlNavigation {
+            archive_shell_href: "index.html".to_string(),
+            reports_dir_hint: "../Search/Reports".to_string(),
+        };
+        let document = render_html_document(
+            &sample_transcript(),
+            "agent-exporter",
+            "2026-04-05T00:00:00Z",
+            Some(&navigation),
+        );
+
+        assert!(document.contains("Open archive shell"));
+        assert!(document.contains("agent-exporter:workspace-shell-href"));
+        assert!(document.contains("../Search/Reports"));
     }
 }

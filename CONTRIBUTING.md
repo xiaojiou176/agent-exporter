@@ -2,7 +2,7 @@
 
 ## 当前贡献重点
 
-当前仓库已经从“只有骨架”进入“Codex dual-source + Claude second connector + hybrid retrieval + local archive shell + retrieval reports 已 landed”的阶段。
+当前仓库已经从“只有骨架”进入“Codex dual-source + Claude second connector + hybrid retrieval + local archive shell + retrieval reports + workspace-local navigation 已 landed”的阶段。
 
 所以最欢迎的贡献顺序是：
 

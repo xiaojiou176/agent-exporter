@@ -214,6 +214,18 @@
 - archive shell 也已经能链接这些 reports
 - 但仍然没有把 retrieval execution 搬进浏览器或远端平台
 
+### Phase 14
+
+已落地：
+
+- workspace-local navigation backlinks
+
+原因：
+
+- 现在 workspace conversations 里的 transcript HTML 已经能回到 archive shell
+- 但 Downloads HTML 仍保持为不带 workspace-only links 的 leaf artifact
+- 仍然没有把 transcript 页面膨胀成 browse / retrieval shell
+
 ## 推荐 CLI 命令面
 
 当前已经落地的最小集合是：

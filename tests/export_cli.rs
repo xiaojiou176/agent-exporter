@@ -152,6 +152,8 @@ fn export_codex_writes_workspace_conversations_html() {
     assert!(content.contains("第1轮"));
     assert!(content.contains("app-server-thread-read"));
     assert!(content.contains("pwd"));
+    assert!(content.contains("Open archive shell"));
+    assert!(content.contains("agent-exporter:workspace-shell-href"));
 }
 
 #[test]

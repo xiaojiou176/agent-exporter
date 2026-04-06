@@ -10,7 +10,8 @@
 > **再用最小 HTML exporter 证明同一份 transcript 也能直接变成静态可读页面，**
 > **再用最小 archive index 证明这些页面已经可以本地浏览和静态发布，**
 > **再把它升级成一个 local-first multi-agent archive shell，**
-> **再让 semantic / hybrid 检索结果也能保存成可链接的本地 retrieval reports。**
+> **再让 semantic / hybrid 检索结果也能保存成可链接的本地 retrieval reports，**
+> **再把 workspace-local transcript 导航闭环补完整。**
 
 但仓库从第一天开始就按“未来会接 Claude Code 和其他本地 CLI”来设计，所以不会把 Codex 的私有读取逻辑写死在整个项目里。
 
@@ -52,6 +53,7 @@
 - hybrid retrieval
 - multi-agent local archive shell
 - local retrieval report artifacts
+- workspace-local transcript backlinks
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -60,7 +62,7 @@
 
 当前阶段**还没有**完成的是：
 
-- 当前 Phase 13 之后的新一轮产品裁决
+- 当前 Phase 14 之后的新一轮产品裁决
 
 ---
 
@@ -101,7 +103,8 @@
 12. **现在已经落地：hybrid retrieval via `search hybrid`**
 13. **现在已经落地：multi-agent archive 平台化 via upgraded `publish archive-index` shell**
 14. **现在已经落地：local retrieval report artifacts via `search ... --save-report`**
-15. **当前已进入 post-Phase-13 product decision 区，默认仍不膨胀成 hosted search / service**
+15. **现在已经落地：workspace-local transcript backlinks for HTML exports**
+16. **当前已进入 post-Phase-14 product decision 区，默认仍不膨胀成 hosted search / service**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -173,6 +176,8 @@ cargo run -- export codex \
   - 输出单文件 transcript HTML
   - 继续复用 shared archive core
   - 是静态可读文档，不是 browse / publish shell
+  - 当输出目标是 `workspace-conversations` 时，会额外带上回 archive shell 的本地导航 backlink
+  - 当输出目标是 `Downloads` 时，不会硬塞 workspace-only links
 
 ### Archive index contract
 
@@ -347,7 +352,7 @@ codex app-server
 
 后续文档和实现若继续推进，会先进入：
 
-1. 新的 post-Phase-13 产品裁决
+1. 新的 post-Phase-14 产品裁决
 
 ---
 
