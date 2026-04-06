@@ -441,7 +441,7 @@ cargo run -- doctor integrations --platform codex --target /absolute/path/to/cod
 - `integrate` / `onboard` 现在还会直接拒绝明显的 live host/global roots：
   - `~/.codex`
   - `~/.claude*`
-  - direct OpenClaw bundle/plugin roots
+  - direct OpenClaw bundle/plugin roots，例如 `bundles/<name>`、`plugins/<name>`
 - Doctor 只做只读 readiness 检查，不会偷偷替你装东西
 - Doctor 现在还会额外检查：
   - 当前 target 内容是否和当前 repo 重新材料化后的版本一致

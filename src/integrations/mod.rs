@@ -686,7 +686,7 @@ fn is_openclaw_host_like_root(path: &Path) -> bool {
     let Some(name) = path.file_name().map(|value| value.to_string_lossy()) else {
         return false;
     };
-    matches!(
+    if matches!(
         name.as_ref(),
         "openclaw-codex-bundle"
             | "openclaw-claude-bundle"
@@ -694,7 +694,14 @@ fn is_openclaw_host_like_root(path: &Path) -> bool {
             | ".claude-plugin"
             | "plugins"
             | "bundles"
-    )
+    ) {
+        return true;
+    }
+
+    path.parent()
+        .and_then(|parent| parent.file_name())
+        .map(|value| value.to_string_lossy())
+        .is_some_and(|parent_name| matches!(parent_name.as_ref(), "plugins" | "bundles"))
 }
 
 fn render_template(

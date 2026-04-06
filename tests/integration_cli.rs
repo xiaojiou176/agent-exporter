@@ -158,6 +158,40 @@ fn integrate_openclaw_rejects_direct_bundle_root_targets() {
 }
 
 #[test]
+fn integrate_openclaw_rejects_bundles_child_targets() {
+    let target = tempdir().expect("target dir");
+    let forbidden_target = target.path().join("bundles").join("live-bundle");
+
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .arg("integrate")
+        .arg("openclaw")
+        .arg("--target")
+        .arg(&forbidden_target);
+
+    command.assert().failure().stderr(predicate::str::contains(
+        "point `--target` at a neutral staging directory above the bundle/plugin roots",
+    ));
+}
+
+#[test]
+fn onboard_openclaw_rejects_plugins_child_targets() {
+    let target = tempdir().expect("target dir");
+    let forbidden_target = target.path().join("plugins").join("live-plugin");
+
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .arg("onboard")
+        .arg("openclaw")
+        .arg("--target")
+        .arg(&forbidden_target);
+
+    command.assert().failure().stderr(predicate::str::contains(
+        "point `--target` at a neutral staging directory above the bundle/plugin roots",
+    ));
+}
+
+#[test]
 fn integrate_claude_code_refuses_to_overwrite_existing_files() {
     let target = tempdir().expect("target dir");
     let conflict = target.path().join(".mcp.json");

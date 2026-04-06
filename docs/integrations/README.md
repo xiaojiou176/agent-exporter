@@ -50,7 +50,7 @@
 - 不自动扫描全局安装目录
 - 不偷偷替你 build / install / mutate shell
 - 不把 OpenClaw bundle content 夸大成 repo-native runtime
-- `integrate` / `onboard` 会直接拒绝明显的 live host/global roots，例如 `~/.codex`、`~/.claude*`，以及 direct OpenClaw bundle/plugin roots
+- `integrate` / `onboard` 会直接拒绝明显的 live host/global roots，例如 `~/.codex`、`~/.claude*`，以及 direct OpenClaw bundle/plugin roots（例如 `bundles/<name>`、`plugins/<name>`）
 
 ## Doctor Hardening
 
