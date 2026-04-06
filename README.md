@@ -66,10 +66,14 @@
 - platform-aware integration doctor diagnostics
 - integration pack-shape hardening
 - integration onboarding experience
+- forbidden-target onboarding guardrails
 - integration evidence pack / exportable onboarding reports
 - integration evidence shell search
 - machine-readable integration evidence
 - integration evidence timeline/diff
+- evidence gate / explain
+- read-only evidence MCP surface
+- local evidence decision desk
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -80,7 +84,7 @@
 
 当前阶段**还没有**完成的是：
 
-- 当前 Phase 29 之后的新一轮产品裁决
+- 当前 Phase 30 之后的新一轮产品裁决
 
 ---
 
@@ -97,9 +101,20 @@
 - hosted / remote search
 - hosted / remote semantic platform
 - hosted / remote publish
-- GUI / Web UI
+- hosted / browser-side GUI 平台壳
+- browser-side execution
 - 远程服务
 - 多 connector 同步交付
+
+### 当前已显式授权
+
+- local-first GUI / Web UI Decision Desk
+  - 仅限本地静态或本地服务决策台
+  - 只负责看、比、判、引导下一步
+  - 不 hosted
+  - 不 cloud backend
+  - 不 browser-side execute
+  - 不合并 transcript/search/evidence corpus
 
 ---
 
@@ -131,12 +146,13 @@
 22. **现在已经落地：platform-aware integration doctor diagnostics**
 23. **现在已经落地：integration pack-shape hardening**
 24. **现在已经落地：integration onboarding experience via `onboard <platform> --target <dir>`**
-25. **现在已经落地：integration onboarding experience via `onboard <platform> --target <dir>`**
+25. **现在已经落地：forbidden-target onboarding guardrails for live host/global roots**
 26. **现在已经落地：integration evidence pack via `doctor/onboard --save-report` + `.agents/Integration/Reports/`**
 27. **现在已经落地：integration evidence shell search via `.agents/Integration/Reports/index.html`**
 28. **现在已经落地：machine-readable integration evidence via `report.json + index.json`**
 29. **现在已经落地：integration evidence timeline/diff via `agent-exporter evidence diff --left <report> --right <report>`**
-30. **当前已进入 post-Phase-29 product decision 区，默认仍不膨胀成 hosted search / service**
+30. **现在已经落地：Local Evidence Decision Plane / Remediation Studio**
+31. **当前已进入 post-Phase-30 product decision 区，默认仍不膨胀成 hosted search / service**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -386,7 +402,7 @@ codex app-server
 
 后续文档和实现若继续推进，会先进入：
 
-1. 新的 post-Phase-27 产品裁决
+1. 新的 post-Phase-30 产品裁决
 
 ---
 
@@ -410,10 +426,13 @@ cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thre
 cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues" --save-report
 cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1" --save-report
 cargo run -- evidence diff --left /absolute/path/to/report-a.json --right /absolute/path/to/report-b.json
+cargo run -- evidence gate --baseline /absolute/path/to/report-a.json --candidate /absolute/path/to/report-b.json
+cargo run -- evidence explain --report /absolute/path/to/report-b.json
 cargo run -- integrate codex --target /absolute/path/to/codex-pack
 cargo run -- integrate claude-code --target /absolute/path/to/claude-pack
 cargo run -- integrate openclaw --target /absolute/path/to/openclaw-pack
 cargo run -- doctor integrations --platform codex --target /absolute/path/to/codex-pack
+cargo run -- doctor integrations --platform codex --target /absolute/path/to/codex-pack --explain
 ```
 
 ## Integration Pack
@@ -446,7 +465,14 @@ cargo run -- doctor integrations --platform codex --target /absolute/path/to/cod
   - report 默认写到当前工作目录下的 `.agents/Integration/Reports`
   - 现在还会同写 `report.html + report.json`，并维护 `index.html + index.json`
   - `agent-exporter evidence diff --left <report> --right <report>` 现在能解释两次 evidence 的变化
-- 当前 bridge 只覆盖 publish/search 高价值工具，不代表整个 CLI 全量变成 MCP
+- 当前 repo 现在还多了一条判定/解释主链：
+  - `agent-exporter evidence gate --baseline <report> --candidate <report>`
+  - `agent-exporter evidence explain --report <report>`
+  - `agent-exporter doctor integrations --platform <platform> --target <dir> --explain`
+- 当前 repo 现在还多了一层只读 evidence 工作台：
+  - `publish archive-index` 会把 transcript/search/evidence 三壳导航和 Decision Desk 组织进同一个本地 front door
+  - MCP bridge 现在也已经扩到 read-only evidence tools，不再只覆盖 publish/search
+- 当前 bridge 现在已经覆盖 publish/search/evidence 只读工具，不代表整个 CLI 全量变成 MCP
 - 当前 MCP bridge 默认依赖 repo 内的 `scripts/agent_exporter_mcp.py`
   - first-run 会优先尝试 repo-local `target/release/agent-exporter`
   - 没有 release binary 时，会继续尝试 repo-local `target/debug/agent-exporter`

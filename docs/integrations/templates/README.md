@@ -41,6 +41,13 @@ bridge 自己会按顺序尝试：
 - `AGENT_EXPORTER_BIN`
 - `AGENT_EXPORTER_ARGS`
 
+当前 bridge 除了 publish/search，也已经扩到 evidence 只读消费：
+
+- `integration_evidence_list`
+- `integration_evidence_diff`
+- `integration_evidence_gate`
+- `integration_evidence_explain`
+
 ## Repo-Owned Materializer
 
 如果你不想手工复制模板目录，现在已经可以直接让仓库替你把这些材料化到一个显式 target：

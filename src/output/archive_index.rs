@@ -1,14 +1,37 @@
 use std::collections::BTreeMap;
 
 use crate::core::archive_index::ArchiveIndexEntry;
+use crate::core::integration_report::{IntegrationEvidenceGateOutcome, IntegrationReportEntry};
 use crate::core::search_report::SearchReportEntry;
 use crate::output::html::escape_html;
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct DecisionDeskSnapshot {
+    pub title: String,
+    pub kind: String,
+    pub platform: String,
+    pub readiness: String,
+    pub target: String,
+    pub generated_at: String,
+    pub html_href: String,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct DecisionDeskSummary {
+    pub evidence_report_count: usize,
+    pub evidence_shell_href: String,
+    pub baseline: Option<DecisionDeskSnapshot>,
+    pub candidate: Option<DecisionDeskSnapshot>,
+    pub gate: Option<IntegrationEvidenceGateOutcome>,
+}
 
 pub fn render_archive_index_document(
     archive_title: &str,
     generated_at: &str,
     entries: &[ArchiveIndexEntry],
     reports: &[SearchReportEntry],
+    integration_reports: &[IntegrationReportEntry],
+    decision_desk: Option<&DecisionDeskSummary>,
 ) -> String {
     let distinct_connectors = count_distinct_connectors(entries);
     let connector_facets = render_filter_buttons(
@@ -49,6 +72,12 @@ pub fn render_archive_index_document(
             report.report_kind.as_deref().unwrap_or("unknown")
         }),
     );
+    let integration_summary = render_summary_section(
+        "Integration evidence reports",
+        summarize_by_integration_reports(integration_reports, |report| {
+            report.platform.as_deref().unwrap_or("unknown")
+        }),
+    );
     let body = if entries.is_empty() {
         "<section class=\"empty-state\"><h2>还没有 HTML transcript exports</h2><p>先运行 `agent-exporter export ... --format html`，再回来生成 archive index。</p></section>".to_string()
     } else {
@@ -67,6 +96,7 @@ pub fn render_archive_index_document(
             .collect::<Vec<_>>()
             .join("\n")
     };
+    let decision_section = render_decision_desk(decision_desk);
 
     format!(
         concat!(
@@ -90,11 +120,14 @@ pub fn render_archive_index_document(
             "        <div><dt>Connectors</dt><dd><code>{connector_count}</code></dd></div>\n",
             "        <div><dt>Retrieval lanes</dt><dd><code>metadata / semantic / hybrid</code></dd></div>\n",
             "        <div><dt>Saved reports</dt><dd><code>{report_count}</code></dd></div>\n",
+            "        <div><dt>Integration evidence</dt><dd><code>{integration_report_count}</code></dd></div>\n",
             "      </dl>\n",
             "      <div class=\"link-row\">\n",
             "        <a class=\"open-link\" href=\"../Search/Reports/index.html\">Open reports shell</a>\n",
+            "        <a class=\"open-link\" href=\"../Integration/Reports/index.html\">Open integration reports</a>\n",
             "      </div>\n",
             "    </header>\n",
+            "{decision_section}\n",
             "    <section class=\"lane-grid\" aria-label=\"retrieval lanes\">\n",
             "      <article class=\"lane-card\">\n",
             "        <p class=\"eyebrow\">Lane 1</p>\n",
@@ -119,6 +152,7 @@ pub fn render_archive_index_document(
             "{completeness_summary}\n",
             "{source_summary}\n",
             "{report_summary}\n",
+            "{integration_summary}\n",
             "    </section>\n",
             "    <section class=\"search-bar\" aria-label=\"archive search\">\n",
             "      <label class=\"search-label\" for=\"archive-search\">Metadata search</label>\n",
@@ -146,12 +180,15 @@ pub fn render_archive_index_document(
         entry_count = entries.len(),
         connector_count = distinct_connectors,
         report_count = reports.len(),
+        integration_report_count = integration_reports.len(),
+        decision_section = decision_section,
         connector_facets = connector_facets,
         completeness_facets = completeness_facets,
         connector_summary = connector_summary,
         completeness_summary = completeness_summary,
         source_summary = source_summary,
         report_summary = report_summary,
+        integration_summary = integration_summary,
         report_cards = report_cards,
         body = body,
         style = archive_index_style(),
@@ -301,6 +338,230 @@ where
     counts.into_iter().collect()
 }
 
+fn summarize_by_integration_reports<F>(
+    entries: &[IntegrationReportEntry],
+    label: F,
+) -> Vec<(String, usize)>
+where
+    F: Fn(&IntegrationReportEntry) -> &str,
+{
+    let mut counts = BTreeMap::new();
+    for entry in entries {
+        *counts.entry(label(entry).to_string()).or_insert(0usize) += 1;
+    }
+    counts.into_iter().collect()
+}
+
+fn render_decision_desk(summary: Option<&DecisionDeskSummary>) -> String {
+    let Some(summary) = summary else {
+        return String::new();
+    };
+
+    let verdict_label = summary
+        .gate
+        .as_ref()
+        .map(|gate| gate.verdict.as_str())
+        .unwrap_or("insufficient");
+    let regression_label = summary
+        .gate
+        .as_ref()
+        .map(|gate| {
+            if gate.regression {
+                "regression"
+            } else {
+                "stable"
+            }
+        })
+        .unwrap_or("awaiting-pair");
+
+    let baseline_card = render_decision_snapshot("Baseline", summary.baseline.as_ref());
+    let candidate_card = render_decision_snapshot("Candidate", summary.candidate.as_ref());
+    let remediation = render_decision_remediation(summary);
+    let changed_checks = render_decision_changes(summary);
+
+    format!(
+        concat!(
+            "<section class=\"decision-desk\" aria-label=\"decision desk\">\n",
+            "  <header class=\"decision-header\">\n",
+            "    <p class=\"eyebrow\">Local Evidence Decision Desk</p>\n",
+            "    <h2>Baseline / Candidate / Verdict</h2>\n",
+            "    <p class=\"hero-copy\">这张总控台只读当前 workspace 下已经保存好的 integration evidence。它负责告诉你现在的 verdict、变化项和修复顺序，但不会在浏览器里执行 doctor、onboard 或 gate。</p>\n",
+            "    <div class=\"verdict-strip\">\n",
+            "      <span class=\"chip verdict-chip\">{verdict}</span>\n",
+            "      <span class=\"chip\">{regression}</span>\n",
+            "      <span class=\"chip\">evidence reports <span>{count}</span></span>\n",
+            "      <a class=\"open-link\" href=\"{evidence_shell_href}\">Open integration reports</a>\n",
+            "    </div>\n",
+            "  </header>\n",
+            "  <div class=\"decision-grid\">\n",
+            "{baseline_card}\n",
+            "{candidate_card}\n",
+            "{remediation}\n",
+            "  </div>\n",
+            "{changed_checks}\n",
+            "  <section class=\"summary-card decision-nav\">\n",
+            "    <p class=\"eyebrow\">Cross-shell navigation</p>\n",
+            "    <h2>Stay in one front door, keep three corpora</h2>\n",
+            "    <div class=\"link-row\">\n",
+            "      <a class=\"open-link\" href=\"index.html\">Open transcript shell</a>\n",
+            "      <a class=\"open-link\" href=\"../Search/Reports/index.html\">Open search reports shell</a>\n",
+            "      <a class=\"open-link\" href=\"../Integration/Reports/index.html\">Open integration reports shell</a>\n",
+            "    </div>\n",
+            "  </section>\n",
+            "</section>\n"
+        ),
+        verdict = escape_html(verdict_label),
+        regression = escape_html(regression_label),
+        count = summary.evidence_report_count,
+        evidence_shell_href = escape_html(&summary.evidence_shell_href),
+        baseline_card = baseline_card,
+        candidate_card = candidate_card,
+        remediation = remediation,
+        changed_checks = changed_checks,
+    )
+}
+
+fn render_decision_snapshot(label: &str, snapshot: Option<&DecisionDeskSnapshot>) -> String {
+    let Some(snapshot) = snapshot else {
+        return format!(
+            concat!(
+                "<article class=\"summary-card decision-card\">",
+                "<p class=\"eyebrow\">{label}</p>",
+                "<h2>No artifact selected</h2>",
+                "<p>This side of the comparison is currently unavailable. Keep the shell-level navigation visible, and avoid inventing a verdict from one-sided input.</p>",
+                "</article>"
+            ),
+            label = escape_html(label),
+        );
+    };
+
+    format!(
+        concat!(
+            "<article class=\"summary-card decision-card\">",
+            "<p class=\"eyebrow\">{label}</p>",
+            "<h2>{title}</h2>",
+            "<div class=\"chip-row\">",
+            "<span class=\"chip\">{kind}</span>",
+            "<span class=\"chip\">{platform}</span>",
+            "<span class=\"chip\">{readiness}</span>",
+            "</div>",
+            "<p class=\"mono-inline\">target: <code>{target}</code></p>",
+            "<p class=\"mono-inline\">generated: <code>{generated_at}</code></p>",
+            "<p><a class=\"open-link\" href=\"{href}\">Open evidence report</a></p>",
+            "</article>"
+        ),
+        label = escape_html(label),
+        title = escape_html(&snapshot.title),
+        kind = escape_html(&snapshot.kind),
+        platform = escape_html(&snapshot.platform),
+        readiness = escape_html(&snapshot.readiness),
+        target = escape_html(&snapshot.target),
+        generated_at = escape_html(&snapshot.generated_at),
+        href = escape_html(&snapshot.html_href),
+    )
+}
+
+fn render_decision_remediation(summary: &DecisionDeskSummary) -> String {
+    let steps = summary
+        .gate
+        .as_ref()
+        .map(|gate| gate.remediation_steps.clone())
+        .unwrap_or_default();
+
+    let body = if steps.is_empty() {
+        "<p class=\"empty-inline\">No remediation steps are available yet. Save at least one candidate evidence report with actionable next steps before relying on this panel for ordering.</p>".to_string()
+    } else {
+        format!(
+            "<ol class=\"step-list\">{}</ol>",
+            steps
+                .iter()
+                .map(|step| {
+                    format!(
+                        concat!(
+                            "<li>",
+                            "<strong>{title}</strong>",
+                            "<p>{why}</p>",
+                            "<p class=\"mono-inline\">recheck: <code>{recheck}</code></p>",
+                            "</li>"
+                        ),
+                        title = escape_html(&step.title),
+                        why = escape_html(&step.why),
+                        recheck = escape_html(&step.recheck),
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join("")
+        )
+    };
+
+    format!(
+        concat!(
+            "<article class=\"summary-card decision-card remediation-card\">",
+            "<p class=\"eyebrow\">Remediation order</p>",
+            "<h2>Fix this first</h2>",
+            "{body}",
+            "</article>"
+        ),
+        body = body,
+    )
+}
+
+fn render_decision_changes(summary: &DecisionDeskSummary) -> String {
+    let Some(gate) = summary.gate.as_ref() else {
+        return "<section class=\"summary-card decision-changes\"><p class=\"eyebrow\">Changed checks</p><h2>Insufficient comparison input</h2><p>Save at least two related evidence reports before expecting a changed-checks ledger.</p></section>".to_string();
+    };
+
+    let mut items = Vec::new();
+
+    for change in &gate.blocking_changes {
+        items.push(render_change_item("blocking", change));
+    }
+    for change in &gate.warning_changes {
+        items.push(render_change_item("warning", change));
+    }
+    for change in &gate.ignored_changes {
+        items.push(render_change_item("ignorable", change));
+    }
+
+    let body = if items.is_empty() {
+        "<p class=\"empty-inline\">No changed checks. Baseline and candidate are aligned at the current evidence depth.</p>".to_string()
+    } else {
+        format!("<ul class=\"check-list\">{}</ul>", items.join(""))
+    };
+
+    format!(
+        concat!(
+            "<section class=\"summary-card decision-changes\">",
+            "<p class=\"eyebrow\">Changed checks</p>",
+            "<h2>What moved between baseline and candidate</h2>",
+            "{body}",
+            "</section>"
+        ),
+        body = body,
+    )
+}
+
+fn render_change_item(
+    severity: &str,
+    change: &crate::core::integration_report::IntegrationEvidenceCheckDiff,
+) -> String {
+    format!(
+        concat!(
+            "<li class=\"change-item\">",
+            "<div class=\"chip-row\">",
+            "<span class=\"chip\">{severity}</span>",
+            "<span class=\"chip\">{label}</span>",
+            "</div>",
+            "<p class=\"mono-inline\">{left} -&gt; {right}</p>",
+            "</li>"
+        ),
+        severity = escape_html(severity),
+        label = escape_html(&change.label),
+        left = escape_html(change.left_readiness.as_deref().unwrap_or("missing")),
+        right = escape_html(change.right_readiness.as_deref().unwrap_or("missing")),
+    )
+}
+
 fn render_filter_buttons(group: &str, label: &str, items: Vec<(String, usize)>) -> String {
     let mut buttons = vec![format!(
         "<button type=\"button\" class=\"facet-button is-active\" data-filter-group=\"{group}\" data-filter-value=\"all\">All</button>"
@@ -382,7 +643,9 @@ fn archive_index_style() -> &'static str {
     .lane-card,
     .summary-card,
     .entry-card,
-    .empty-state {
+    .empty-state,
+    .decision-header,
+    .decision-changes {
       background: var(--panel);
       border: 1px solid var(--border);
       border-radius: 24px;
@@ -402,11 +665,51 @@ fn archive_index_style() -> &'static str {
 
     .lane-grid,
     .report-grid,
-    .summary-grid {
+    .summary-grid,
+    .decision-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
       gap: 18px;
       margin-bottom: 20px;
+    }
+
+    .decision-desk { margin-bottom: 24px; }
+
+    .decision-header,
+    .decision-changes {
+      padding: 24px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(14px);
+      margin-bottom: 18px;
+    }
+
+    .verdict-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+      align-items: center;
+    }
+
+    .decision-card,
+    .remediation-card {
+      min-height: 100%;
+    }
+
+    .check-list,
+    .step-list {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+    }
+
+    .change-item {
+      margin-bottom: 12px;
+    }
+
+    .empty-inline {
+      color: var(--muted);
+      line-height: 1.7;
     }
 
     .eyebrow {
@@ -673,6 +976,8 @@ mod tests {
                 exported_at: Some("2026-04-05T00:00:00Z".to_string()),
             }],
             &[],
+            &[],
+            None,
         );
 
         assert!(html.contains("<!DOCTYPE html>"));
@@ -683,13 +988,27 @@ mod tests {
 
     #[test]
     fn render_archive_index_document_handles_empty_state() {
-        let html = render_archive_index_document("Demo archive", "2026-04-05T00:00:00Z", &[], &[]);
+        let html = render_archive_index_document(
+            "Demo archive",
+            "2026-04-05T00:00:00Z",
+            &[],
+            &[],
+            &[],
+            None,
+        );
         assert!(html.contains("还没有 HTML transcript exports"));
     }
 
     #[test]
     fn render_archive_index_document_embeds_search_ui() {
-        let html = render_archive_index_document("Demo archive", "2026-04-05T00:00:00Z", &[], &[]);
+        let html = render_archive_index_document(
+            "Demo archive",
+            "2026-04-05T00:00:00Z",
+            &[],
+            &[],
+            &[],
+            None,
+        );
         assert!(html.contains("archive-search"));
         assert!(html.contains("data-search-text"));
         assert!(html.contains("No transcripts matched the current search."));
@@ -711,6 +1030,8 @@ mod tests {
                 exported_at: Some("2026-04-05T00:00:00Z".to_string()),
             }],
             &[],
+            &[],
+            None,
         );
 
         assert!(html.contains("agent-exporter local archive shell"));
@@ -723,5 +1044,6 @@ mod tests {
         ));
         assert!(html.contains("data-filter-group=\"connector\""));
         assert!(html.contains("data-filter-group=\"completeness\""));
+        assert!(html.contains("Open integration reports"));
     }
 }

@@ -59,6 +59,7 @@ The format is based on Keep a Changelog.
 - Integration pack docs and templates for Codex / Claude Code / OpenClaw
 - LICENSE / SECURITY / CODE_OF_CONDUCT baseline for GitHub/open-source closeout
 - Minimal stdio MCP bridge for publish/search workflows
+- Evidence gate / explain, read-only evidence MCP surface, and local evidence decision desk
 - MCP bridge smoke coverage and MCP config templates
 - Integration template README for Codex / Claude Code / OpenClaw first-run setup
 - Repo-owned integration materializer for Codex / Claude Code / OpenClaw explicit targets

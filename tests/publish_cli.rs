@@ -34,6 +34,13 @@ fn search_reports_dir(workspace_root: &Path) -> PathBuf {
         .join("Reports")
 }
 
+fn integration_reports_dir(workspace_root: &Path) -> PathBuf {
+    workspace_root
+        .join(".agents")
+        .join("Integration")
+        .join("Reports")
+}
+
 fn build_codex_export_command(thread_id: &str, workspace_root: &Path) -> Command {
     let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
     command
@@ -97,6 +104,32 @@ fn build_publish_command(workspace_root: &Path) -> Command {
         .arg("archive-index")
         .arg("--workspace-root")
         .arg(workspace_root);
+    command
+}
+
+fn build_onboard_report_command(target: &Path, workspace_root: &Path) -> Command {
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .current_dir(workspace_root)
+        .arg("onboard")
+        .arg("codex")
+        .arg("--target")
+        .arg(target)
+        .arg("--save-report");
+    command
+}
+
+fn build_doctor_report_command(target: &Path, workspace_root: &Path) -> Command {
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .current_dir(workspace_root)
+        .arg("doctor")
+        .arg("integrations")
+        .arg("--platform")
+        .arg("codex")
+        .arg("--target")
+        .arg(target)
+        .arg("--save-report");
     command
 }
 
@@ -209,4 +242,80 @@ fn publish_archive_index_links_saved_search_reports() {
     assert!(reports_index.contains("search-report-semantic-demo.html"));
     assert!(reports_index.contains("report-search"));
     assert!(reports_index.contains("data-report-kind"));
+}
+
+#[test]
+fn publish_archive_index_renders_decision_desk_from_integration_evidence() {
+    let workspace = tempdir().expect("workspace");
+    let target = tempdir().expect("target dir");
+
+    build_codex_export_command("complete-thread", workspace.path())
+        .assert()
+        .success();
+
+    build_onboard_report_command(target.path(), workspace.path())
+        .assert()
+        .success();
+
+    fs::write(
+        target.path().join(".codex").join("config.toml"),
+        "[mcp_servers.agent_exporter]\ncommand = \"python3\"\n",
+    )
+    .expect("break codex config");
+
+    build_doctor_report_command(target.path(), workspace.path())
+        .assert()
+        .success();
+
+    build_publish_command(workspace.path()).assert().success();
+
+    let content = fs::read_to_string(conversations_dir(workspace.path()).join("index.html"))
+        .expect("archive index");
+    assert!(content.contains("Local Evidence Decision Desk"));
+    assert!(content.contains("Baseline"));
+    assert!(content.contains("Candidate"));
+    assert!(content.contains("Remediation order"));
+    assert!(content.contains("Changed checks"));
+    assert!(content.contains("Open integration reports"));
+
+    let integration_index =
+        fs::read_to_string(integration_reports_dir(workspace.path()).join("index.html"))
+            .expect("integration reports index");
+    assert!(integration_index.contains("Open archive shell"));
+    assert!(integration_index.contains("Open retrieval reports"));
+}
+
+#[test]
+fn publish_archive_index_shows_insufficient_when_reports_are_not_comparable() {
+    let workspace = tempdir().expect("workspace");
+    let codex_target = tempdir().expect("codex target");
+    let claude_target = tempdir().expect("claude target");
+
+    build_codex_export_command("complete-thread", workspace.path())
+        .assert()
+        .success();
+
+    build_onboard_report_command(codex_target.path(), workspace.path())
+        .assert()
+        .success();
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("onboard")
+        .arg("claude-code")
+        .arg("--target")
+        .arg(claude_target.path())
+        .arg("--save-report")
+        .assert()
+        .success();
+
+    build_publish_command(workspace.path()).assert().success();
+
+    let content = fs::read_to_string(conversations_dir(workspace.path()).join("index.html"))
+        .expect("archive index");
+    assert!(content.contains("Local Evidence Decision Desk"));
+    assert!(content.contains("insufficient"));
+    assert!(content.contains("Insufficient comparison input"));
+    assert!(content.contains("No artifact selected"));
 }

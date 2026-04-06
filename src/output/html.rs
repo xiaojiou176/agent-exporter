@@ -15,6 +15,7 @@ struct RenderedRound {
 pub struct WorkspaceHtmlNavigation {
     pub archive_shell_href: String,
     pub reports_shell_href: String,
+    pub integration_shell_href: String,
 }
 
 pub fn render_html_document(
@@ -30,10 +31,12 @@ pub fn render_html_document(
             format!(
                 concat!(
                     "  <meta name=\"agent-exporter:workspace-shell-href\" content=\"{shell}\">\n",
-                    "  <meta name=\"agent-exporter:workspace-reports-shell-href\" content=\"{reports}\">\n"
+                    "  <meta name=\"agent-exporter:workspace-reports-shell-href\" content=\"{reports}\">\n",
+                    "  <meta name=\"agent-exporter:workspace-integration-shell-href\" content=\"{integration}\">\n"
                 ),
                 shell = escape_html(&navigation.archive_shell_href),
                 reports = escape_html(&navigation.reports_shell_href),
+                integration = escape_html(&navigation.integration_shell_href),
             )
         })
         .unwrap_or_default();
@@ -126,15 +129,17 @@ fn render_workspace_navigation(navigation: &WorkspaceHtmlNavigation) -> String {
         concat!(
             "<section class=\"workspace-nav\">",
             "<p class=\"eyebrow\">Workspace navigation</p>",
-            "<p class=\"hero-copy\">这份 transcript 当前位于 workspace-local archive 里。你可以把它理解成“从单张打印稿回到前厅”的返回线：阅读完之后，直接回 archive shell；saved retrieval reports 也仍然留在本地 report 目录里。</p>",
+            "<p class=\"hero-copy\">这份 transcript 当前位于 workspace-local archive 里。你可以把它理解成“从单张打印稿回到前厅”的返回线：阅读完之后，直接回 archive shell；saved retrieval reports 和 integration evidence 也仍然留在各自的本地抽屉里。</p>",
             "<div class=\"link-row\">",
             "<a class=\"open-link\" href=\"{shell_href}\">Open archive shell</a>",
             "<a class=\"open-link\" href=\"{reports_href}\">Open retrieval reports</a>",
+            "<a class=\"open-link\" href=\"{integration_href}\">Open integration reports</a>",
             "</div>",
             "</section>"
         ),
         shell_href = escape_html(&navigation.archive_shell_href),
         reports_href = escape_html(&navigation.reports_shell_href),
+        integration_href = escape_html(&navigation.integration_shell_href),
     )
 }
 
@@ -960,6 +965,7 @@ mod tests {
         let navigation = WorkspaceHtmlNavigation {
             archive_shell_href: "index.html".to_string(),
             reports_shell_href: "../Search/Reports/index.html".to_string(),
+            integration_shell_href: "../Integration/Reports/index.html".to_string(),
         };
         let document = render_html_document(
             &sample_transcript(),
@@ -970,8 +976,11 @@ mod tests {
 
         assert!(document.contains("Open archive shell"));
         assert!(document.contains("Open retrieval reports"));
+        assert!(document.contains("Open integration reports"));
         assert!(document.contains("agent-exporter:workspace-shell-href"));
         assert!(document.contains("agent-exporter:workspace-reports-shell-href"));
+        assert!(document.contains("agent-exporter:workspace-integration-shell-href"));
         assert!(document.contains("../Search/Reports/index.html"));
+        assert!(document.contains("../Integration/Reports/index.html"));
     }
 }

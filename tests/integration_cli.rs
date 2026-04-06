@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 
 use assert_cmd::Command;
 use predicates::prelude::*;
+use serde_json::Value;
 use tempfile::tempdir;
 
 const MCP_PLACEHOLDER: &str = "/absolute/path/to/agent-exporter/scripts/agent_exporter_mcp.py";
@@ -25,6 +26,14 @@ fn expected_launcher_fragment() -> String {
 
 fn read(path: &Path) -> String {
     fs::read_to_string(path).expect("file should exist")
+}
+
+fn report_readiness(path: &Path) -> String {
+    let document: Value = serde_json::from_str(&read(path)).expect("valid report json");
+    document["readiness"]
+        .as_str()
+        .expect("top-level readiness")
+        .to_string()
 }
 
 #[test]
@@ -227,6 +236,132 @@ fn doctor_codex_save_report_writes_front_door_without_touching_transcript_corpus
 
     let conversations_dir = workspace.path().join(".agents").join("Conversations");
     assert!(!conversations_dir.exists());
+}
+
+#[test]
+fn doctor_integrations_explain_prints_remediation_plan() {
+    let target = tempdir().expect("target dir");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .arg("integrate")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .assert()
+        .success();
+
+    fs::write(
+        target.path().join(".codex").join("config.toml"),
+        "[mcp_servers.agent_exporter]\ncommand = \"python3\"\n",
+    )
+    .expect("break codex config");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .arg("doctor")
+        .arg("integrations")
+        .arg("--platform")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .arg("--explain")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("- Remediation"))
+        .stdout(predicate::str::contains(".codex/config.toml"))
+        .stdout(predicate::str::contains("recheck :"));
+}
+
+#[test]
+fn evidence_gate_and_explain_surfaces_verdict_and_steps() {
+    let workspace = tempdir().expect("workspace");
+    let target = tempdir().expect("target dir");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("onboard")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .arg("--save-report")
+        .assert()
+        .success();
+
+    fs::write(
+        target.path().join(".codex").join("config.toml"),
+        "[mcp_servers.agent_exporter]\ncommand = \"python3\"\n",
+    )
+    .expect("break codex config");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("doctor")
+        .arg("integrations")
+        .arg("--platform")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .arg("--save-report")
+        .assert()
+        .success();
+
+    let reports_root = workspace
+        .path()
+        .join(".agents")
+        .join("Integration")
+        .join("Reports");
+    let mut report_jsons = fs::read_dir(&reports_root)
+        .expect("read reports root")
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .filter(|path| {
+            path.extension()
+                .and_then(|value| value.to_str())
+                .is_some_and(|value| value.eq_ignore_ascii_case("json"))
+                && path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| name != "index.json")
+        })
+        .collect::<Vec<_>>();
+    report_jsons.sort();
+    assert_eq!(report_jsons.len(), 2);
+
+    let (baseline, candidate) = if report_readiness(&report_jsons[0]) == "ready" {
+        (&report_jsons[0], &report_jsons[1])
+    } else {
+        (&report_jsons[1], &report_jsons[0])
+    };
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .arg("evidence")
+        .arg("gate")
+        .arg("--baseline")
+        .arg(baseline)
+        .arg("--candidate")
+        .arg(candidate)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration evidence gate"))
+        .stdout(predicate::str::contains("Verdict      : fail"))
+        .stdout(predicate::str::contains("Blocking Changes"))
+        .stdout(predicate::str::contains("codex_config_shape"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .arg("evidence")
+        .arg("explain")
+        .arg("--report")
+        .arg(candidate)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration evidence explain"))
+        .stdout(predicate::str::contains("- Remediation"))
+        .stdout(predicate::str::contains(".codex/config.toml"));
 }
 
 #[test]

@@ -6,7 +6,7 @@
 
 ## Current Reality
 
-当前 reference 层已经对齐 **Phase 29 machine-readable integration evidence + timeline/diff landed**：
+当前 reference 层已经对齐 **Phase 30 local evidence decision plane / remediation studio landed**：
 
 - 默认主路径仍然是 `app-server`
 - `local direct-read` 已经 landed，不再是 future plan
@@ -36,6 +36,10 @@
 - integration evidence shell search/facets 已经 landed，不再是 future plan
 - machine-readable integration evidence via `report.json + index.json` 已经 landed，不再是 future plan
 - integration evidence timeline/diff via `agent-exporter evidence diff` 已经 landed，不再是 future plan
+- evidence gate / explain 已经 landed，不再是 future plan
+- read-only evidence MCP surface 已经 landed，不再是 future plan
+- local-first GUI / Web UI decision desk 已经 landed，不再是 future plan
+- hosted / browser executor / cloud backend 仍然不是当前允许方向
 - `local` 只代表 **archival truth**
 - `claude-code` 当前也只代表 **degraded local import truth**
 - `local` / `claude-code` 的导出状态都不能写成 complete 或 canonical

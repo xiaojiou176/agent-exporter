@@ -204,6 +204,8 @@ pub fn render_integration_report_document(report: &IntegrationReportDocument) ->
             "      <p class=\"summary-card\">{summary}</p>\n",
             "      <p class=\"mono-inline\">command: <code>{launcher_command}</code></p>\n",
             "      <div class=\"link-row\">\n",
+            "        <a class=\"open-link\" href=\"../../Conversations/index.html\">Open archive shell</a>\n",
+            "        <a class=\"open-link\" href=\"../../Search/Reports/index.html\">Open retrieval reports</a>\n",
             "        <a class=\"open-link\" href=\"index.html\">Open integration reports</a>\n",
             "      </div>\n",
             "    </header>\n",
@@ -297,6 +299,10 @@ pub fn render_integration_reports_index_document(
             "        <div><dt>Generated</dt><dd><code>{generated_at}</code></dd></div>\n",
             "        <div><dt>Saved reports</dt><dd><code>{report_count}</code></dd></div>\n",
             "      </dl>\n",
+            "      <div class=\"link-row\">\n",
+            "        <a class=\"open-link\" href=\"../../Conversations/index.html\">Open archive shell</a>\n",
+            "        <a class=\"open-link\" href=\"../../Search/Reports/index.html\">Open retrieval reports</a>\n",
+            "      </div>\n",
             "    </header>\n",
             "    <section class=\"search-bar\" aria-label=\"integration reports search\">\n",
             "      <label class=\"search-label\" for=\"integration-report-search\">Report search</label>\n",
@@ -746,6 +752,8 @@ mod tests {
         assert!(html.contains("agent-exporter:integration-readiness\" content=\"ready"));
         assert!(html.contains("agent-exporter:integration-target\" content=\"/tmp/codex-pack"));
         assert!(html.contains("Open integration reports"));
+        assert!(html.contains("Open archive shell"));
+        assert!(html.contains("Open retrieval reports"));
     }
 
     #[test]
@@ -785,6 +793,8 @@ mod tests {
         assert!(html.contains("data-readiness=\"ready\""));
         assert!(html.contains("data-readiness=\"partial\""));
         assert!(html.contains("Search title, platform, readiness, target"));
+        assert!(html.contains("Open archive shell"));
+        assert!(html.contains("Open retrieval reports"));
     }
 
     #[test]

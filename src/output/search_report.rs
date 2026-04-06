@@ -105,6 +105,7 @@ pub fn render_search_report_document(report: &SearchReportDocument) -> String {
             "      <div class=\"link-row\">\n",
             "        <a class=\"open-link\" href=\"../../Conversations/index.html\">Open archive shell</a>\n",
             "        <a class=\"open-link\" href=\"index.html\">Open reports shell</a>\n",
+            "        <a class=\"open-link\" href=\"../../Integration/Reports/index.html\">Open integration reports</a>\n",
             "      </div>\n",
             "    </header>\n",
             "    <section class=\"card-grid\">\n",
@@ -174,6 +175,7 @@ pub fn render_search_reports_index_document(
             "      </dl>\n",
             "      <div class=\"link-row\">\n",
             "        <a class=\"open-link\" href=\"../../Conversations/index.html\">Open archive shell</a>\n",
+            "        <a class=\"open-link\" href=\"../../Integration/Reports/index.html\">Open integration reports</a>\n",
             "      </div>\n",
             "    </header>\n",
             "    <section class=\"search-bar\" aria-label=\"reports search\">\n",
@@ -710,6 +712,7 @@ mod tests {
 
         assert!(html.contains("agent-exporter reports shell"));
         assert!(html.contains("Open archive shell"));
+        assert!(html.contains("Open integration reports"));
         assert!(html.contains("search-report-semantic-demo.html"));
         assert!(html.contains("login issue"));
         assert!(html.contains("report-search"));

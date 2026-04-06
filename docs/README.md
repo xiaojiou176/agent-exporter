@@ -6,7 +6,7 @@
 
 ## Current Phase Snapshot
 
-当前这套文档已经进入 **Phase 29 machine-readable integration evidence + timeline/diff landed**。
+当前这套文档已经进入 **Phase 30 local evidence decision plane / remediation studio landed**。
 
 你可以先把它理解成：这套文档现在要同时解释“正门、侧门、以及第二种输出格式”，但不能把它们说成同一种真相。
 
@@ -37,8 +37,13 @@
 - integration evidence shell 现在也已经支持本地静态搜索和 facet（至少 `platform` / `readiness`）
 - integration evidence 现在还会同写 `report.json + index.json`，说明这条结果单已经有 machine-readable contract
 - `agent-exporter evidence diff --left <report> --right <report>` 已经 landed，说明 readiness/check/next-step 的变化现在可以被解释和比较
+- `agent-exporter evidence gate --baseline <report> --candidate <report>` 已经 landed，说明 evidence 现在还能被判成 `pass / warn / fail`
+- `agent-exporter evidence explain --report <report>` 与 `doctor integrations --explain` 已经 landed，说明系统现在会给出 remediation order、why-first 和 recheck guidance
+- `publish archive-index` 现在已经会把 transcript/search/evidence 三壳导航、baseline/candidate、verdict、changed checks 和 remediation order 组织成一个本地 decision desk
 - `local` 和 `claude-code` 当前都按 **degraded** 理解，不能冒充 canonical parity
-- 当前已进入 post-Phase-29 产品裁决区，而不是直接膨胀成 hosted / 平台壳
+- 当前已进入 post-Phase-30 产品裁决区，而不是直接膨胀成 hosted / 平台壳
+- local-first GUI / Web UI decision desk 已经 landed
+  - 但它必须继续保持 non-hosted / browser non-executor / no-corpus-merge
 
 ## Read Order
 

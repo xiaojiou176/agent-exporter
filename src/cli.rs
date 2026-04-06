@@ -10,8 +10,11 @@ use crate::core::archive::{
 };
 use crate::core::archive_index;
 use crate::core::integration_report::{
-    IntegrationEvidenceDiff, collect_integration_report_entries,
-    collect_integration_report_json_documents, diff_integration_reports,
+    IntegrationEvidenceDiff, IntegrationEvidenceGateOutcome, IntegrationEvidenceGatePolicy,
+    IntegrationReportCheckRecord, IntegrationReportJsonDocument,
+    build_integration_evidence_explain, collect_integration_report_entries,
+    collect_integration_report_json_documents, default_integration_evidence_gate_policy,
+    diff_integration_reports, gate_integration_reports, read_integration_evidence_gate_policy,
     read_integration_report_json_document, resolve_integration_reports_dir,
     write_integration_report_document, write_integration_report_json_document,
     write_integration_reports_index_document, write_integration_reports_index_json_document,
@@ -156,6 +159,10 @@ enum OnboardCommands {
 enum EvidenceCommands {
     /// Diff two saved integration evidence reports (`.json` or sibling `.html` paths).
     Diff(EvidenceDiffArgs),
+    /// Gate a candidate evidence snapshot against a baseline snapshot.
+    Gate(EvidenceGateArgs),
+    /// Explain the ordered remediation sequence for one saved integration evidence report.
+    Explain(EvidenceExplainArgs),
 }
 
 #[derive(Debug, clap::Args)]
@@ -272,6 +279,9 @@ struct DoctorIntegrationsArgs {
     /// Save a static integration evidence report under the current working directory.
     #[arg(long, default_value_t = false)]
     save_report: bool,
+    /// Print an ordered remediation plan with why-first and recheck guidance.
+    #[arg(long, default_value_t = false)]
+    explain: bool,
 }
 
 #[derive(Debug, clap::Args)]
@@ -293,6 +303,26 @@ struct EvidenceDiffArgs {
     /// Right report path (`.json` preferred; `.html` resolves to sibling `.json`).
     #[arg(long)]
     right: PathBuf,
+}
+
+#[derive(Debug, clap::Args)]
+struct EvidenceGateArgs {
+    /// Baseline report path (`.json` preferred; `.html` resolves to sibling `.json`).
+    #[arg(long)]
+    baseline: PathBuf,
+    /// Candidate report path (`.json` preferred; `.html` resolves to sibling `.json`).
+    #[arg(long)]
+    candidate: PathBuf,
+    /// Optional local JSON policy file that overrides the repo-owned default gate policy.
+    #[arg(long)]
+    policy: Option<PathBuf>,
+}
+
+#[derive(Debug, clap::Args)]
+struct EvidenceExplainArgs {
+    /// Saved report path (`.json` preferred; `.html` resolves to sibling `.json`).
+    #[arg(long)]
+    report: PathBuf,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
@@ -457,6 +487,8 @@ pub fn run() -> Result<()> {
         },
         Commands::Evidence { command } => match command {
             EvidenceCommands::Diff(args) => evidence_diff(args)?,
+            EvidenceCommands::Gate(args) => evidence_gate(args)?,
+            EvidenceCommands::Explain(args) => evidence_explain(args)?,
         },
     }
     Ok(())
@@ -481,7 +513,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails + integration evidence pack reports + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails + integration evidence pack reports + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff + evidence gate/explain + read-only evidence MCP surface + local evidence decision desk."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -497,13 +529,16 @@ fn print_scaffold_status() {
         "- Real reports shell path: generated by `agent-exporter publish archive-index --workspace-root <repo>` into `.agents/Search/Reports/index.html`."
     );
     println!(
+        "- Real decision desk path: generated by `agent-exporter publish archive-index --workspace-root <repo>` into `.agents/Conversations/index.html`, using saved integration evidence as a read-only decision panel."
+    );
+    println!(
         "- Real semantic retrieval path: `agent-exporter search semantic --workspace-root <repo> --query <text>`."
     );
     println!(
         "- Real hybrid retrieval path: `agent-exporter search hybrid --workspace-root <repo> --query <text>`."
     );
     println!(
-        "- Real MCP bridge path: `python3 scripts/agent_exporter_mcp.py` with local stdio tool exposure for publish/search workflows."
+        "- Real MCP bridge path: `python3 scripts/agent_exporter_mcp.py` with local stdio tool exposure for publish/search/evidence read-only workflows."
     );
     println!(
         "- Real integration materializer path: `agent-exporter integrate <platform> --target <dir>`."
@@ -519,7 +554,13 @@ fn print_scaffold_status() {
         "- Real evidence diff path: `agent-exporter evidence diff --left <report.json|html> --right <report.json|html>`."
     );
     println!(
-        "- Next step: a new post-Phase-29 product decision, while staying local-first and non-hosted."
+        "- Real evidence gate path: `agent-exporter evidence gate --baseline <report.json|html> --candidate <report.json|html>`."
+    );
+    println!(
+        "- Real evidence explain path: `agent-exporter evidence explain --report <report.json|html>`."
+    );
+    println!(
+        "- Next step: a new post-Phase-30 product decision, while staying local-first and non-hosted."
     );
 }
 
@@ -536,6 +577,8 @@ fn export_claude_code(args: ClaudeCodeExportArgs) -> Result<()> {
 fn publish_archive_index(args: PublishArchiveIndexArgs) -> Result<()> {
     let entries = archive_index::collect_html_archive_entries(&args.workspace_root)?;
     let reports = collect_search_report_entries(&args.workspace_root)?;
+    let integration_reports = collect_integration_report_entries(&args.workspace_root)?;
+    let integration_json_reports = collect_integration_report_json_documents(&args.workspace_root)?;
     let archive_title = args
         .workspace_root
         .file_name()
@@ -549,6 +592,8 @@ fn publish_archive_index(args: PublishArchiveIndexArgs) -> Result<()> {
         &generated_at,
         &entries,
         &reports,
+        &integration_reports,
+        build_decision_desk_summary(&integration_json_reports).as_ref(),
     );
     let reports_document = render_search_reports_index_document(
         &format!("{archive_title} search reports"),
@@ -565,6 +610,7 @@ fn publish_archive_index(args: PublishArchiveIndexArgs) -> Result<()> {
     println!("- Archive Dir  : {}", archive_dir.display());
     println!("- Entries      : {}", entries.len());
     println!("- Reports      : {}", reports.len());
+    println!("- Evidence     : {}", integration_reports.len());
     println!("- Index        : {}", index_path.display());
     println!("- Reports Index: {}", reports_index_path.display());
 
@@ -820,6 +866,15 @@ fn doctor_integrations(args: DoctorIntegrationsArgs) -> Result<()> {
             println!("  {}. {}", index + 1, step);
         }
     }
+    if args.explain {
+        let explain_steps = build_integration_evidence_explain(
+            outcome.platform.as_str(),
+            &outcome.target_root.display().to_string(),
+            &doctor_check_records(&outcome.checks),
+            &next_steps,
+        );
+        print_integration_explain_steps(&explain_steps);
+    }
     if let Some(bundle) = &saved_report {
         println!("- Report       : {}", bundle.html_report.display());
         println!("- Report JSON  : {}", bundle.json_report.display());
@@ -976,6 +1031,7 @@ fn workspace_html_navigation(
         OutputTarget::WorkspaceConversations { .. } => Some(html_output::WorkspaceHtmlNavigation {
             archive_shell_href: "index.html".to_string(),
             reports_shell_href: "../Search/Reports/index.html".to_string(),
+            integration_shell_href: "../Integration/Reports/index.html".to_string(),
         }),
     }
 }
@@ -992,6 +1048,49 @@ fn integration_reports_title(workspace_root: &std::path::Path) -> String {
         .map(|name| format!("{name} integration reports"))
         .filter(|value| !value.trim().is_empty())
         .unwrap_or_else(|| "agent-exporter integration reports".to_string())
+}
+
+fn build_decision_desk_summary(
+    reports: &[IntegrationReportJsonDocument],
+) -> Option<archive_index_output::DecisionDeskSummary> {
+    let candidate = reports.first()?;
+    let baseline = reports
+        .iter()
+        .skip(1)
+        .find(|report| report.platform == candidate.platform && report.target == candidate.target);
+    let gate = baseline.and_then(|baseline| {
+        gate_integration_reports(
+            baseline,
+            candidate,
+            &default_integration_evidence_gate_policy(),
+        )
+        .ok()
+    });
+
+    Some(archive_index_output::DecisionDeskSummary {
+        evidence_report_count: reports.len(),
+        evidence_shell_href: "../Integration/Reports/index.html".to_string(),
+        baseline: baseline.map(|report| decision_desk_snapshot_from_report(report)),
+        candidate: Some(decision_desk_snapshot_from_report(candidate)),
+        gate,
+    })
+}
+
+fn decision_desk_snapshot_from_report(
+    report: &IntegrationReportJsonDocument,
+) -> archive_index_output::DecisionDeskSnapshot {
+    archive_index_output::DecisionDeskSnapshot {
+        title: report.title.clone(),
+        kind: report.kind.clone(),
+        platform: report.platform.clone(),
+        readiness: report.readiness.clone(),
+        target: report.target.clone(),
+        generated_at: report.generated_at.clone(),
+        html_href: format!(
+            "../Integration/Reports/{}",
+            report.artifact_links.html_report
+        ),
+    }
 }
 
 fn write_doctor_integration_report(
@@ -1115,6 +1214,35 @@ fn evidence_diff(args: EvidenceDiffArgs) -> Result<()> {
     Ok(())
 }
 
+fn evidence_gate(args: EvidenceGateArgs) -> Result<()> {
+    let baseline = read_integration_report_json_document(&args.baseline)?;
+    let candidate = read_integration_report_json_document(&args.candidate)?;
+    let policy = match args.policy {
+        Some(path) => read_integration_evidence_gate_policy(&path)?,
+        None => default_integration_evidence_gate_policy(),
+    };
+    let outcome = gate_integration_reports(&baseline, &candidate, &policy)?;
+    print_integration_evidence_gate(&outcome, &args.baseline, &args.candidate, &policy);
+    Ok(())
+}
+
+fn evidence_explain(args: EvidenceExplainArgs) -> Result<()> {
+    let report = read_integration_report_json_document(&args.report)?;
+    let explain_steps = build_integration_evidence_explain(
+        &report.platform,
+        &report.target,
+        &combined_report_checks(&report),
+        &report.next_steps,
+    );
+    println!("Integration evidence explain");
+    println!("- Report       : {}", args.report.display());
+    println!("- Platform     : {}", report.platform);
+    println!("- Target       : {}", report.target);
+    println!("- Readiness    : {}", report.readiness);
+    print_integration_explain_steps(&explain_steps);
+    Ok(())
+}
+
 fn print_integration_evidence_diff(
     diff: &IntegrationEvidenceDiff,
     left_path: &std::path::Path,
@@ -1158,4 +1286,96 @@ fn print_integration_evidence_diff(
             println!("  - {}", step);
         }
     }
+}
+
+fn print_integration_evidence_gate(
+    outcome: &IntegrationEvidenceGateOutcome,
+    baseline: &std::path::Path,
+    candidate: &std::path::Path,
+    policy: &IntegrationEvidenceGatePolicy,
+) {
+    println!("Integration evidence gate");
+    println!("- Baseline     : {}", baseline.display());
+    println!("- Candidate    : {}", candidate.display());
+    println!("- Verdict      : {}", outcome.verdict.as_str());
+    println!(
+        "- Readiness    : {} -> {}",
+        outcome.baseline_readiness, outcome.candidate_readiness
+    );
+    println!(
+        "- Regression   : {}",
+        if outcome.regression { "yes" } else { "no" }
+    );
+    println!(
+        "- Policy       : {} blocking labels / {} warning labels",
+        policy.blocking_check_labels.len(),
+        policy.warning_check_labels.len()
+    );
+
+    if !outcome.blocking_changes.is_empty() {
+        println!("- Blocking Changes");
+        for change in &outcome.blocking_changes {
+            println!(
+                "  - {}: {} -> {}",
+                change.label,
+                change.left_readiness.as_deref().unwrap_or("missing"),
+                change.right_readiness.as_deref().unwrap_or("missing")
+            );
+        }
+    }
+    if !outcome.warning_changes.is_empty() {
+        println!("- Warning Changes");
+        for change in &outcome.warning_changes {
+            println!(
+                "  - {}: {} -> {}",
+                change.label,
+                change.left_readiness.as_deref().unwrap_or("missing"),
+                change.right_readiness.as_deref().unwrap_or("missing")
+            );
+        }
+    }
+    if !outcome.ignored_changes.is_empty() {
+        println!("- Ignorable Changes");
+        for change in &outcome.ignored_changes {
+            println!("  - {}", change.label);
+        }
+    }
+    print_integration_explain_steps(&outcome.remediation_steps);
+}
+
+fn print_integration_explain_steps(
+    steps: &[crate::core::integration_report::IntegrationEvidenceExplainStep],
+) {
+    if steps.is_empty() {
+        println!("- Remediation  : none");
+        return;
+    }
+
+    println!("- Remediation");
+    for (index, step) in steps.iter().enumerate() {
+        println!("  {}. {}", index + 1, step.title);
+        println!("     why     : {}", step.why);
+        println!("     recheck : {}", step.recheck);
+    }
+}
+
+fn doctor_check_records(
+    checks: &[crate::integrations::IntegrationDoctorCheck],
+) -> Vec<IntegrationReportCheckRecord> {
+    checks
+        .iter()
+        .map(|check| IntegrationReportCheckRecord {
+            label: check.label.to_string(),
+            readiness: check.readiness.as_str().to_string(),
+            detail: check.detail.clone(),
+        })
+        .collect()
+}
+
+fn combined_report_checks(
+    report: &crate::core::integration_report::IntegrationReportJsonDocument,
+) -> Vec<IntegrationReportCheckRecord> {
+    let mut checks = report.pack_shape_checks.clone();
+    checks.extend(report.checks.clone());
+    checks
 }

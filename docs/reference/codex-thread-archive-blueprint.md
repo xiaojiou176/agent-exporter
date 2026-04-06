@@ -34,9 +34,15 @@
 
 1. hosted / remote search platform
 2. 知识库 / semantic platform shell
-3. GUI / Web UI
+3. hosted / browser-side GUI 平台壳
 4. 远程服务
 5. 多 connector 同步交付
+
+> 注：
+> 仓库早期的“当前不做 GUI / Web UI”在 Phase 30 已被用户显式覆盖为：
+> **允许做 local-first GUI / Web UI decision desk**。
+> 但这不改变上面的非目标边界：
+> 仍然不做 hosted / browser executor / cloud backend。
 
 ---
 
@@ -323,6 +329,19 @@
 - 它会解释 readiness、changed checks、以及 added/removed next steps
 - 它比较的是已保存 evidence snapshots，不会重新执行 doctor/onboard/install
 
+### Phase 30
+
+已落地：
+
+- local evidence decision plane / remediation studio
+
+原因：
+
+- `agent-exporter evidence gate --baseline <report> --candidate <report>` 现在能给出 `pass / warn / fail`
+- `agent-exporter evidence explain --report <report>` 与 `doctor integrations --explain` 现在能给出 remediation order
+- `publish archive-index` 现在已经会把 transcript/search/evidence 三壳导航、baseline/candidate、verdict、changed checks 和 remediation order 组织成一个本地 decision desk
+- 现有 MCP bridge 也已经扩到 read-only evidence consumption surface
+
 ## 推荐 CLI 命令面
 
 当前已经落地的最小集合是：
@@ -432,4 +451,5 @@ src/
 - integration evidence shell search 已落地
 - machine-readable integration evidence 已落地
 - integration evidence timeline/diff 已落地
+- local evidence decision plane / remediation studio 已落地
 - 未来扩展边界仍然保持收口

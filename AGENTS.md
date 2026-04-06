@@ -6,7 +6,7 @@
 
 - 当前目标：**Codex canonical transcript/archive 导出**
 - 未来目标：Claude Code、以及其他本地 CLI
-- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + minimal stdio MCP bridge + repo-owned integration materializer/doctor + drift-aware integration doctor hardening + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + integration evidence pack + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff 已落地；当前已进入 post-Phase-29 产品裁决区；默认 Codex 主路径仍是 app-server**
+- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + minimal stdio MCP bridge + repo-owned integration materializer/doctor + drift-aware integration doctor hardening + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + integration evidence pack + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff + evidence gate / explain + read-only evidence MCP surface + local evidence decision desk 已落地；当前已进入 post-Phase-30 产品裁决区；默认 Codex 主路径仍是 app-server**
 
 ---
 
@@ -28,7 +28,9 @@
    - 继续坚持 local-first CLI，不往 hosted / platform shell 膨胀
    - 当前已 landed 的 local archive index / metadata search / semantic retrieval / hybrid retrieval 继续保留，不回退成“future plan”
    - 当前仍不做 hosted search/index/MCP server
-   - v1 不做 GUI
+   - 旧的 `v1 不做 GUI` 已被当前 Phase 30 显式覆盖为：
+     - 允许做 local-first GUI / Web UI decision desk
+     - 但仍然不做 hosted / browser-executor / cloud backend
    - v1 不做多 connector 并行上线
 
 5. **可扩展，但不提前过度设计**
@@ -89,6 +91,9 @@
 - integration evidence shell search
 - machine-readable integration evidence
 - integration evidence timeline/diff
+- evidence gate / explain
+- read-only evidence MCP surface
+- local evidence decision desk
 - `export codex --thread-id ...` 真实 CLI 主链
 - `export claude-code --session-path ...` 真实 CLI 主链
 - `--format markdown|json|html`
@@ -122,7 +127,8 @@
 - hosted / remote semantic retrieval
 - hosted / remote publish
 - hosted / remote MCP server
-- Web UI / GUI
+- hosted / browser-side Web UI 平台壳
+- browser-side execution
 - Hosted service
 
 ---
@@ -149,10 +155,13 @@ cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thre
 cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues" --save-report
 cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1" --save-report
 cargo run -- evidence diff --left /absolute/path/to/report-a.json --right /absolute/path/to/report-b.json
+cargo run -- evidence gate --baseline /absolute/path/to/report-a.json --candidate /absolute/path/to/report-b.json
+cargo run -- evidence explain --report /absolute/path/to/report-b.json
 cargo run -- integrate codex --target /absolute/path/to/codex-pack
 cargo run -- integrate claude-code --target /absolute/path/to/claude-pack
 cargo run -- integrate openclaw --target /absolute/path/to/openclaw-pack
 cargo run -- doctor integrations --platform codex --target /absolute/path/to/codex-pack
+cargo run -- doctor integrations --platform codex --target /absolute/path/to/codex-pack --explain
 cargo run -- doctor integrations --platform codex --target /absolute/path/to/codex-pack --save-report
 cargo run -- onboard codex --target /absolute/path/to/codex-pack --save-report
 ```

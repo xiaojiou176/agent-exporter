@@ -85,6 +85,58 @@ def tool_specs() -> list[dict[str, Any]]:
                 "additionalProperties": False,
             },
         },
+        {
+            "name": "integration_evidence_list",
+            "description": "Read the saved integration evidence timeline from a workspace",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "workspace_root": {"type": "string", "description": "Workspace root path"},
+                    "limit": {"type": "integer", "description": "Maximum timeline entries to return", "default": 10},
+                },
+                "required": ["workspace_root"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "integration_evidence_diff",
+            "description": "Diff two saved integration evidence snapshots",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "left": {"type": "string", "description": "Left report path"},
+                    "right": {"type": "string", "description": "Right report path"},
+                },
+                "required": ["left", "right"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "integration_evidence_gate",
+            "description": "Gate a candidate integration evidence snapshot against a baseline snapshot",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "baseline": {"type": "string", "description": "Baseline report path"},
+                    "candidate": {"type": "string", "description": "Candidate report path"},
+                    "policy": {"type": "string", "description": "Optional local JSON policy path"},
+                },
+                "required": ["baseline", "candidate"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "integration_evidence_explain",
+            "description": "Explain the ordered remediation sequence for a saved integration evidence report",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "report": {"type": "string", "description": "Saved report path"},
+                },
+                "required": ["report"],
+                "additionalProperties": False,
+            },
+        },
     ]
 
 
@@ -129,6 +181,14 @@ def run_cli(args: list[str]) -> dict[str, Any]:
     return error_text(output.strip() or f"command failed with exit code {completed.returncode}")
 
 
+def resolve_integration_reports_dir(workspace_root: str) -> Path:
+    return Path(workspace_root) / ".agents" / "Integration" / "Reports"
+
+
+def read_json_file(path: Path) -> dict[str, Any]:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
 def handle_tool_call(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     if name == "publish_archive_index":
         return run_cli(["publish", "archive-index", "--workspace-root", arguments["workspace_root"]])
@@ -144,6 +204,49 @@ def handle_tool_call(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
         if arguments.get("save_report"):
             command.append("--save-report")
         return run_cli(command)
+
+    if name == "integration_evidence_list":
+        reports_dir = resolve_integration_reports_dir(arguments["workspace_root"])
+        index_path = reports_dir / "index.json"
+        if not index_path.is_file():
+            return error_text(f"missing integration evidence index: {index_path}")
+        index_document = read_json_file(index_path)
+        limit = int(arguments.get("limit", 10))
+        timeline = index_document.get("timeline", [])[:limit]
+        payload = {
+            "title": index_document.get("title"),
+            "report_count": index_document.get("report_count"),
+            "timeline": timeline,
+        }
+        return success_text(json.dumps(payload, ensure_ascii=False, indent=2))
+
+    if name == "integration_evidence_diff":
+        return run_cli(
+            [
+                "evidence",
+                "diff",
+                "--left",
+                arguments["left"],
+                "--right",
+                arguments["right"],
+            ]
+        )
+
+    if name == "integration_evidence_gate":
+        command = [
+            "evidence",
+            "gate",
+            "--baseline",
+            arguments["baseline"],
+            "--candidate",
+            arguments["candidate"],
+        ]
+        if arguments.get("policy"):
+            command.extend(["--policy", arguments["policy"]])
+        return run_cli(command)
+
+    if name == "integration_evidence_explain":
+        return run_cli(["evidence", "explain", "--report", arguments["report"]])
 
     return error_text(f"unknown tool: {name}")
 
