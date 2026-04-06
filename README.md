@@ -58,6 +58,7 @@
 - workspace-local transcript backlinks
 - local reports shell
 - local reports-shell metadata search
+- minimal stdio MCP bridge
 - Codex / Claude Code / OpenClaw integration pack docs/templates
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
@@ -67,7 +68,7 @@
 
 当前阶段**还没有**完成的是：
 
-- 当前 Phase 18 之后的新一轮产品裁决
+- 当前 Phase 20 之后的新一轮产品裁决
 
 ---
 
@@ -111,7 +112,8 @@
 15. **现在已经落地：workspace-local transcript backlinks for HTML exports**
 16. **现在已经落地：local reports shell via `publish archive-index`**
 17. **现在已经落地：local reports-shell metadata search**
-18. **当前已进入 post-Phase-18 product decision 区，默认仍不膨胀成 hosted search / service**
+18. **现在已经落地：minimal stdio MCP bridge for publish/search**
+19. **当前已进入 post-Phase-20 product decision 区，默认仍不膨胀成 hosted search / service**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -361,7 +363,7 @@ codex app-server
 
 后续文档和实现若继续推进，会先进入：
 
-1. 新的 post-Phase-18 产品裁决
+1. 新的 post-Phase-20 产品裁决
 
 ---
 
@@ -400,8 +402,8 @@ cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thre
 
 当前真实边界：
 
-- 已经准备好的：CLI-first templates / skills / command snippets / bundle skeletons
-- 还没内建的：repo-native MCP server
+- 已经准备好的：CLI-first templates / skills / command snippets / bundle skeletons / minimal stdio MCP bridge
+- 当前 bridge 只覆盖 publish/search 高价值工具，不代表整个 CLI 全量变成 MCP
 
 ## License
 

@@ -12,13 +12,17 @@
 当前 integration pack 里，已经真实准备好的部分有：
 
 - Codex 的项目级 `AGENTS.md` 接入模板
+- Codex 的 `config.toml` MCP snippet
 - Claude Code 的 project skills / commands 接入模板
+- Claude Code 的 `.mcp.json` MCP snippet
 - OpenClaw 的 bundle/plugin 模板
+- OpenClaw bundle 内可直接放入的 `.mcp.json` snippet
 
-当前仍需开发者自己补的部分有：
+当前 integration pack 已经额外内建了一个最小 **stdio MCP bridge**：
 
-- 如果你想走 **MCP server** 集成，当前 repo 还没有内建 `agent-exporter mcp serve` 这类原生 MCP server 命令面
-- 所以本轮模板优先走 **CLI-first / skill-first / bundle-first** 路线，而不是伪造一个并不存在的 MCP server
+- `scripts/agent_exporter_mcp.py`
+
+当前 MCP bridge 暴露的是最小 publish/search 工具面，不是全量 CLI 面。
 
 ## 目录
 

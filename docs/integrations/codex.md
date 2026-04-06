@@ -9,7 +9,7 @@
 
 1. 在项目里保留或合并 `AGENTS.md`
 2. 给团队一个固定约定：当需要导出 / 发布 / 检索 / 保存 report 时，直接调用 `agent-exporter`
-3. 把常用命令写进项目工作流说明
+3. 如果你的 Codex 运行时支持 MCP，再补 `config.toml` 里的 MCP server 配置
 
 ## 推荐命令
 
@@ -22,10 +22,13 @@ agent-exporter search hybrid --workspace-root <repo> --query "thread-1" --save-r
 
 ## 模板
 
-见 `templates/codex/AGENTS.md`
+见：
+
+- `templates/codex/AGENTS.md`
+- `templates/codex/config.toml`
 
 ## 当前诚实边界
 
 - 这条接法今天是 **真实可用** 的
-- 当前 repo **还没有**原生 Codex MCP server
-- 所以这层模板强调的是 repo protocol / CLI workflow，而不是假装存在的 MCP 面
+- 当前 repo 已经内建一个最小 stdio MCP bridge：`scripts/agent_exporter_mcp.py`
+- 当前 bridge 暴露的是 publish/search 工具面，不是全量 CLI

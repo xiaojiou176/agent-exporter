@@ -58,6 +58,8 @@ The format is based on Keep a Changelog.
 - Reports-shell search coverage
 - Integration pack docs and templates for Codex / Claude Code / OpenClaw
 - LICENSE / SECURITY / CODE_OF_CONDUCT baseline for GitHub/open-source closeout
+- Minimal stdio MCP bridge for publish/search workflows
+- MCP bridge smoke coverage and MCP config templates
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder
@@ -75,4 +77,5 @@ The format is based on Keep a Changelog.
 - Workspace conversations HTML exports now link back to the local archive shell without changing Downloads behavior
 - `publish archive-index` now also generates a local reports shell for saved retrieval reports
 - Local reports shell now includes static metadata search/filter without changing retrieval execution semantics
+- A minimal stdio MCP bridge now exposes publish/search workflows to external agent clients
 - Codex / Claude connector summaries now describe the shared archive transcript contract instead of a Markdown-only contract

@@ -6,7 +6,7 @@
 
 ## Current Reality
 
-当前 reference 层已经对齐 **Phase 18 reports-shell search landed**：
+当前 reference 层已经对齐 **Phase 20 MCP bridge landed**：
 
 - 默认主路径仍然是 `app-server`
 - `local direct-read` 已经 landed，不再是 future plan
@@ -24,6 +24,7 @@
 - workspace-only transcript backlinks 已经 landed，不再是 future plan
 - local reports shell 已经 landed，不再是 future plan
 - reports-shell metadata search 已经 landed，不再是 future plan
+- minimal stdio MCP bridge 已经 landed，不再是 future plan
 - `local` 只代表 **archival truth**
 - `claude-code` 当前也只代表 **degraded local import truth**
 - `local` / `claude-code` 的导出状态都不能写成 complete 或 canonical

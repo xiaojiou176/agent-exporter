@@ -6,7 +6,7 @@
 
 ## Current Phase Snapshot
 
-当前这套文档已经进入 **Phase 18 reports-shell search landed**。
+当前这套文档已经进入 **Phase 20 MCP bridge landed**。
 
 你可以先把它理解成：这套文档现在要同时解释“正门、侧门、以及第二种输出格式”，但不能把它们说成同一种真相。
 
@@ -25,7 +25,7 @@
 - `.agents/Search/Reports/index.html` 现在已经会作为 local reports shell 组织这些 saved reports
 - local reports shell 现在也已经支持本地 report search 和 report-kind filter
 - `local` 和 `claude-code` 当前都按 **degraded** 理解，不能冒充 canonical parity
-- 当前已进入 post-Phase-18 产品裁决区，而不是直接膨胀成 hosted / 平台壳
+- 当前已进入 post-Phase-20 产品裁决区，而不是直接膨胀成 hosted / 平台壳
 
 ## Read Order
 

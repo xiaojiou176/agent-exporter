@@ -9,7 +9,7 @@ Claude Code 当前最稳的接法，是把 `agent-exporter` 作为 **project ski
 
 1. 在项目里加入 `.claude/commands/` 或 `.claude/skills/`
 2. 让命令直接调用本地 `agent-exporter`
-3. 如果团队还没有统一的 project MCP policy，先不要伪造一个不存在的 MCP server
+3. 如果你想走 MCP，再加 `.mcp.json` 指向 `scripts/agent_exporter_mcp.py`
 
 ## 推荐命令面
 
@@ -26,8 +26,9 @@ agent-exporter search hybrid --workspace-root . --query "$ARGUMENTS" --save-repo
 - `templates/claude-code/.claude/commands/publish-archive.md`
 - `templates/claude-code/.claude/commands/search-semantic-report.md`
 - `templates/claude-code/.claude/commands/search-hybrid-report.md`
+- `templates/claude-code/.mcp.json`
 
 ## 当前诚实边界
 
 - 这些命令模板今天就能用
-- 当前 repo **还没有**原生 MCP server；如果后续补上，再追加 `.mcp.json` project template 会更合理
+- 当前 repo 已经内建最小 stdio MCP bridge，但当前工具面只覆盖 publish/search

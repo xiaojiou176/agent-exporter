@@ -249,6 +249,17 @@
 - 现在 local reports shell 也已经能做本地 report search 和 report-kind filter
 - 但它仍然只是静态 front door，不执行 retrieval
 
+### Phase 20
+
+已落地：
+
+- minimal stdio MCP bridge
+
+原因：
+
+- 现在 publish/search 的高价值本地工具面已经能通过 MCP 被外部 agent 客户端接入
+- 但 bridge 仍然是 local stdio server，不是 hosted MCP service
+
 ## 推荐 CLI 命令面
 
 当前已经落地的最小集合是：

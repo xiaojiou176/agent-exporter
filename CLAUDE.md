@@ -63,7 +63,7 @@
   - reports are search-owned local artifacts, not transcript HTML inputs
   - archive shell and reports shell may link them, but retrieval execution stays in CLI
 - Current highest-value next step:
-  - GitHub remote closeout plus a new post-Phase-19 product decision, still local-first and non-hosted
+  - a new post-Phase-20 product decision, still local-first and non-hosted
 - Current host-safety semantics:
   - the repo may spawn one direct app-server child
   - the repo may only terminate that directly owned child handle
