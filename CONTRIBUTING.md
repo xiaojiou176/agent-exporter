@@ -2,13 +2,13 @@
 
 ## 当前贡献重点
 
-当前仓库已经从“只有骨架”进入“Codex dual-source + Claude second connector + hybrid retrieval 已 landed”的阶段。
+当前仓库已经从“只有骨架”进入“Codex dual-source + Claude second connector + hybrid retrieval + local archive shell 已 landed”的阶段。
 
 所以最欢迎的贡献顺序是：
 
 1. 文档与实现继续保持同步
 2. 继续完善 export + archive index + metadata search + semantic retrieval + persistent semantic index + hybrid retrieval 与 Codex / Claude 路径的回归验证
-3. multi-agent archive 平台化
+3. 先做新的产品裁决，再开下一阶段
 4. 后续 connector 扩展
 
 不欢迎的顺序是：

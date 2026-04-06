@@ -46,6 +46,8 @@ The format is based on Keep a Changelog.
 - Semantic index reuse unit coverage
 - `search hybrid` command for blended semantic + lexical metadata retrieval
 - Hybrid retrieval unit tests and CLI coverage
+- Multi-agent local archive shell sections, facets, and retrieval-lane guidance inside `publish archive-index`
+- Archive shell rendering coverage
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder
@@ -58,4 +60,5 @@ The format is based on Keep a Changelog.
 - Semantic retrieval now lands as a separate command instead of masquerading as metadata search
 - Semantic retrieval now reuses a persistent local semantic index sidecar
 - Hybrid retrieval now lands as a separate command instead of mutating `search semantic`
+- `publish archive-index` now renders a richer local archive shell instead of a flat archive list
 - Codex / Claude connector summaries now describe the shared archive transcript contract instead of a Markdown-only contract

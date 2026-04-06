@@ -6,7 +6,7 @@
 
 ## Current Phase Snapshot
 
-当前这套文档已经进入 **Phase 11 hybrid retrieval landed**。
+当前这套文档已经进入 **Phase 12 multi-agent archive shell landed**。
 
 你可以先把它理解成：这套文档现在要同时解释“正门、侧门、以及第二种输出格式”，但不能把它们说成同一种真相。
 
@@ -16,12 +16,12 @@
 - `--format json` 已经 landed，证明 shared transcript/core/output abstraction 能接第二种结构化输出
 - `--format html` 已经 landed，证明同一份 transcript 也能输出成静态可读页面
 - `publish archive-index` 已经 landed，证明这些页面已经可以本地浏览和静态发布
-- `publish archive-index` 现在已经自带本地 metadata search
+- `publish archive-index` 现在已经升级成 local multi-agent archive shell，自带本地 metadata filter、connector/completeness facets 和 retrieval lane 说明
 - `search semantic` 已经 landed，证明这个仓现在已经有真实 embedding-based retrieval 命令
 - `search semantic` 现在已经会按模型资产身份持久化并复用本地 semantic index sidecar
 - `search hybrid` 已经 landed，证明 lexical metadata signal 和 semantic retrieval 已经能在本地 CLI 里组合
 - `local` 和 `claude-code` 当前都按 **degraded** 理解，不能冒充 canonical parity
-- 当前最值钱的工作是 multi-agent archive 平台化，而不是 hosted / 平台壳
+- 当前 blueprint 已经落地到已定义的最深阶段；后续进入新的产品裁决区，而不是直接膨胀成 hosted / 平台壳
 
 ## Read Order
 

@@ -12,7 +12,7 @@
 ## Current Truth
 
 - This repo is a **Rust CLI-first exporter**.
-- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search + semantic retrieval + hybrid retrieval**.
+- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search + semantic retrieval + hybrid retrieval + local multi-agent archive shell**.
 - The repository is designed to grow into multiple connectors later, but not all at once.
 - Current export semantics stay aligned with CodexMonitor:
   - `thread/read` primary
@@ -39,9 +39,10 @@
 - Current archive browsing / publish semantics:
   - `publish archive-index --workspace-root <repo>`
   - scans workspace conversations for existing HTML transcript exports
-  - writes one static `index.html` with relative links
-  - now supports local metadata search inside that static index
-  - does not add semantic retrieval / hosted publish
+  - writes one local archive shell `index.html` with relative links
+  - now supports local metadata filtering plus retrieval-lane guidance for semantic / hybrid CLI search
+  - keeps semantic / hybrid retrieval in CLI instead of moving them into browser-side execution
+  - does not add hosted publish / remote search behavior
 - Current semantic retrieval semantics:
   - `search semantic --workspace-root <repo> --query "<text>"`
   - uses embedding-based retrieval over the local archive corpus
@@ -53,7 +54,7 @@
   - reuses the persistent semantic index from the semantic path
   - does not mutate `search semantic` into a hidden hybrid command
 - Current highest-value next step:
-  - multi-agent archive platformization before broader platform layers
+  - a new post-Phase-12 product decision, still local-first and non-hosted
 - Current host-safety semantics:
   - the repo may spawn one direct app-server child
   - the repo may only terminate that directly owned child handle

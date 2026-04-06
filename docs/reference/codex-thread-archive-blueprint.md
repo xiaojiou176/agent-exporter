@@ -189,11 +189,18 @@
 
 ### Phase 12
 
-再做：
+已落地：
 
 - multi-agent archive 平台化
 
+原因：
+
+- 现在已经能把 archive index、metadata filter、semantic retrieval、hybrid retrieval 组织进同一个 local-first archive shell
+- 但仍然没有把仓库拖进 hosted / remote search platform
+
 ---
+
+当前 blueprint 已经落地到当前定义的最深阶段。下一步若继续推进，需要新的产品裁决，而不是默认跳进 hosted / remote platform。
 
 ## 推荐 CLI 命令面
 

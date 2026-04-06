@@ -128,6 +128,9 @@ fn publish_archive_index_generates_static_index_for_html_transcripts() {
     assert!(content.contains("degraded"));
     assert!(content.contains("archive-search"));
     assert!(content.contains("data-search-text"));
+    assert!(content.contains("agent-exporter local archive shell"));
+    assert!(content.contains("search hybrid --workspace-root &lt;repo-root&gt;"));
+    assert!(content.contains("data-filter-group=\"connector\""));
     assert!(content.contains(".html"));
     assert!(!content.contains(".json"));
 }

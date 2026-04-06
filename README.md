@@ -8,7 +8,8 @@
 > **再用最小 Claude Code connector 证明这套架构能接第二个来源，**
 > **再用最小 JSON exporter 证明 shared transcript core 能接第二种输出，**
 > **再用最小 HTML exporter 证明同一份 transcript 也能直接变成静态可读页面，**
-> **再用最小 archive index 证明这些页面已经可以本地浏览和静态发布。**
+> **再用最小 archive index 证明这些页面已经可以本地浏览和静态发布，**
+> **再把它升级成一个 local-first multi-agent archive shell。**
 
 但仓库从第一天开始就按“未来会接 Claude Code 和其他本地 CLI”来设计，所以不会把 Codex 的私有读取逻辑写死在整个项目里。
 
@@ -48,6 +49,7 @@
 - semantic retrieval
 - persistent local semantic index
 - hybrid retrieval
+- multi-agent local archive shell
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -56,7 +58,7 @@
 
 当前阶段**还没有**完成的是：
 
-- 多 agent archive 平台化
+- 当前 blueprint 之后的新一轮产品裁决
 
 ---
 
@@ -95,7 +97,8 @@
 10. **现在已经落地：semantic retrieval via `search semantic`**
 11. **现在已经落地：persistent local semantic index reuse**
 12. **现在已经落地：hybrid retrieval via `search hybrid`**
-13. **当前最高优先级：multi-agent archive 平台化，但不能直接膨胀成 hosted search / service**
+13. **现在已经落地：multi-agent archive 平台化 via upgraded `publish archive-index` shell**
+14. **当前已进入 post-Phase-12 product decision 区，默认仍不膨胀成 hosted search / service**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -174,10 +177,11 @@ cargo run -- export codex \
 
 - `publish archive-index --workspace-root <repo>`
   - 扫描 `<repo>/.agents/Conversations` 里已经导出的 HTML transcript
-  - 生成一个本地可打开的 `index.html`
+  - 生成一个本地可打开的 multi-agent archive shell `index.html`
   - 使用相对链接串起 transcript 页面
-  - 现在已内置本地 metadata search
-  - 不做 semantic retrieval、分页、gist、web publish
+  - 现在已内置本地 metadata filter、connector/completeness facets、以及 semantic / hybrid retrieval lane 说明
+  - semantic / hybrid retrieval 仍然留在 CLI，不会偷偷搬进浏览器侧
+  - 不做 hosted publish、remote search service、gist、web publish
 
 ### Semantic retrieval contract
 
@@ -325,9 +329,11 @@ codex app-server
 
 ## 后续会补什么
 
-后续文档和实现会继续沿着这条线推进：
+当前 blueprint 已经落地到本轮定义的最深阶段。
 
-1. multi-agent archive 平台化
+后续文档和实现若继续推进，会先进入：
+
+1. 新的 post-Phase-12 产品裁决
 
 ---
 

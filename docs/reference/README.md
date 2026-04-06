@@ -6,7 +6,7 @@
 
 ## Current Reality
 
-当前 reference 层已经对齐 **Phase 11 hybrid retrieval landed**：
+当前 reference 层已经对齐 **Phase 12 multi-agent archive shell landed**：
 
 - 默认主路径仍然是 `app-server`
 - `local direct-read` 已经 landed，不再是 future plan
@@ -14,6 +14,7 @@
 - `--format json` 已经 landed，不再是 future plan
 - `--format html` 已经 landed，不再是 future plan
 - `publish archive-index` 已经 landed，不再是 future plan
+- `publish archive-index` 现在已经是 local multi-agent archive shell，不再只是 flat index
 - local metadata search 已经 landed，不再是 future plan
 - `search semantic` 已经 landed，不再是 future plan
 - persistent local semantic index 已经 landed，不再是 future plan
@@ -50,5 +51,5 @@
 
 1. 为什么 `app-server` 仍然是默认主路径
 2. 为什么 `local` 与 `claude-code` 已经 landed 但仍然不是 canonical replacement
-3. 为什么 hybrid retrieval landed 后仍然还不是 hosted / semantic platform
+3. 为什么 local archive shell landed 后仍然还不是 hosted / semantic platform
 4. 为什么 `degraded` 是正确披露，而不是保守措辞

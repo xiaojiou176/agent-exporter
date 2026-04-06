@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+
 use crate::core::archive_index::ArchiveIndexEntry;
 use crate::output::html::escape_html;
 
@@ -6,6 +8,39 @@ pub fn render_archive_index_document(
     generated_at: &str,
     entries: &[ArchiveIndexEntry],
 ) -> String {
+    let distinct_connectors = count_distinct_connectors(entries);
+    let connector_facets = render_filter_buttons(
+        "connector",
+        "Connector",
+        summarize_by(entries, |entry| {
+            entry.connector.as_deref().unwrap_or("unknown")
+        }),
+    );
+    let completeness_facets = render_filter_buttons(
+        "completeness",
+        "Completeness",
+        summarize_by(entries, |entry| {
+            entry.completeness.as_deref().unwrap_or("unknown")
+        }),
+    );
+    let connector_summary = render_summary_section(
+        "Connectors in this workspace",
+        summarize_by(entries, |entry| {
+            entry.connector.as_deref().unwrap_or("unknown")
+        }),
+    );
+    let completeness_summary = render_summary_section(
+        "Truth states currently visible",
+        summarize_by(entries, |entry| {
+            entry.completeness.as_deref().unwrap_or("unknown")
+        }),
+    );
+    let source_summary = render_summary_section(
+        "Sources represented in the archive",
+        summarize_by(entries, |entry| {
+            entry.source_kind.as_deref().unwrap_or("unknown")
+        }),
+    );
     let body = if entries.is_empty() {
         "<section class=\"empty-state\"><h2>还没有 HTML transcript exports</h2><p>先运行 `agent-exporter export ... --format html`，再回来生成 archive index。</p></section>".to_string()
     } else {
@@ -29,17 +64,47 @@ pub fn render_archive_index_document(
             "<body>\n",
             "  <main class=\"page-shell\">\n",
             "    <header class=\"hero-card\">\n",
-            "      <p class=\"eyebrow\">agent-exporter archive index</p>\n",
+            "      <p class=\"eyebrow\">agent-exporter local archive shell</p>\n",
             "      <h1>{title}</h1>\n",
-            "      <p class=\"hero-copy\">这是一张 workspace conversations 的本地目录页。它像一张书架标签卡，只负责带你走到已经导出的 HTML transcript，不负责搜索、分页或托管发布。</p>\n",
+            "      <p class=\"hero-copy\">这是一张 workspace conversations 的本地 archive shell。你可以把它理解成一个多 agent 档案前厅：页内 metadata filter 负责快速翻卡片，CLI 的 semantic / hybrid retrieval 负责更深一层的检索。它仍然是本地静态页面，不会替你走远程服务。</p>\n",
             "      <dl class=\"meta-grid\">\n",
             "        <div><dt>生成时间</dt><dd><code>{generated_at}</code></dd></div>\n",
             "        <div><dt>HTML transcripts</dt><dd><code>{entry_count}</code></dd></div>\n",
+            "        <div><dt>Connectors</dt><dd><code>{connector_count}</code></dd></div>\n",
+            "        <div><dt>Retrieval lanes</dt><dd><code>metadata / semantic / hybrid</code></dd></div>\n",
             "      </dl>\n",
             "    </header>\n",
+            "    <section class=\"lane-grid\" aria-label=\"retrieval lanes\">\n",
+            "      <article class=\"lane-card\">\n",
+            "        <p class=\"eyebrow\">Lane 1</p>\n",
+            "        <h2>Metadata filter</h2>\n",
+            "        <p>用下面的搜索框和 facet buttons 先做本地 metadata filter。它像翻书架标签卡，只看标题、connector、thread id、completeness 和 source。</p>\n",
+            "      </article>\n",
+            "      <article class=\"lane-card\">\n",
+            "        <p class=\"eyebrow\">Lane 2</p>\n",
+            "        <h2>Semantic retrieval</h2>\n",
+            "        <p>如果你要按语义找“内容相近”的 transcript，继续用当前纯语义命令面：</p>\n",
+            "        <pre><code>agent-exporter search semantic --workspace-root &lt;repo-root&gt; --query \"login issues\"</code></pre>\n",
+            "      </article>\n",
+            "      <article class=\"lane-card\">\n",
+            "        <p class=\"eyebrow\">Lane 3</p>\n",
+            "        <h2>Hybrid retrieval</h2>\n",
+            "        <p>如果你既想保留 semantic ranking，又想吃到 metadata signal，就走 blended lane：</p>\n",
+            "        <pre><code>agent-exporter search hybrid --workspace-root &lt;repo-root&gt; --query \"thread-1\"</code></pre>\n",
+            "      </article>\n",
+            "    </section>\n",
+            "    <section class=\"summary-grid\" aria-label=\"archive summaries\">\n",
+            "{connector_summary}\n",
+            "{completeness_summary}\n",
+            "{source_summary}\n",
+            "    </section>\n",
             "    <section class=\"search-bar\" aria-label=\"archive search\">\n",
-            "      <label class=\"search-label\" for=\"archive-search\">Search archive</label>\n",
-            "      <input id=\"archive-search\" class=\"search-input\" type=\"search\" placeholder=\"Search title, connector, thread id, completeness...\" autocomplete=\"off\">\n",
+            "      <label class=\"search-label\" for=\"archive-search\">Metadata search</label>\n",
+            "      <input id=\"archive-search\" class=\"search-input\" type=\"search\" placeholder=\"Search title, connector, thread id, completeness, source...\" autocomplete=\"off\">\n",
+            "      <div class=\"facet-grid\">\n",
+            "{connector_facets}\n",
+            "{completeness_facets}\n",
+            "      </div>\n",
             "      <p id=\"archive-search-status\" class=\"search-status\">Showing <strong>{entry_count}</strong> transcripts.</p>\n",
             "    </section>\n",
             "    <section class=\"card-grid\">\n",
@@ -54,6 +119,12 @@ pub fn render_archive_index_document(
         title = escape_html(archive_title),
         generated_at = escape_html(generated_at),
         entry_count = entries.len(),
+        connector_count = distinct_connectors,
+        connector_facets = connector_facets,
+        completeness_facets = completeness_facets,
+        connector_summary = connector_summary,
+        completeness_summary = completeness_summary,
+        source_summary = source_summary,
         body = body,
         style = archive_index_style(),
         script = archive_index_script(),
@@ -105,7 +176,7 @@ fn render_entry(entry: &ArchiveIndexEntry) -> String {
 
     format!(
         concat!(
-            "<article class=\"entry-card\" data-search-text=\"{searchable_text}\">",
+            "<article class=\"entry-card\" data-search-text=\"{searchable_text}\" data-connector=\"{connector}\" data-completeness=\"{completeness}\">",
             "<p class=\"eyebrow\">HTML transcript</p>",
             "<h2>{title}</h2>",
             "<div class=\"chip-row\">{chips}</div>",
@@ -122,11 +193,80 @@ fn render_entry(entry: &ArchiveIndexEntry) -> String {
         file_name = escape_html(&entry.file_name),
         href = escape_html(&entry.relative_href),
         searchable_text = escape_html(&searchable_text),
+        connector = escape_html(entry.connector.as_deref().unwrap_or("unknown")),
+        completeness = escape_html(entry.completeness.as_deref().unwrap_or("unknown")),
     )
 }
 
 fn chip(value: &str) -> String {
     format!("<span class=\"chip\">{}</span>", escape_html(value))
+}
+
+fn count_distinct_connectors(entries: &[ArchiveIndexEntry]) -> usize {
+    summarize_by(entries, |entry| {
+        entry.connector.as_deref().unwrap_or("unknown")
+    })
+    .len()
+}
+
+fn summarize_by<F>(entries: &[ArchiveIndexEntry], label: F) -> Vec<(String, usize)>
+where
+    F: Fn(&ArchiveIndexEntry) -> &str,
+{
+    let mut counts = BTreeMap::new();
+    for entry in entries {
+        *counts.entry(label(entry).to_string()).or_insert(0usize) += 1;
+    }
+    counts.into_iter().collect()
+}
+
+fn render_filter_buttons(group: &str, label: &str, items: Vec<(String, usize)>) -> String {
+    let mut buttons = vec![format!(
+        "<button type=\"button\" class=\"facet-button is-active\" data-filter-group=\"{group}\" data-filter-value=\"all\">All</button>"
+    )];
+    buttons.extend(items.into_iter().map(|(name, count)| {
+        format!(
+            "<button type=\"button\" class=\"facet-button\" data-filter-group=\"{group}\" data-filter-value=\"{value}\">{label} <span>{count}</span></button>",
+            value = escape_html(&name),
+            label = escape_html(&name),
+        )
+    }));
+
+    format!(
+        concat!(
+            "<section class=\"facet-section\" aria-label=\"{group}\">",
+            "<p class=\"search-label\">{label}</p>",
+            "<div class=\"facet-row\">{buttons}</div>",
+            "</section>"
+        ),
+        group = escape_html(group),
+        label = escape_html(label),
+        buttons = buttons.join(""),
+    )
+}
+
+fn render_summary_section(title: &str, items: Vec<(String, usize)>) -> String {
+    let chips = if items.is_empty() {
+        "<span class=\"chip\">none yet</span>".to_string()
+    } else {
+        items
+            .into_iter()
+            .map(|(name, count)| format!("{} <span>{count}</span>", chip(&name)))
+            .collect::<Vec<_>>()
+            .join(" ")
+    };
+
+    format!(
+        concat!(
+            "<article class=\"summary-card\">",
+            "<p class=\"eyebrow\">Archive summary</p>",
+            "<h2>{title}</h2>",
+            "<div class=\"chip-row\">{chips}</div>",
+            "</article>"
+        ),
+        title = escape_html(title),
+        chips = chips,
+    )
 }
 
 fn archive_index_style() -> &'static str {
@@ -158,6 +298,8 @@ fn archive_index_style() -> &'static str {
     }
 
     .hero-card,
+    .lane-card,
+    .summary-card,
     .entry-card,
     .empty-state {
       background: var(--panel);
@@ -168,12 +310,22 @@ fn archive_index_style() -> &'static str {
     }
 
     .hero-card,
+    .lane-card,
+    .summary-card,
     .entry-card,
     .empty-state {
       padding: 24px;
     }
 
     .hero-card { margin-bottom: 24px; }
+
+    .lane-grid,
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-bottom: 20px;
+    }
 
     .eyebrow {
       margin: 0 0 10px;
@@ -250,6 +402,12 @@ fn archive_index_style() -> &'static str {
       font-size: 12px;
     }
 
+    .chip span,
+    .facet-button span {
+      margin-left: 6px;
+      opacity: 0.7;
+    }
+
     .mono-inline,
     code,
     .open-link {
@@ -312,6 +470,43 @@ fn archive_index_style() -> &'static str {
       font-size: 14px;
     }
 
+    .facet-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .facet-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .facet-button {
+      border: 1px solid rgba(155, 91, 35, 0.25);
+      background: rgba(255, 255, 255, 0.85);
+      border-radius: 999px;
+      padding: 8px 12px;
+      color: var(--ink);
+      font-family: var(--mono);
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .facet-button.is-active {
+      background: rgba(155, 91, 35, 0.12);
+      color: var(--accent);
+      border-color: rgba(155, 91, 35, 0.35);
+    }
+
+    pre {
+      margin: 14px 0 0;
+      padding: 14px;
+      overflow-x: auto;
+      border-radius: 16px;
+      background: rgba(32, 48, 59, 0.92);
+      color: #f9f4eb;
+    }
+
     @media (max-width: 720px) {
       .page-shell {
         width: min(100vw - 20px, 1080px);
@@ -319,6 +514,8 @@ fn archive_index_style() -> &'static str {
       }
 
       .hero-card,
+      .lane-card,
+      .summary-card,
       .entry-card,
       .empty-state {
         border-radius: 20px;
@@ -332,6 +529,11 @@ fn archive_index_script() -> &'static str {
     const status = document.getElementById('archive-search-status');
     const empty = document.getElementById('archive-empty-result');
     const cards = Array.from(document.querySelectorAll('.entry-card'));
+    const buttons = Array.from(document.querySelectorAll('.facet-button'));
+    const activeFilters = {
+      connector: 'all',
+      completeness: 'all',
+    };
 
     if (input && status && empty) {
       const update = () => {
@@ -339,13 +541,30 @@ fn archive_index_script() -> &'static str {
         let visible = 0;
         for (const card of cards) {
           const haystack = (card.getAttribute('data-search-text') || '').toLowerCase();
-          const match = !query || haystack.includes(query);
+          const connector = (card.getAttribute('data-connector') || 'unknown').toLowerCase();
+          const completeness = (card.getAttribute('data-completeness') || 'unknown').toLowerCase();
+          const matchesQuery = !query || haystack.includes(query);
+          const matchesConnector = activeFilters.connector === 'all' || connector === activeFilters.connector;
+          const matchesCompleteness = activeFilters.completeness === 'all' || completeness === activeFilters.completeness;
+          const match = matchesQuery && matchesConnector && matchesCompleteness;
           card.hidden = !match;
           if (match) visible += 1;
         }
         status.innerHTML = `Showing <strong>${visible}</strong> transcript${visible === 1 ? '' : 's'}.`;
         empty.hidden = visible !== 0;
       };
+      for (const button of buttons) {
+        button.addEventListener('click', () => {
+          const group = button.getAttribute('data-filter-group');
+          const value = (button.getAttribute('data-filter-value') || 'all').toLowerCase();
+          if (!group) return;
+          activeFilters[group] = value;
+          for (const peer of buttons.filter((candidate) => candidate.getAttribute('data-filter-group') === group)) {
+            peer.classList.toggle('is-active', peer === button);
+          }
+          update();
+        });
+      }
       input.addEventListener('input', update);
       update();
     }"#
@@ -391,5 +610,29 @@ mod tests {
         assert!(html.contains("archive-search"));
         assert!(html.contains("data-search-text"));
         assert!(html.contains("No transcripts matched the current search."));
+    }
+
+    #[test]
+    fn render_archive_index_document_embeds_multi_agent_shell_sections() {
+        let html = render_archive_index_document(
+            "Demo archive",
+            "2026-04-05T00:00:00Z",
+            &[ArchiveIndexEntry {
+                file_name: "demo.html".to_string(),
+                relative_href: "demo.html".to_string(),
+                title: "Demo transcript".to_string(),
+                connector: Some("codex".to_string()),
+                thread_id: Some("thread-1".to_string()),
+                completeness: Some("complete".to_string()),
+                source_kind: Some("app-server-thread-read".to_string()),
+                exported_at: Some("2026-04-05T00:00:00Z".to_string()),
+            }],
+        );
+
+        assert!(html.contains("agent-exporter local archive shell"));
+        assert!(html.contains("search semantic --workspace-root &lt;repo-root&gt;"));
+        assert!(html.contains("search hybrid --workspace-root &lt;repo-root&gt;"));
+        assert!(html.contains("data-filter-group=\"connector\""));
+        assert!(html.contains("data-filter-group=\"completeness\""));
     }
 }
