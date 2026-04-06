@@ -105,6 +105,104 @@ fn onboard_codex_materializes_and_explains_next_steps() {
 }
 
 #[test]
+fn onboard_codex_save_report_writes_integration_evidence() {
+    let workspace = tempdir().expect("workspace");
+    let target = tempdir().expect("target dir");
+
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .current_dir(workspace.path())
+        .arg("onboard")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .arg("--save-report");
+
+    command
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration onboarding completed"))
+        .stdout(predicate::str::contains("Reports Index"));
+
+    let reports_root = workspace
+        .path()
+        .join(".agents")
+        .join("Integration")
+        .join("Reports");
+    let index = reports_root.join("index.html");
+    assert!(index.is_file());
+
+    let report_files = fs::read_dir(&reports_root)
+        .expect("read reports root")
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .filter(|path| {
+            path.extension()
+                .and_then(|value| value.to_str())
+                .is_some_and(|value| value.eq_ignore_ascii_case("html"))
+                && path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| name != "index.html")
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(report_files.len(), 1);
+
+    let report = read(&report_files[0]);
+    assert!(report.contains("agent-exporter:report-kind\" content=\"onboard"));
+    assert!(report.contains("agent-exporter:integration-platform\" content=\"codex"));
+    assert!(report.contains("Open integration reports"));
+}
+
+#[test]
+fn doctor_codex_save_report_writes_front_door_without_touching_transcript_corpus() {
+    let workspace = tempdir().expect("workspace");
+    let target = tempdir().expect("target dir");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("integrate")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .assert()
+        .success();
+
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .current_dir(workspace.path())
+        .arg("doctor")
+        .arg("integrations")
+        .arg("--platform")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .arg("--save-report");
+
+    command
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration doctor completed"))
+        .stdout(predicate::str::contains("Report"))
+        .stdout(predicate::str::contains("Reports Root"));
+
+    let reports_root = workspace
+        .path()
+        .join(".agents")
+        .join("Integration")
+        .join("Reports");
+    let index = reports_root.join("index.html");
+    assert!(index.is_file());
+    let index_content = read(&index);
+    assert!(index_content.contains("integration-report-search"));
+    assert!(index_content.contains("No integration reports matched the current search."));
+
+    let conversations_dir = workspace.path().join(".agents").join("Conversations");
+    assert!(!conversations_dir.exists());
+}
+
+#[test]
 fn integrate_codex_rejects_live_codex_home_root() {
     let home = tempdir().expect("home dir");
     let forbidden_target = home.path().join(".codex");

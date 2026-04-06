@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use anyhow::{Result, bail};
+use anyhow::{Context, Result, bail};
 use chrono::Utc;
 use clap::{Parser, Subcommand, ValueEnum};
 
@@ -9,6 +9,10 @@ use crate::core::archive::{
     AppServerLaunchConfig, ExportRequest, ExportSelector, ExportSource, OutputTarget,
 };
 use crate::core::archive_index;
+use crate::core::integration_report::{
+    collect_integration_report_entries, resolve_integration_reports_dir,
+    write_integration_report_document, write_integration_reports_index_document,
+};
 use crate::core::search_report::{
     collect_search_report_entries, write_search_report_document,
     write_search_reports_index_document,
@@ -24,7 +28,12 @@ use crate::integrations::{
 };
 use crate::model::{ConnectorKind, OutputFormat, SupportStage};
 use crate::output::{
-    archive_index as archive_index_output, html as html_output, json as json_output,
+    archive_index as archive_index_output, html as html_output,
+    integration_report::{
+        IntegrationReportDocument, IntegrationReportKind, render_integration_report_document,
+        render_integration_reports_index_document,
+    },
+    json as json_output,
     markdown::{self, DEFAULT_MAX_LINES_PER_PART},
     search_report::{
         SearchReportDocument, SearchReportHit, SearchReportKind, render_search_report_document,
@@ -126,12 +135,12 @@ enum DoctorCommands {
 #[derive(Debug, Subcommand)]
 enum OnboardCommands {
     /// Materialize a Codex onboarding pack into a staging target and explain the next steps.
-    Codex(IntegrateArgs),
+    Codex(OnboardArgs),
     /// Materialize a Claude Code onboarding pack into a staging target and explain the next steps.
-    ClaudeCode(IntegrateArgs),
+    ClaudeCode(OnboardArgs),
     /// Materialize an OpenClaw onboarding pack into a staging target and explain the next steps.
     #[command(name = "openclaw")]
-    OpenClaw(IntegrateArgs),
+    OpenClaw(OnboardArgs),
 }
 
 #[derive(Debug, clap::Args)]
@@ -245,6 +254,20 @@ struct DoctorIntegrationsArgs {
     /// Explicit target directory to inspect. The doctor never mutates this path.
     #[arg(long)]
     target: PathBuf,
+    /// Save a static integration evidence report under the current working directory.
+    #[arg(long, default_value_t = false)]
+    save_report: bool,
+}
+
+#[derive(Debug, clap::Args)]
+struct OnboardArgs {
+    /// Explicit staging target directory where integration assets should be materialized.
+    /// Live host/global roots such as `~/.codex`, `~/.claude*`, and direct OpenClaw bundle/plugin roots are rejected.
+    #[arg(long)]
+    target: PathBuf,
+    /// Save a static integration evidence report under the current working directory.
+    #[arg(long, default_value_t = false)]
+    save_report: bool,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
@@ -430,7 +453,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails + integration evidence pack reports."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -462,7 +485,10 @@ fn print_scaffold_status() {
     );
     println!("- Real onboarding path: `agent-exporter onboard <platform> --target <dir>`.");
     println!(
-        "- Next step: a new post-Phase-25 product decision, while staying local-first and non-hosted."
+        "- Real integration evidence path: `agent-exporter doctor integrations --platform <platform> --target <dir> --save-report` or `agent-exporter onboard <platform> --target <dir> --save-report`."
+    );
+    println!(
+        "- Next step: a new post-Phase-26 product decision, while staying local-first and non-hosted."
     );
 }
 
@@ -738,6 +764,16 @@ fn doctor_integrations(args: DoctorIntegrationsArgs) -> Result<()> {
         platform: args.platform.into_integration_platform(),
         target_root: args.target,
     })?;
+    let saved_report = if args.save_report {
+        let workspace_root = integration_reports_workspace_root()?;
+        Some(write_doctor_integration_report(
+            &workspace_root,
+            &outcome,
+            &doctor_next_steps(&outcome),
+        )?)
+    } else {
+        None
+    };
 
     println!("Integration doctor completed");
     println!("- Platform     : {}", outcome.platform.as_str());
@@ -753,6 +789,14 @@ fn doctor_integrations(args: DoctorIntegrationsArgs) -> Result<()> {
             println!("  {}. {}", index + 1, step);
         }
     }
+    if let Some((report_path, index_path)) = &saved_report {
+        println!("- Report       : {}", report_path.display());
+        println!("- Reports Index: {}", index_path.display());
+        println!(
+            "- Reports Root : {}",
+            resolve_integration_reports_dir(&integration_reports_workspace_root()?).display()
+        );
+    }
     println!("- Checks");
     for check in &outcome.checks {
         print_doctor_check(check);
@@ -761,11 +805,17 @@ fn doctor_integrations(args: DoctorIntegrationsArgs) -> Result<()> {
     Ok(())
 }
 
-fn onboard_platform(platform: IntegrationPlatform, args: IntegrateArgs) -> Result<()> {
+fn onboard_platform(platform: IntegrationPlatform, args: OnboardArgs) -> Result<()> {
     let outcome = onboard_integration(&IntegrationOnboardRequest {
         platform,
         target_root: args.target,
     })?;
+    let saved_report = if args.save_report {
+        let workspace_root = integration_reports_workspace_root()?;
+        Some(write_onboard_integration_report(&workspace_root, &outcome)?)
+    } else {
+        None
+    };
 
     println!("Integration onboarding completed");
     println!("- Platform     : {}", outcome.platform.as_str());
@@ -799,6 +849,14 @@ fn onboard_platform(platform: IntegrationPlatform, args: IntegrateArgs) -> Resul
         for (index, step) in outcome.next_steps.iter().enumerate() {
             println!("  {}. {}", index + 1, step);
         }
+    }
+    if let Some((report_path, index_path)) = &saved_report {
+        println!("- Report       : {}", report_path.display());
+        println!("- Reports Index: {}", index_path.display());
+        println!(
+            "- Reports Root : {}",
+            resolve_integration_reports_dir(&integration_reports_workspace_root()?).display()
+        );
     }
 
     Ok(())
@@ -885,4 +943,95 @@ fn workspace_html_navigation(
             reports_shell_href: "../Search/Reports/index.html".to_string(),
         }),
     }
+}
+
+fn integration_reports_workspace_root() -> Result<PathBuf> {
+    std::env::current_dir()
+        .context("failed to resolve current working directory for integration reports")
+}
+
+fn integration_reports_title(workspace_root: &std::path::Path) -> String {
+    workspace_root
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map(|name| format!("{name} integration reports"))
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or_else(|| "agent-exporter integration reports".to_string())
+}
+
+fn write_doctor_integration_report(
+    workspace_root: &std::path::Path,
+    outcome: &crate::integrations::IntegrationDoctorOutcome,
+    next_steps: &[String],
+) -> Result<(PathBuf, PathBuf)> {
+    let generated_at = Utc::now().to_rfc3339();
+    let report = IntegrationReportDocument {
+        kind: IntegrationReportKind::Doctor,
+        platform: outcome.platform.as_str().to_string(),
+        target_root: outcome.target_root.display().to_string(),
+        generated_at: generated_at.clone(),
+        readiness: outcome.overall_readiness.as_str().to_string(),
+        summary: doctor_summary(outcome),
+        launcher_kind: outcome.launcher.kind.to_string(),
+        launcher_command: outcome.launcher.shell_command(),
+        written_files: Vec::new(),
+        unchanged_files: Vec::new(),
+        checks: outcome.checks.clone(),
+        next_steps: next_steps.to_vec(),
+    };
+    write_integration_report_bundle(workspace_root, &report)
+}
+
+fn write_onboard_integration_report(
+    workspace_root: &std::path::Path,
+    outcome: &crate::integrations::IntegrationOnboardOutcome,
+) -> Result<(PathBuf, PathBuf)> {
+    let generated_at = Utc::now().to_rfc3339();
+    let report = IntegrationReportDocument {
+        kind: IntegrationReportKind::Onboard,
+        platform: outcome.platform.as_str().to_string(),
+        target_root: outcome.target_root.display().to_string(),
+        generated_at: generated_at.clone(),
+        readiness: outcome.doctor.overall_readiness.as_str().to_string(),
+        summary: doctor_summary(&outcome.doctor),
+        launcher_kind: outcome.doctor.launcher.kind.to_string(),
+        launcher_command: outcome.doctor.launcher.shell_command(),
+        written_files: outcome
+            .materialized
+            .written_files
+            .iter()
+            .map(|path| path.display().to_string())
+            .collect(),
+        unchanged_files: outcome
+            .materialized
+            .unchanged_files
+            .iter()
+            .map(|path| path.display().to_string())
+            .collect(),
+        checks: outcome.doctor.checks.clone(),
+        next_steps: outcome.next_steps.clone(),
+    };
+    write_integration_report_bundle(workspace_root, &report)
+}
+
+fn write_integration_report_bundle(
+    workspace_root: &std::path::Path,
+    report: &IntegrationReportDocument,
+) -> Result<(PathBuf, PathBuf)> {
+    let document = render_integration_report_document(report);
+    let report_path = write_integration_report_document(
+        workspace_root,
+        report.kind.as_str(),
+        &report.platform,
+        &report.generated_at,
+        &document,
+    )?;
+    let entries = collect_integration_report_entries(workspace_root)?;
+    let index_document = render_integration_reports_index_document(
+        &integration_reports_title(workspace_root),
+        &report.generated_at,
+        &entries,
+    );
+    let index_path = write_integration_reports_index_document(workspace_root, &index_document)?;
+    Ok((report_path, index_path))
 }

@@ -36,6 +36,20 @@ agent-exporter onboard codex --target <DIR>
 
 它会把 materialize + doctor + next steps 串在一起。
 
+如果你还想把这次接线结果保存成一张可复查的本地验收单，可以再加：
+
+```bash
+agent-exporter onboard codex --target <DIR> --save-report
+```
+
+或：
+
+```bash
+agent-exporter doctor integrations --platform codex --target <DIR> --save-report
+```
+
+报告会写到当前工作目录下的 `.agents/Integration/Reports/`，不会回流 transcript corpus。
+
 ## MCP first-run 说明
 
 Codex 这条线现在已经不要求你先硬编码一个 release binary 路径。

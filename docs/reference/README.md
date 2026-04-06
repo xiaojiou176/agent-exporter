@@ -6,7 +6,7 @@
 
 ## Current Reality
 
-当前 reference 层已经对齐 **Phase 25 integration onboarding experience landed**：
+当前 reference 层已经对齐 **Phase 26 integration evidence pack landed**：
 
 - 默认主路径仍然是 `app-server`
 - `local direct-read` 已经 landed，不再是 future plan
@@ -32,6 +32,7 @@
 - integration doctor 的 pack-shape hardening 已经 landed，不再是 future plan
 - integration onboarding experience 已经 landed，不再是 future plan
 - integration materialization now rejects obvious live host/global roots instead of relying on docs-only warnings
+- integration evidence reports under `.agents/Integration/Reports` 已经 landed，不再是 future plan
 - `local` 只代表 **archival truth**
 - `claude-code` 当前也只代表 **degraded local import truth**
 - `local` / `claude-code` 的导出状态都不能写成 complete 或 canonical

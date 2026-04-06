@@ -54,6 +54,12 @@ agent-exporter integrate openclaw --target /absolute/path/to/openclaw-pack
 它只会写到你明确给出的 target 下，不会静默改你的 `~/.codex`、`~/.claude` 或 OpenClaw host 目录。
 现在它还会直接拒绝明显的 live host/global roots；请先使用一个中性的 staging target。
 
+如果你需要把这次接线/体检结果保存下来，当前仓还支持把 evidence report 单独写到当前工作目录下的：
+
+- `.agents/Integration/Reports/`
+
+这样 report 会留在 integration 自己的抽屉里，而不是混进 transcript 或 retrieval report 抽屉。
+
 ## Repo-Owned Doctor
 
 材料化之后，可以再用 doctor 做只读验收：

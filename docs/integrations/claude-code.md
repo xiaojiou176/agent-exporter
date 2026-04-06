@@ -36,6 +36,20 @@ agent-exporter onboard claude-code --target <DIR>
 
 它会把 materialize + doctor + next steps 串在一起。
 
+如果你想把这次接线结果留成一张可复查的本地 evidence report，可以再加：
+
+```bash
+agent-exporter onboard claude-code --target <DIR> --save-report
+```
+
+或：
+
+```bash
+agent-exporter doctor integrations --platform claude-code --target <DIR> --save-report
+```
+
+报告会写到当前工作目录下的 `.agents/Integration/Reports/`，不会混进 transcript 或 retrieval report 壳。
+
 ## MCP first-run 说明
 
 Claude Code 这条线现在默认按“repo checkout 直接接线”来理解。

@@ -66,6 +66,7 @@
 - platform-aware integration doctor diagnostics
 - integration pack-shape hardening
 - integration onboarding experience
+- integration evidence pack / exportable onboarding reports
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -76,7 +77,7 @@
 
 当前阶段**还没有**完成的是：
 
-- 当前 Phase 25 之后的新一轮产品裁决
+- 当前 Phase 26 之后的新一轮产品裁决
 
 ---
 
@@ -127,7 +128,9 @@
 22. **现在已经落地：platform-aware integration doctor diagnostics**
 23. **现在已经落地：integration pack-shape hardening**
 24. **现在已经落地：integration onboarding experience via `onboard <platform> --target <dir>`**
-25. **当前已进入 post-Phase-25 product decision 区，默认仍不膨胀成 hosted search / service**
+25. **现在已经落地：integration onboarding experience via `onboard <platform> --target <dir>`**
+26. **现在已经落地：integration evidence pack via `doctor/onboard --save-report` + `.agents/Integration/Reports/`**
+27. **当前已进入 post-Phase-26 product decision 区，默认仍不膨胀成 hosted search / service**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -430,6 +433,10 @@ cargo run -- doctor integrations --platform codex --target /absolute/path/to/cod
   - `agent-exporter onboard codex --target <dir>`
   - `agent-exporter onboard claude-code --target <dir>`
   - `agent-exporter onboard openclaw --target <dir>`
+- 当前 repo 现在还多了一条可保存、可复查的 integration evidence 主链：
+  - `agent-exporter doctor integrations --platform <platform> --target <dir> --save-report`
+  - `agent-exporter onboard <platform> --target <dir> --save-report`
+  - report 默认写到当前工作目录下的 `.agents/Integration/Reports`
 - 当前 bridge 只覆盖 publish/search 高价值工具，不代表整个 CLI 全量变成 MCP
 - 当前 MCP bridge 默认依赖 repo 内的 `scripts/agent_exporter_mcp.py`
   - first-run 会优先尝试 repo-local `target/release/agent-exporter`
@@ -455,6 +462,11 @@ cargo run -- doctor integrations --platform codex --target /absolute/path/to/cod
   - Codex：`command` + 非空 `args` 数组
   - Claude Code：`CLAUDE.md` 与 `.claude/commands/*.md` 的基本 pack 形状
 - `onboard` 会把 `integrate + doctor + next steps` 串成一条更低摩擦的 first-run path
+- integration evidence reports 是单独的本地 artifact：
+  - root: `.agents/Integration/Reports`
+  - front door: `.agents/Integration/Reports/index.html`
+  - 不会回流 `.agents/Conversations` transcript corpus
+  - 也不会混进 `.agents/Search/Reports` retrieval report 壳
 
 ## License
 

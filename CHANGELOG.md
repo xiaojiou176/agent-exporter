@@ -69,6 +69,7 @@ The format is based on Keep a Changelog.
 - Integration pack-shape hardening for Codex `command/args` and Claude project pack structure
 - Repo-owned onboarding command that stitches materialize + doctor + next steps into one first-run path
 - Forbidden-target guards for `integrate` / `onboard`, rejecting live Codex/Claude home roots and direct OpenClaw bundle/plugin roots such as `bundles/<name>` / `plugins/<name>`
+- Integration evidence reports via `doctor/onboard --save-report`, with a dedicated `.agents/Integration/Reports` front door
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder

@@ -6,7 +6,7 @@
 
 - 当前目标：**Codex canonical transcript/archive 导出**
 - 未来目标：Claude Code、以及其他本地 CLI
-- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + minimal stdio MCP bridge + repo-owned integration materializer/doctor + drift-aware integration doctor hardening + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience 已落地；当前已进入 post-Phase-25 产品裁决区；默认 Codex 主路径仍是 app-server**
+- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + minimal stdio MCP bridge + repo-owned integration materializer/doctor + drift-aware integration doctor hardening + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + integration evidence pack 已落地；当前已进入 post-Phase-26 产品裁决区；默认 Codex 主路径仍是 app-server**
 
 ---
 
@@ -85,6 +85,7 @@
 - platform-aware integration doctor diagnostics
 - integration pack-shape hardening
 - integration onboarding experience
+- integration evidence pack
 - `export codex --thread-id ...` 真实 CLI 主链
 - `export claude-code --session-path ...` 真实 CLI 主链
 - `--format markdown|json|html`
@@ -92,6 +93,8 @@
 - `integrate <platform> --target <dir>`
 - `doctor integrations --platform <platform> --target <dir>`
 - `onboard <platform> --target <dir>`
+- `doctor integrations --platform <platform> --target <dir> --save-report`
+- `onboard <platform> --target <dir> --save-report`
 - `--source app-server|local`
 - `degraded` archival semantics for local source
 - integration pack 默认按 repo-local MCP bridge 理解
@@ -104,6 +107,9 @@
   - doctor 现在还会进一步收紧 Codex `command/args` 形状，以及 Claude pack 本身的 `CLAUDE.md` / commands 形状
   - `onboard` 现在会把 materialize、doctor 和下一步建议串成一条更顺手的 first-run path
   - `integrate` / `onboard` 现在会拒绝明显的 live host/global roots，例如 `~/.codex`、`~/.claude*` 和 direct OpenClaw bundle/plugin roots
+  - `doctor` / `onboard` 现在还能把当前结果保存成 integration evidence reports
+  - integration evidence reports 默认写到当前工作目录下的 `.agents/Integration/Reports`
+  - 这批 reports 是 integration-owned local artifacts，不回流 transcript corpus，也不混进 search-owned reports shell
 
 ### 当前明确非目标
 
@@ -140,6 +146,8 @@ cargo run -- integrate codex --target /absolute/path/to/codex-pack
 cargo run -- integrate claude-code --target /absolute/path/to/claude-pack
 cargo run -- integrate openclaw --target /absolute/path/to/openclaw-pack
 cargo run -- doctor integrations --platform codex --target /absolute/path/to/codex-pack
+cargo run -- doctor integrations --platform codex --target /absolute/path/to/codex-pack --save-report
+cargo run -- onboard codex --target /absolute/path/to/codex-pack --save-report
 ```
 
 说明：

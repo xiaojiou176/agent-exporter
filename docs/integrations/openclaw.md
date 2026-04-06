@@ -42,6 +42,20 @@ agent-exporter onboard openclaw --target <DIR>
 它会把 materialize + doctor + next steps 串在一起，但仍然不会替你静默装进 OpenClaw host。
 同时，它也会拒绝把 `--target` 直接指到 OpenClaw bundle/plugin root，例如 `bundles/<name>` 或 `plugins/<name>`。
 
+如果你想把这次体检/引导结果保存成一张本地 evidence report，可以再加：
+
+```bash
+agent-exporter doctor integrations --platform openclaw --target <DIR> --save-report
+```
+
+或：
+
+```bash
+agent-exporter onboard openclaw --target <DIR> --save-report
+```
+
+报告会写到当前工作目录下的 `.agents/Integration/Reports/`，但它表达的仍然只是 bundle-content readiness，不是 host runtime installation。
+
 ## Bundle first-run 说明
 
 OpenClaw 这条线最重要的不是“有没有模板”，而是“不要把模板误当成一个已经 host-verified 的 runtime”。

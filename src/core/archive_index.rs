@@ -216,4 +216,41 @@ mod tests {
         assert_eq!(entries.len(), 1);
         assert_eq!(entries[0].file_name, "demo.html");
     }
+
+    #[test]
+    fn collect_html_archive_entries_ignores_integration_reports_directory() {
+        let workspace = tempdir().expect("workspace");
+        let archive_dir = workspace.path().join(".agents").join("Conversations");
+        let integration_reports_dir = workspace
+            .path()
+            .join(".agents")
+            .join("Integration")
+            .join("Reports");
+        std::fs::create_dir_all(&archive_dir).expect("archive mkdirs");
+        std::fs::create_dir_all(&integration_reports_dir).expect("integration mkdirs");
+
+        std::fs::write(
+            archive_dir.join("demo.html"),
+            concat!(
+                "<!DOCTYPE html><html><head>",
+                "<meta name=\"agent-exporter:thread-display-name\" content=\"Demo transcript\">",
+                "<meta name=\"agent-exporter:connector\" content=\"codex\">",
+                "<meta name=\"agent-exporter:thread-id\" content=\"thread-1\">",
+                "<meta name=\"agent-exporter:completeness\" content=\"complete\">",
+                "<meta name=\"agent-exporter:source-kind\" content=\"app-server-thread-read\">",
+                "<meta name=\"agent-exporter:exported-at\" content=\"2026-04-05T00:00:00Z\">",
+                "</head><body></body></html>"
+            ),
+        )
+        .expect("write transcript");
+        std::fs::write(
+            integration_reports_dir.join("integration-report-doctor-codex.html"),
+            "<!DOCTYPE html><html><head><title>integration report</title></head><body></body></html>",
+        )
+        .expect("write integration report");
+
+        let entries = collect_html_archive_entries(workspace.path()).expect("collect entries");
+        assert_eq!(entries.len(), 1);
+        assert_eq!(entries[0].file_name, "demo.html");
+    }
 }

@@ -37,12 +37,17 @@
 - `agent-exporter onboard codex --target <DIR>`
 - `agent-exporter onboard claude-code --target <DIR>`
 - `agent-exporter onboard openclaw --target <DIR>`
+- `agent-exporter doctor integrations --platform <platform> --target <DIR> --save-report`
+- `agent-exporter onboard codex --target <DIR> --save-report`
+- `agent-exporter onboard claude-code --target <DIR> --save-report`
+- `agent-exporter onboard openclaw --target <DIR> --save-report`
 
 你可以把它理解成：
 
 > `integrate` 负责把 repo-owned 接线材料材料化到一个显式 target，
 > `doctor` 负责用只读方式检查这份材料和 bridge/launcher readiness 到底处在 `ready / partial / missing` 哪一层。
 > `onboard` 则把这两步再加上人话 next steps 串成一条 first-run 主链。
+> `--save-report` 则把这次体检/引导结果保存成独立的 integration evidence artifact。
 
 这两条入口都守住同一个硬边界：
 
@@ -146,3 +151,18 @@ OpenClaw 这一层当前**没有**声称的是：
 
 4. **不要把集成模板写成平台壳**
    - 这层是接线包，不是新产品前台
+
+## Integration Evidence Pack
+
+Phase 26 之后，integration 主链已经不只会“写 target、打印状态”。
+
+现在它还会在当前工作目录下把结果保存到：
+
+- `.agents/Integration/Reports/`
+
+这层 evidence pack 的正确理解是：
+
+- 它是 integration-owned local artifact
+- 它可以被后续本地 artifact graph 链接和回看
+- 它不会回流 `.agents/Conversations` transcript corpus
+- 它也不会混进 `.agents/Search/Reports` retrieval report 壳

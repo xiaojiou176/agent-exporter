@@ -6,7 +6,7 @@
 
 ## Current Phase Snapshot
 
-当前这套文档已经进入 **Phase 25 integration onboarding experience landed**。
+当前这套文档已经进入 **Phase 26 integration evidence pack landed**。
 
 你可以先把它理解成：这套文档现在要同时解释“正门、侧门、以及第二种输出格式”，但不能把它们说成同一种真相。
 
@@ -32,8 +32,10 @@
 - `doctor integrations` 现在还会继续收紧 Codex `command/args` 和 Claude pack 形状
 - `onboard <platform> --target <dir>` 已经 landed，说明接入流程现在不再只是一组分散命令
 - `integrate` / `onboard` 现在还会拒绝明显的 live host/global roots，例如 `~/.codex`、`~/.claude*` 和 direct OpenClaw bundle/plugin roots
+- `doctor/onboard --save-report` 已经 landed，说明接入结果现在可以保存成独立 integration evidence artifacts
+- `.agents/Integration/Reports/index.html` 现在已经会作为 integration reports front door 组织这些 evidence pages
 - `local` 和 `claude-code` 当前都按 **degraded** 理解，不能冒充 canonical parity
-- 当前已进入 post-Phase-25 产品裁决区，而不是直接膨胀成 hosted / 平台壳
+- 当前已进入 post-Phase-26 产品裁决区，而不是直接膨胀成 hosted / 平台壳
 
 ## Read Order
 

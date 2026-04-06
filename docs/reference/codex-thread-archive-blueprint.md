@@ -273,6 +273,19 @@
 - `doctor integrations --platform <platform> --target <dir>` 已经能诚实报告 `ready / partial / missing`
 - 但它仍然不会静默改用户 home/global config，也不会把 OpenClaw 写成 repo-native runtime
 
+### Phase 26
+
+已落地：
+
+- integration evidence pack / exportable onboarding report
+
+原因：
+
+- 现在 `doctor` / `onboard` 已经不只会把结果打印到终端
+- `--save-report` 已经能把 integration evidence 保存到 `.agents/Integration/Reports/`
+- 同目录下也会生成一张静态 front door `index.html`
+- 但这些 artifacts 仍然和 transcript corpus / retrieval reports 分仓，不会被 search/archive 主链误吃回去
+
 ## 推荐 CLI 命令面
 
 当前已经落地的最小集合是：
@@ -295,6 +308,8 @@ agent-exporter integrate codex --target <dir>
 agent-exporter integrate claude-code --target <dir>
 agent-exporter integrate openclaw --target <dir>
 agent-exporter doctor integrations --platform <platform> --target <dir>
+agent-exporter doctor integrations --platform <platform> --target <dir> --save-report
+agent-exporter onboard codex --target <dir> --save-report
 agent-exporter export codex --source app-server --thread-id <id> --destination workspace-conversations --workspace-root <repo-root>
 ```
 
@@ -376,4 +391,5 @@ src/
 - archive index 已落地
 - local metadata search 已落地
 - repo-owned integration materializer / doctor 已落地
+- integration evidence pack / exportable onboarding report 已落地
 - 未来扩展边界仍然保持收口
