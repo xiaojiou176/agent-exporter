@@ -6,7 +6,7 @@
 
 - 当前目标：**Codex canonical transcript/archive 导出**
 - 未来目标：Claude Code、以及其他本地 CLI
-- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell 已落地；当前已进入 post-Phase-12 产品裁决区；默认 Codex 主路径仍是 app-server**
+- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts 已落地；当前已进入 post-Phase-13 产品裁决区；默认 Codex 主路径仍是 app-server**
 
 ---
 
@@ -73,6 +73,7 @@
 - semantic retrieval
 - hybrid retrieval
 - multi-agent local archive shell
+- local retrieval report artifacts
 - `export codex --thread-id ...` 真实 CLI 主链
 - `export claude-code --session-path ...` 真实 CLI 主链
 - `--format markdown|json|html`
@@ -109,6 +110,8 @@ cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl -
 cargo run -- publish archive-index --workspace-root /absolute/path/to/repo
 cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues"
 cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1"
+cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues" --save-report
+cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1" --save-report
 ```
 
 说明：

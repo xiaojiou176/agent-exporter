@@ -9,6 +9,7 @@ use crate::core::archive::{
     AppServerLaunchConfig, ExportRequest, ExportSelector, ExportSource, OutputTarget,
 };
 use crate::core::archive_index;
+use crate::core::search_report::{collect_search_report_entries, write_search_report_document};
 use crate::core::semantic_search::{
     FastEmbedSemanticEmbedder, SemanticEmbedder, hybrid_search_with_persistent_index,
     semantic_search_with_persistent_index,
@@ -17,6 +18,9 @@ use crate::model::{ConnectorKind, OutputFormat, SupportStage};
 use crate::output::{
     archive_index as archive_index_output, html as html_output, json as json_output,
     markdown::{self, DEFAULT_MAX_LINES_PER_PART},
+    search_report::{
+        SearchReportDocument, SearchReportHit, SearchReportKind, render_search_report_document,
+    },
 };
 
 #[derive(Debug, Parser)]
@@ -149,6 +153,9 @@ struct SearchSemanticArgs {
     /// Override the local embedding model directory.
     #[arg(long)]
     model_dir: Option<PathBuf>,
+    /// Save this retrieval run as a local HTML report artifact.
+    #[arg(long, default_value_t = false)]
+    save_report: bool,
 }
 
 #[derive(Debug, clap::Args)]
@@ -165,6 +172,9 @@ struct SearchHybridArgs {
     /// Override the local embedding model directory.
     #[arg(long)]
     model_dir: Option<PathBuf>,
+    /// Save this retrieval run as a local HTML report artifact.
+    #[arg(long, default_value_t = false)]
+    save_report: bool,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
@@ -311,7 +321,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -330,7 +340,7 @@ fn print_scaffold_status() {
         "- Real hybrid retrieval path: `agent-exporter search hybrid --workspace-root <repo> --query <text>`."
     );
     println!(
-        "- Next step: a new post-Phase-12 product decision, while staying local-first and non-hosted."
+        "- Next step: a new post-Phase-13 product decision, while staying local-first and non-hosted."
     );
 }
 
@@ -346,6 +356,7 @@ fn export_claude_code(args: ClaudeCodeExportArgs) -> Result<()> {
 
 fn publish_archive_index(args: PublishArchiveIndexArgs) -> Result<()> {
     let entries = archive_index::collect_html_archive_entries(&args.workspace_root)?;
+    let reports = collect_search_report_entries(&args.workspace_root)?;
     let archive_title = args
         .workspace_root
         .file_name()
@@ -358,6 +369,7 @@ fn publish_archive_index(args: PublishArchiveIndexArgs) -> Result<()> {
         &archive_title,
         &generated_at,
         &entries,
+        &reports,
     );
     let archive_dir = archive_index::resolve_workspace_conversations_dir(&args.workspace_root)?;
     let index_path = archive_index::write_archive_index_document(&args.workspace_root, &document)?;
@@ -366,6 +378,7 @@ fn publish_archive_index(args: PublishArchiveIndexArgs) -> Result<()> {
     println!("- Workspace    : {}", args.workspace_root.display());
     println!("- Archive Dir  : {}", archive_dir.display());
     println!("- Entries      : {}", entries.len());
+    println!("- Reports      : {}", reports.len());
     println!("- Index        : {}", index_path.display());
 
     Ok(())
@@ -411,6 +424,17 @@ fn search_semantic(args: SearchSemanticArgs) -> Result<()> {
         if let Some(completeness) = hit.entry.completeness.as_deref() {
             println!("     completeness : {completeness}");
         }
+    }
+
+    if args.save_report {
+        let report_path = write_semantic_report(
+            &args.workspace_root,
+            &args.query,
+            &model_dir,
+            &execution,
+            &Utc::now().to_rfc3339(),
+        )?;
+        println!("- Report       : {}", report_path.display());
     }
 
     Ok(())
@@ -460,7 +484,94 @@ fn search_hybrid(args: SearchHybridArgs) -> Result<()> {
         }
     }
 
+    if args.save_report {
+        let report_path = write_hybrid_report(
+            &args.workspace_root,
+            &args.query,
+            &model_dir,
+            &execution,
+            &Utc::now().to_rfc3339(),
+        )?;
+        println!("- Report       : {}", report_path.display());
+    }
+
     Ok(())
+}
+
+fn write_semantic_report(
+    workspace_root: &std::path::Path,
+    query: &str,
+    model_dir: &std::path::Path,
+    execution: &crate::core::semantic_search::SemanticSearchExecution,
+    generated_at: &str,
+) -> Result<PathBuf> {
+    let report = SearchReportDocument {
+        kind: SearchReportKind::Semantic,
+        query: query.to_string(),
+        generated_at: generated_at.to_string(),
+        workspace_root: workspace_root.display().to_string(),
+        model_dir: model_dir.display().to_string(),
+        index_path: execution.index_path.display().to_string(),
+        total_documents: execution.total_documents,
+        reused_documents: execution.reused_documents,
+        embedded_documents: execution.embedded_documents,
+        hits: execution
+            .hits
+            .iter()
+            .map(|hit| SearchReportHit {
+                entry: hit.entry.clone(),
+                primary_score: hit.score,
+                semantic_score: None,
+                lexical_score: None,
+            })
+            .collect(),
+    };
+    let rendered = render_search_report_document(&report);
+    write_search_report_document(
+        workspace_root,
+        report.kind.as_str(),
+        &report.query,
+        generated_at,
+        &rendered,
+    )
+}
+
+fn write_hybrid_report(
+    workspace_root: &std::path::Path,
+    query: &str,
+    model_dir: &std::path::Path,
+    execution: &crate::core::semantic_search::HybridSearchExecution,
+    generated_at: &str,
+) -> Result<PathBuf> {
+    let report = SearchReportDocument {
+        kind: SearchReportKind::Hybrid,
+        query: query.to_string(),
+        generated_at: generated_at.to_string(),
+        workspace_root: workspace_root.display().to_string(),
+        model_dir: model_dir.display().to_string(),
+        index_path: execution.index_path.display().to_string(),
+        total_documents: execution.total_documents,
+        reused_documents: execution.reused_documents,
+        embedded_documents: execution.embedded_documents,
+        hits: execution
+            .hits
+            .iter()
+            .map(|hit| SearchReportHit {
+                entry: hit.entry.clone(),
+                primary_score: hit.hybrid_score,
+                semantic_score: Some(hit.semantic_score),
+                lexical_score: Some(hit.lexical_score),
+            })
+            .collect(),
+    };
+    let rendered = render_search_report_document(&report);
+    write_search_report_document(
+        workspace_root,
+        report.kind.as_str(),
+        &report.query,
+        generated_at,
+        &rendered,
+    )
 }
 
 fn export_request(request: ExportRequest) -> Result<()> {

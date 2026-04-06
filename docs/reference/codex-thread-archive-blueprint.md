@@ -202,6 +202,18 @@
 
 当前 blueprint 已经落地到当前定义的最深阶段。下一步若继续推进，需要新的产品裁决，而不是默认跳进 hosted / remote platform。
 
+### Phase 13
+
+已落地：
+
+- local retrieval report artifacts
+
+原因：
+
+- 现在已经能把 semantic / hybrid 检索结果保存成 local static reports
+- archive shell 也已经能链接这些 reports
+- 但仍然没有把 retrieval execution 搬进浏览器或远端平台
+
 ## 推荐 CLI 命令面
 
 当前已经落地的最小集合是：

@@ -12,7 +12,7 @@
 ## Current Truth
 
 - This repo is a **Rust CLI-first exporter**.
-- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search + semantic retrieval + hybrid retrieval + local multi-agent archive shell**.
+- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search + semantic retrieval + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts**.
 - The repository is designed to grow into multiple connectors later, but not all at once.
 - Current export semantics stay aligned with CodexMonitor:
   - `thread/read` primary
@@ -53,8 +53,13 @@
   - blends semantic ranking with lexical metadata signals
   - reuses the persistent semantic index from the semantic path
   - does not mutate `search semantic` into a hidden hybrid command
+- Current retrieval report semantics:
+  - `search semantic --save-report` and `search hybrid --save-report`
+  - write static HTML reports under `.agents/Search/Reports`
+  - reports are search-owned local artifacts, not transcript HTML inputs
+  - archive shell may link them, but retrieval execution stays in CLI
 - Current highest-value next step:
-  - a new post-Phase-12 product decision, still local-first and non-hosted
+  - a new post-Phase-13 product decision, still local-first and non-hosted
 - Current host-safety semantics:
   - the repo may spawn one direct app-server child
   - the repo may only terminate that directly owned child handle
@@ -84,6 +89,8 @@ cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl -
 cargo run -- publish archive-index --workspace-root /absolute/path/to/repo
 cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues"
 cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1"
+cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues" --save-report
+cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1" --save-report
 ```
 
 `cargo test` now also acts as the repo's host-safety gate.

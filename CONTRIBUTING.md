@@ -2,7 +2,7 @@
 
 ## 当前贡献重点
 
-当前仓库已经从“只有骨架”进入“Codex dual-source + Claude second connector + hybrid retrieval + local archive shell 已 landed”的阶段。
+当前仓库已经从“只有骨架”进入“Codex dual-source + Claude second connector + hybrid retrieval + local archive shell + retrieval reports 已 landed”的阶段。
 
 所以最欢迎的贡献顺序是：
 
@@ -36,6 +36,8 @@ cargo run -- export codex --thread-id <thread-id> --format html
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format html
 cargo run -- publish archive-index --workspace-root /absolute/path/to/repo
 cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1"
+cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues" --save-report
+cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1" --save-report
 ```
 
 ---

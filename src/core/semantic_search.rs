@@ -1074,4 +1074,46 @@ mod tests {
 
         assert_ne!(first, second);
     }
+
+    #[test]
+    fn collect_semantic_documents_ignores_search_reports_directory() {
+        let workspace = tempdir().expect("workspace");
+        let archive_dir = workspace.path().join(".agents").join("Conversations");
+        let reports_dir = workspace
+            .path()
+            .join(".agents")
+            .join("Search")
+            .join("Reports");
+        std::fs::create_dir_all(&archive_dir).expect("archive mkdirs");
+        std::fs::create_dir_all(&reports_dir).expect("reports mkdirs");
+
+        std::fs::write(
+            archive_dir.join("demo.html"),
+            concat!(
+                "<!DOCTYPE html><html><head>",
+                "<meta name=\"agent-exporter:thread-display-name\" content=\"Demo transcript\">",
+                "<meta name=\"agent-exporter:connector\" content=\"codex\">",
+                "<meta name=\"agent-exporter:thread-id\" content=\"thread-1\">",
+                "<meta name=\"agent-exporter:completeness\" content=\"complete\">",
+                "<meta name=\"agent-exporter:source-kind\" content=\"app-server-thread-read\">",
+                "<meta name=\"agent-exporter:exported-at\" content=\"2026-04-05T00:00:00Z\">",
+                "</head><body><p>real transcript</p></body></html>"
+            ),
+        )
+        .expect("write transcript");
+        std::fs::write(
+            reports_dir.join("search-report-semantic.html"),
+            "<!DOCTYPE html><html><head><title>report</title></head><body><p>report should not become corpus</p></body></html>",
+        )
+        .expect("write report");
+
+        let documents = collect_semantic_documents(workspace.path()).expect("collect docs");
+        assert_eq!(documents.len(), 1);
+        assert!(documents[0].text.contains("real transcript"));
+        assert!(
+            !documents[0]
+                .text
+                .contains("report should not become corpus")
+        );
+    }
 }

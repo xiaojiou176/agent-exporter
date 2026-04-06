@@ -87,7 +87,8 @@ fn semantic_search_help_describes_embedding_based_retrieval() {
         .stdout(predicate::str::contains(
             "Run embedding-based semantic retrieval over local HTML transcript exports",
         ))
-        .stdout(predicate::str::contains("--model-dir <MODEL_DIR>"));
+        .stdout(predicate::str::contains("--model-dir <MODEL_DIR>"))
+        .stdout(predicate::str::contains("--save-report"));
 }
 
 #[test]
@@ -101,5 +102,6 @@ fn hybrid_search_help_describes_blended_retrieval() {
         .stdout(predicate::str::contains(
             "Run hybrid retrieval that blends semantic ranking with lexical metadata signals",
         ))
-        .stdout(predicate::str::contains("--model-dir <MODEL_DIR>"));
+        .stdout(predicate::str::contains("--model-dir <MODEL_DIR>"))
+        .stdout(predicate::str::contains("--save-report"));
 }

@@ -1,12 +1,14 @@
 use std::collections::BTreeMap;
 
 use crate::core::archive_index::ArchiveIndexEntry;
+use crate::core::search_report::SearchReportEntry;
 use crate::output::html::escape_html;
 
 pub fn render_archive_index_document(
     archive_title: &str,
     generated_at: &str,
     entries: &[ArchiveIndexEntry],
+    reports: &[SearchReportEntry],
 ) -> String {
     let distinct_connectors = count_distinct_connectors(entries);
     let connector_facets = render_filter_buttons(
@@ -41,12 +43,27 @@ pub fn render_archive_index_document(
             entry.source_kind.as_deref().unwrap_or("unknown")
         }),
     );
+    let report_summary = render_summary_section(
+        "Saved retrieval reports",
+        summarize_by_reports(reports, |report| {
+            report.report_kind.as_deref().unwrap_or("unknown")
+        }),
+    );
     let body = if entries.is_empty() {
         "<section class=\"empty-state\"><h2>还没有 HTML transcript exports</h2><p>先运行 `agent-exporter export ... --format html`，再回来生成 archive index。</p></section>".to_string()
     } else {
         entries
             .iter()
             .map(render_entry)
+            .collect::<Vec<_>>()
+            .join("\n")
+    };
+    let report_cards = if reports.is_empty() {
+        "<article class=\"summary-card\"><p class=\"eyebrow\">Retrieval reports</p><h2>No saved reports yet</h2><p>下一次运行 <code>search semantic</code> 或 <code>search hybrid</code> 时，加上 <code>--save-report</code>，这里就会出现可直接打开的 report links。</p></article>".to_string()
+    } else {
+        reports
+            .iter()
+            .map(render_report_entry)
             .collect::<Vec<_>>()
             .join("\n")
     };
@@ -72,6 +89,7 @@ pub fn render_archive_index_document(
             "        <div><dt>HTML transcripts</dt><dd><code>{entry_count}</code></dd></div>\n",
             "        <div><dt>Connectors</dt><dd><code>{connector_count}</code></dd></div>\n",
             "        <div><dt>Retrieval lanes</dt><dd><code>metadata / semantic / hybrid</code></dd></div>\n",
+            "        <div><dt>Saved reports</dt><dd><code>{report_count}</code></dd></div>\n",
             "      </dl>\n",
             "    </header>\n",
             "    <section class=\"lane-grid\" aria-label=\"retrieval lanes\">\n",
@@ -83,20 +101,21 @@ pub fn render_archive_index_document(
             "      <article class=\"lane-card\">\n",
             "        <p class=\"eyebrow\">Lane 2</p>\n",
             "        <h2>Semantic retrieval</h2>\n",
-            "        <p>如果你要按语义找“内容相近”的 transcript，继续用当前纯语义命令面：</p>\n",
-            "        <pre><code>agent-exporter search semantic --workspace-root &lt;repo-root&gt; --query \"login issues\"</code></pre>\n",
+            "        <p>如果你要按语义找“内容相近”的 transcript，继续用当前纯语义命令面；加上 <code>--save-report</code> 就能把这次查询留成可重复打开的本地 report：</p>\n",
+            "        <pre><code>agent-exporter search semantic --workspace-root &lt;repo-root&gt; --query \"login issues\" --save-report</code></pre>\n",
             "      </article>\n",
             "      <article class=\"lane-card\">\n",
             "        <p class=\"eyebrow\">Lane 3</p>\n",
             "        <h2>Hybrid retrieval</h2>\n",
-            "        <p>如果你既想保留 semantic ranking，又想吃到 metadata signal，就走 blended lane：</p>\n",
-            "        <pre><code>agent-exporter search hybrid --workspace-root &lt;repo-root&gt; --query \"thread-1\"</code></pre>\n",
+            "        <p>如果你既想保留 semantic ranking，又想吃到 metadata signal，就走 blended lane；同样可以把结果保存成 local report：</p>\n",
+            "        <pre><code>agent-exporter search hybrid --workspace-root &lt;repo-root&gt; --query \"thread-1\" --save-report</code></pre>\n",
             "      </article>\n",
             "    </section>\n",
             "    <section class=\"summary-grid\" aria-label=\"archive summaries\">\n",
             "{connector_summary}\n",
             "{completeness_summary}\n",
             "{source_summary}\n",
+            "{report_summary}\n",
             "    </section>\n",
             "    <section class=\"search-bar\" aria-label=\"archive search\">\n",
             "      <label class=\"search-label\" for=\"archive-search\">Metadata search</label>\n",
@@ -106,6 +125,9 @@ pub fn render_archive_index_document(
             "{completeness_facets}\n",
             "      </div>\n",
             "      <p id=\"archive-search-status\" class=\"search-status\">Showing <strong>{entry_count}</strong> transcripts.</p>\n",
+            "    </section>\n",
+            "    <section class=\"report-grid\" aria-label=\"retrieval reports\">\n",
+            "{report_cards}\n",
             "    </section>\n",
             "    <section class=\"card-grid\">\n",
             "{body}\n",
@@ -120,11 +142,14 @@ pub fn render_archive_index_document(
         generated_at = escape_html(generated_at),
         entry_count = entries.len(),
         connector_count = distinct_connectors,
+        report_count = reports.len(),
         connector_facets = connector_facets,
         completeness_facets = completeness_facets,
         connector_summary = connector_summary,
         completeness_summary = completeness_summary,
         source_summary = source_summary,
+        report_summary = report_summary,
+        report_cards = report_cards,
         body = body,
         style = archive_index_style(),
         script = archive_index_script(),
@@ -202,6 +227,48 @@ fn chip(value: &str) -> String {
     format!("<span class=\"chip\">{}</span>", escape_html(value))
 }
 
+fn render_report_entry(entry: &SearchReportEntry) -> String {
+    let report_href = format!("../Search/Reports/{}", entry.relative_href);
+    let query_line = entry
+        .query
+        .as_deref()
+        .map(|query| {
+            format!(
+                "<p class=\"mono-inline\">query: <code>{}</code></p>",
+                escape_html(query)
+            )
+        })
+        .unwrap_or_default();
+    let generated_line = entry
+        .generated_at
+        .as_deref()
+        .map(|generated| {
+            format!(
+                "<p class=\"mono-inline\">generated: <code>{}</code></p>",
+                escape_html(generated)
+            )
+        })
+        .unwrap_or_default();
+
+    format!(
+        concat!(
+            "<article class=\"summary-card\">",
+            "<p class=\"eyebrow\">Retrieval report</p>",
+            "<h2>{title}</h2>",
+            "<div class=\"chip-row\">{kind_chip}</div>",
+            "{query_line}",
+            "{generated_line}",
+            "<p><a class=\"open-link\" href=\"{href}\">Open report</a></p>",
+            "</article>"
+        ),
+        title = escape_html(&entry.title),
+        kind_chip = chip(entry.report_kind.as_deref().unwrap_or("unknown")),
+        query_line = query_line,
+        generated_line = generated_line,
+        href = escape_html(&report_href),
+    )
+}
+
 fn count_distinct_connectors(entries: &[ArchiveIndexEntry]) -> usize {
     summarize_by(entries, |entry| {
         entry.connector.as_deref().unwrap_or("unknown")
@@ -212,6 +279,17 @@ fn count_distinct_connectors(entries: &[ArchiveIndexEntry]) -> usize {
 fn summarize_by<F>(entries: &[ArchiveIndexEntry], label: F) -> Vec<(String, usize)>
 where
     F: Fn(&ArchiveIndexEntry) -> &str,
+{
+    let mut counts = BTreeMap::new();
+    for entry in entries {
+        *counts.entry(label(entry).to_string()).or_insert(0usize) += 1;
+    }
+    counts.into_iter().collect()
+}
+
+fn summarize_by_reports<F>(entries: &[SearchReportEntry], label: F) -> Vec<(String, usize)>
+where
+    F: Fn(&SearchReportEntry) -> &str,
 {
     let mut counts = BTreeMap::new();
     for entry in entries {
@@ -320,6 +398,7 @@ fn archive_index_style() -> &'static str {
     .hero-card { margin-bottom: 24px; }
 
     .lane-grid,
+    .report-grid,
     .summary-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -590,6 +669,7 @@ mod tests {
                 source_kind: Some("app-server-thread-read".to_string()),
                 exported_at: Some("2026-04-05T00:00:00Z".to_string()),
             }],
+            &[],
         );
 
         assert!(html.contains("<!DOCTYPE html>"));
@@ -600,13 +680,13 @@ mod tests {
 
     #[test]
     fn render_archive_index_document_handles_empty_state() {
-        let html = render_archive_index_document("Demo archive", "2026-04-05T00:00:00Z", &[]);
+        let html = render_archive_index_document("Demo archive", "2026-04-05T00:00:00Z", &[], &[]);
         assert!(html.contains("还没有 HTML transcript exports"));
     }
 
     #[test]
     fn render_archive_index_document_embeds_search_ui() {
-        let html = render_archive_index_document("Demo archive", "2026-04-05T00:00:00Z", &[]);
+        let html = render_archive_index_document("Demo archive", "2026-04-05T00:00:00Z", &[], &[]);
         assert!(html.contains("archive-search"));
         assert!(html.contains("data-search-text"));
         assert!(html.contains("No transcripts matched the current search."));
@@ -627,11 +707,16 @@ mod tests {
                 source_kind: Some("app-server-thread-read".to_string()),
                 exported_at: Some("2026-04-05T00:00:00Z".to_string()),
             }],
+            &[],
         );
 
         assert!(html.contains("agent-exporter local archive shell"));
-        assert!(html.contains("search semantic --workspace-root &lt;repo-root&gt;"));
-        assert!(html.contains("search hybrid --workspace-root &lt;repo-root&gt;"));
+        assert!(html.contains(
+            "search semantic --workspace-root &lt;repo-root&gt; --query \"login issues\" --save-report"
+        ));
+        assert!(html.contains(
+            "search hybrid --workspace-root &lt;repo-root&gt; --query \"thread-1\" --save-report"
+        ));
         assert!(html.contains("data-filter-group=\"connector\""));
         assert!(html.contains("data-filter-group=\"completeness\""));
     }
