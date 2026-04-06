@@ -144,6 +144,66 @@ fn doctor_integrations_reports_missing_when_target_is_absent() {
 }
 
 #[test]
+fn doctor_integrations_reports_claude_ready_after_materialization() {
+    let target = tempdir().expect("target dir");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .arg("integrate")
+        .arg("claude-code")
+        .arg("--target")
+        .arg(target.path())
+        .assert()
+        .success();
+
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .arg("doctor")
+        .arg("integrations")
+        .arg("--platform")
+        .arg("claude-code")
+        .arg("--target")
+        .arg(target.path());
+
+    command
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Readiness    : ready"))
+        .stdout(predicate::str::contains("claude_project_shape [ready]"));
+}
+
+#[test]
+fn doctor_integrations_reports_claude_partial_when_mcp_json_is_invalid() {
+    let target = tempdir().expect("target dir");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .arg("integrate")
+        .arg("claude-code")
+        .arg("--target")
+        .arg(target.path())
+        .assert()
+        .success();
+
+    fs::write(target.path().join(".mcp.json"), "{ invalid json\n").expect("write invalid json");
+
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .arg("doctor")
+        .arg("integrations")
+        .arg("--platform")
+        .arg("claude-code")
+        .arg("--target")
+        .arg(target.path());
+
+    command
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Readiness    : partial"))
+        .stdout(predicate::str::contains("claude_project_shape [partial]"));
+}
+
+#[test]
 fn integrate_openclaw_materializes_both_bundle_variants() {
     let target = tempdir().expect("target dir");
 
@@ -189,6 +249,35 @@ fn integrate_openclaw_materializes_both_bundle_variants() {
     let mcp_content = read(&claude_mcp);
     assert!(skill_content.contains(&expected_launcher_fragment()));
     assert!(!mcp_content.contains(MCP_PLACEHOLDER));
+}
+
+#[test]
+fn doctor_integrations_reports_openclaw_ready_after_materialization() {
+    let target = tempdir().expect("target dir");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .arg("integrate")
+        .arg("openclaw")
+        .arg("--target")
+        .arg(target.path())
+        .assert()
+        .success();
+
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .arg("doctor")
+        .arg("integrations")
+        .arg("--platform")
+        .arg("openclaw")
+        .arg("--target")
+        .arg(target.path());
+
+    command
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Readiness    : ready"))
+        .stdout(predicate::str::contains("openclaw_bundle_shape [ready]"));
 }
 
 #[test]

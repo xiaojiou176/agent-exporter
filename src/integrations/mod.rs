@@ -3,6 +3,8 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 
 use anyhow::{Context, Result, bail};
+use serde_json::Value as JsonValue;
+use toml::Value as TomlValue;
 
 const MCP_SCRIPT_PLACEHOLDER: &str =
     "/absolute/path/to/agent-exporter/scripts/agent_exporter_mcp.py";
@@ -309,6 +311,11 @@ pub fn doctor_integration(request: &IntegrationDoctorRequest) -> Result<Integrat
         },
         detail: probe.detail,
     });
+
+    checks.extend(platform_specific_checks(
+        request.platform,
+        &request.target_root,
+    ));
 
     let overall = collapse_readiness(&checks);
     Ok(IntegrationDoctorOutcome {
@@ -618,6 +625,185 @@ fn assets_for(platform: IntegrationPlatform) -> &'static [TemplateAsset] {
             },
         ],
     }
+}
+
+fn platform_specific_checks(
+    platform: IntegrationPlatform,
+    target_root: &Path,
+) -> Vec<IntegrationDoctorCheck> {
+    match platform {
+        IntegrationPlatform::Codex => vec![check_codex_config(target_root)],
+        IntegrationPlatform::ClaudeCode => vec![check_claude_mcp(target_root)],
+        IntegrationPlatform::OpenClaw => vec![check_openclaw_bundle(target_root)],
+    }
+}
+
+fn check_codex_config(target_root: &Path) -> IntegrationDoctorCheck {
+    let path = target_root.join(".codex").join("config.toml");
+    let Some(content) = fs::read_to_string(&path).ok() else {
+        return IntegrationDoctorCheck {
+            label: "codex_config_shape",
+            readiness: IntegrationReadiness::Missing,
+            detail: path.display().to_string(),
+        };
+    };
+
+    let parsed = content.parse::<TomlValue>();
+    match parsed {
+        Ok(value)
+            if value
+                .get("mcp_servers")
+                .and_then(|servers| servers.get("agent_exporter"))
+                .is_some() =>
+        {
+            IntegrationDoctorCheck {
+                label: "codex_config_shape",
+                readiness: IntegrationReadiness::Ready,
+                detail: "`.codex/config.toml` contains `mcp_servers.agent_exporter`".to_string(),
+            }
+        }
+        Ok(_) => IntegrationDoctorCheck {
+            label: "codex_config_shape",
+            readiness: IntegrationReadiness::Partial,
+            detail: "`.codex/config.toml` parsed, but `mcp_servers.agent_exporter` is missing"
+                .to_string(),
+        },
+        Err(error) => IntegrationDoctorCheck {
+            label: "codex_config_shape",
+            readiness: IntegrationReadiness::Partial,
+            detail: format!("`.codex/config.toml` failed to parse: {error}"),
+        },
+    }
+}
+
+fn check_claude_mcp(target_root: &Path) -> IntegrationDoctorCheck {
+    let path = target_root.join(".mcp.json");
+    let Some(content) = fs::read_to_string(&path).ok() else {
+        return IntegrationDoctorCheck {
+            label: "claude_project_shape",
+            readiness: IntegrationReadiness::Missing,
+            detail: path.display().to_string(),
+        };
+    };
+
+    let parsed = serde_json::from_str::<JsonValue>(&content);
+    match parsed {
+        Ok(value)
+            if value
+                .get("mcpServers")
+                .and_then(|servers| servers.get("agent-exporter"))
+                .and_then(|entry| entry.get("command"))
+                .and_then(|value| value.as_str())
+                .is_some() =>
+        {
+            IntegrationDoctorCheck {
+                label: "claude_project_shape",
+                readiness: IntegrationReadiness::Ready,
+                detail: "`.mcp.json` contains `mcpServers.agent-exporter.command`".to_string(),
+            }
+        }
+        Ok(_) => IntegrationDoctorCheck {
+            label: "claude_project_shape",
+            readiness: IntegrationReadiness::Partial,
+            detail: "`.mcp.json` parsed, but `mcpServers.agent-exporter.command` is missing"
+                .to_string(),
+        },
+        Err(error) => IntegrationDoctorCheck {
+            label: "claude_project_shape",
+            readiness: IntegrationReadiness::Partial,
+            detail: format!("`.mcp.json` failed to parse: {error}"),
+        },
+    }
+}
+
+fn check_openclaw_bundle(target_root: &Path) -> IntegrationDoctorCheck {
+    let codex_plugin = target_root
+        .join("openclaw-codex-bundle")
+        .join(".codex-plugin")
+        .join("plugin.json");
+    let claude_plugin = target_root
+        .join("openclaw-claude-bundle")
+        .join(".claude-plugin")
+        .join("plugin.json");
+    let codex_mcp = target_root.join("openclaw-codex-bundle").join(".mcp.json");
+    let claude_mcp = target_root.join("openclaw-claude-bundle").join(".mcp.json");
+
+    let checks = [
+        parse_manifest(&codex_plugin),
+        parse_manifest(&claude_plugin),
+        parse_mcp_config(&codex_mcp),
+        parse_mcp_config(&claude_mcp),
+    ];
+
+    if checks.iter().all(|result| result.is_ok()) {
+        IntegrationDoctorCheck {
+            label: "openclaw_bundle_shape",
+            readiness: IntegrationReadiness::Ready,
+            detail: "bundle manifests and `.mcp.json` files parsed successfully".to_string(),
+        }
+    } else if checks.iter().any(|result| {
+        result
+            .as_ref()
+            .err()
+            .is_some_and(|detail| detail.contains("missing"))
+    }) {
+        IntegrationDoctorCheck {
+            label: "openclaw_bundle_shape",
+            readiness: IntegrationReadiness::Missing,
+            detail: checks
+                .into_iter()
+                .filter_map(Result::err)
+                .next()
+                .unwrap_or_else(|| "bundle files are missing".to_string()),
+        }
+    } else {
+        IntegrationDoctorCheck {
+            label: "openclaw_bundle_shape",
+            readiness: IntegrationReadiness::Partial,
+            detail: checks
+                .into_iter()
+                .filter_map(Result::err)
+                .next()
+                .unwrap_or_else(|| "bundle files are malformed".to_string()),
+        }
+    }
+}
+
+fn parse_manifest(path: &Path) -> Result<(), String> {
+    let content = fs::read_to_string(path).map_err(|_| format!("missing `{}`", path.display()))?;
+    let value = serde_json::from_str::<JsonValue>(&content)
+        .map_err(|error| format!("`{}` failed to parse: {error}", path.display()))?;
+    if value.get("name").and_then(|value| value.as_str()).is_none()
+        || value
+            .get("version")
+            .and_then(|value| value.as_str())
+            .is_none()
+    {
+        return Err(format!(
+            "`{}` parsed, but required `name`/`version` keys are missing",
+            path.display()
+        ));
+    }
+    Ok(())
+}
+
+fn parse_mcp_config(path: &Path) -> Result<(), String> {
+    let content = fs::read_to_string(path).map_err(|_| format!("missing `{}`", path.display()))?;
+    let value = serde_json::from_str::<JsonValue>(&content)
+        .map_err(|error| format!("`{}` failed to parse: {error}", path.display()))?;
+    if value
+        .get("mcpServers")
+        .and_then(|servers| servers.get("agent-exporter"))
+        .and_then(|entry| entry.get("command"))
+        .and_then(|value| value.as_str())
+        .is_none()
+    {
+        return Err(format!(
+            "`{}` parsed, but `mcpServers.agent-exporter.command` is missing",
+            path.display()
+        ));
+    }
+    Ok(())
 }
 
 #[cfg(test)]

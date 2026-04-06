@@ -73,6 +73,12 @@ doctor 会检查：
 如果当前 launcher 只能回退到 `cargo run`，doctor 会保守停在 `partial`。
 它不会为了给你一个更好看的状态，而在只读模式下偷偷触发 build。
 
+另外，doctor 现在还会按平台补最关键的 shape checks：
+
+- Codex：`.codex/config.toml`
+- Claude Code：`.mcp.json`
+- OpenClaw：bundle/plugin manifests 和 `.mcp.json`
+
 ## OpenClaw 边界
 
 OpenClaw 这层当前保证的是：

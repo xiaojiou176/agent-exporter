@@ -64,6 +64,19 @@
 > 如果你昨天材料化了一套接线包，今天这仓已经换了 launcher 路径或 bridge 路径，
 > doctor 现在会更早把这种“接线包过期”揪出来。
 
+## Platform-Aware Diagnostics
+
+当前 doctor 还已经更进一步，不再只是做通用检查。
+
+它现在会按平台补最关键的 shape checks：
+
+- Codex：`.codex/config.toml` 是否真包含 project-scoped `mcp_servers.agent_exporter`
+- Claude Code：`.mcp.json` 是否真是可解析的 project-scoped MCP config
+- OpenClaw：bundle/plugin manifests 与 `.mcp.json` 是否真像一个合法 bundle
+
+这仍然是文件级、target 级、只读的 doctor。
+它不是 host runtime 验证器，也不会替你执行 OpenClaw install。
+
 ## First-Run Contract
 
 这一层最容易踩坑的地方，不是模板不存在，而是第一次接线时把前置条件想得太乐观。

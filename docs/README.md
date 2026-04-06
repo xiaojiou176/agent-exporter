@@ -6,7 +6,7 @@
 
 ## Current Phase Snapshot
 
-当前这套文档已经进入 **Phase 22 integration doctor hardening landed**。
+当前这套文档已经进入 **Phase 23 platform-aware integration doctor diagnostics landed**。
 
 你可以先把它理解成：这套文档现在要同时解释“正门、侧门、以及第二种输出格式”，但不能把它们说成同一种真相。
 
@@ -28,8 +28,9 @@
 - `doctor integrations --platform <platform> --target <dir>` 已经 landed，说明接入 readiness 现在有 repo-owned 验收入口
 - `doctor integrations` 现在还会做 target drift 检查和 launcher probe，不再只是文件存在性检查
 - 当 launcher 只剩 `cargo run` 回退时，doctor 会保守停在 `partial`，而不是在只读模式下触发 build
+- `doctor integrations` 现在还会按平台检查 Codex / Claude Code / OpenClaw 最关键的 config/bundle 形状
 - `local` 和 `claude-code` 当前都按 **degraded** 理解，不能冒充 canonical parity
-- 当前已进入 post-Phase-22 产品裁决区，而不是直接膨胀成 hosted / 平台壳
+- 当前已进入 post-Phase-23 产品裁决区，而不是直接膨胀成 hosted / 平台壳
 
 ## Read Order
 

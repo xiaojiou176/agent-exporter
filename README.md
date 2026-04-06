@@ -63,6 +63,7 @@
 - repo-owned integration materializer
 - repo-owned integration doctor
 - drift-aware integration doctor hardening
+- platform-aware integration doctor diagnostics
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -121,7 +122,8 @@
 19. **现在已经落地：repo-owned integration materializer via `integrate <platform> --target <dir>`**
 20. **现在已经落地：repo-owned integration doctor via `doctor integrations --platform <platform> --target <dir>`**
 21. **现在已经落地：integration doctor drift checks + launcher probe**
-22. **当前已进入 post-Phase-22 product decision 区，默认仍不膨胀成 hosted search / service**
+22. **现在已经落地：platform-aware integration doctor diagnostics**
+23. **当前已进入 post-Phase-23 product decision 区，默认仍不膨胀成 hosted search / service**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -433,6 +435,10 @@ cargo run -- doctor integrations --platform codex --target /absolute/path/to/cod
   - 当前 target 内容是否和当前 repo 重新材料化后的版本一致
   - 当前 repo-local launcher 是否真的还能执行 `connectors`
   - 如果当前 launcher 只能回退到 `cargo run`，doctor 会保守停在 `partial`，不会在只读模式下为了一句 `ready` 触发 build
+- Doctor 现在还会按平台补更具体的 shape checks：
+  - Codex：`.codex/config.toml` 是否真像一个 project-scoped config
+  - Claude Code：`.mcp.json` 是否真是一个可解析的 project-scoped MCP config
+  - OpenClaw：bundle/plugin manifests 和 `.mcp.json` 是否真像一个合法 bundle
 
 ## License
 
