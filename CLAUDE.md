@@ -63,7 +63,7 @@
   - reports are search-owned local artifacts, not transcript HTML inputs
   - archive shell and reports shell may link them, but retrieval execution stays in CLI
 - Current highest-value next step:
-  - a new post-Phase-18 product decision, still local-first and non-hosted
+  - GitHub remote closeout plus a new post-Phase-19 product decision, still local-first and non-hosted
 - Current host-safety semantics:
   - the repo may spawn one direct app-server child
   - the repo may only terminate that directly owned child handle
@@ -75,6 +75,7 @@
 - `docs/reference/codex-upstream-reading-list.md`
 - `docs/reference/external-repo-reading-list.md`
 - `docs/reference/codex-thread-archive-blueprint.md`
+- `docs/integrations/README.md`
 
 ## Fast Commands
 

@@ -1,0 +1,5 @@
+{
+  "name": "agent-exporter-claude-bundle",
+  "version": "0.1.0",
+  "description": "CLI-first agent-exporter workflow bundle for OpenClaw Claude-compatible plugin ingestion"
+}

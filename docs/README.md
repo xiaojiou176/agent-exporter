@@ -64,6 +64,7 @@
 - `codex-upstream-reading-list.md`
 - `external-repo-reading-list.md`
 - `codex-thread-archive-blueprint.md`
+- `integrations/*`
 
 ---
 

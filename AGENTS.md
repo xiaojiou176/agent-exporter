@@ -77,6 +77,7 @@
 - workspace-local transcript backlinks
 - local reports shell
 - reports-shell metadata search
+- integration pack docs/templates
 - `export codex --thread-id ...` 真实 CLI 主链
 - `export claude-code --session-path ...` 真实 CLI 主链
 - `--format markdown|json|html`

@@ -56,6 +56,8 @@ The format is based on Keep a Changelog.
 - Reports-shell rendering coverage
 - Reports-shell metadata search and report-kind facets
 - Reports-shell search coverage
+- Integration pack docs and templates for Codex / Claude Code / OpenClaw
+- LICENSE / SECURITY / CODE_OF_CONDUCT baseline for GitHub/open-source closeout
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder

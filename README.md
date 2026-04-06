@@ -58,6 +58,7 @@
 - workspace-local transcript backlinks
 - local reports shell
 - local reports-shell metadata search
+- Codex / Claude Code / OpenClaw integration pack docs/templates
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -384,6 +385,27 @@ cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thre
 cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues" --save-report
 cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1" --save-report
 ```
+
+## Integration Pack
+
+如果你要把 `agent-exporter` 接进别的 agent/workflow，目前最稳的入口是：
+
+- Codex: `docs/integrations/codex.md`
+- Claude Code: `docs/integrations/claude-code.md`
+- OpenClaw: `docs/integrations/openclaw.md`
+
+模板入口见：
+
+- `docs/integrations/templates/`
+
+当前真实边界：
+
+- 已经准备好的：CLI-first templates / skills / command snippets / bundle skeletons
+- 还没内建的：repo-native MCP server
+
+## License
+
+当前仓库使用 **MIT License**。详见 [LICENSE](./LICENSE)。
 
 `cargo test` 现在也承担 host safety gate: 如果运行时代码里重新出现危险宿主机原语，测试会直接失败。
 

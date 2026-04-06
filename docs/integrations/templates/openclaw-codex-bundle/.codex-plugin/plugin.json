@@ -1,0 +1,5 @@
+{
+  "name": "agent-exporter-codex-bundle",
+  "version": "0.1.0",
+  "description": "CLI-first agent-exporter workflow bundle for OpenClaw Codex-compatible plugin ingestion"
+}
