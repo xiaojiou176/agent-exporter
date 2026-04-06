@@ -6,7 +6,7 @@
 
 - 当前目标：**Codex canonical transcript/archive 导出**
 - 未来目标：Claude Code、以及其他本地 CLI
-- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + minimal stdio MCP bridge + repo-owned integration materializer/doctor + drift-aware integration doctor hardening + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + integration evidence pack 已落地；当前已进入 post-Phase-26 产品裁决区；默认 Codex 主路径仍是 app-server**
+- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + minimal stdio MCP bridge + repo-owned integration materializer/doctor + drift-aware integration doctor hardening + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + integration evidence pack + integration evidence shell search 已落地；当前已进入 post-Phase-27 产品裁决区；默认 Codex 主路径仍是 app-server**
 
 ---
 
@@ -86,6 +86,7 @@
 - integration pack-shape hardening
 - integration onboarding experience
 - integration evidence pack
+- integration evidence shell search
 - `export codex --thread-id ...` 真实 CLI 主链
 - `export claude-code --session-path ...` 真实 CLI 主链
 - `--format markdown|json|html`
@@ -110,6 +111,7 @@
   - `doctor` / `onboard` 现在还能把当前结果保存成 integration evidence reports
   - integration evidence reports 默认写到当前工作目录下的 `.agents/Integration/Reports`
   - 这批 reports 是 integration-owned local artifacts，不回流 transcript corpus，也不混进 search-owned reports shell
+  - integration evidence shell 现在还支持本地静态 search/facets，重点是 `platform` / `readiness`
 
 ### 当前明确非目标
 

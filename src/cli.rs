@@ -453,7 +453,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails + integration evidence pack reports."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails + integration evidence pack reports + integration evidence shell search."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -488,7 +488,7 @@ fn print_scaffold_status() {
         "- Real integration evidence path: `agent-exporter doctor integrations --platform <platform> --target <dir> --save-report` or `agent-exporter onboard <platform> --target <dir> --save-report`."
     );
     println!(
-        "- Next step: a new post-Phase-26 product decision, while staying local-first and non-hosted."
+        "- Next step: a new post-Phase-27 product decision, while staying local-first and non-hosted."
     );
 }
 

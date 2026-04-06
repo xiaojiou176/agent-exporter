@@ -286,6 +286,18 @@
 - 同目录下也会生成一张静态 front door `index.html`
 - 但这些 artifacts 仍然和 transcript corpus / retrieval reports 分仓，不会被 search/archive 主链误吃回去
 
+### Phase 27
+
+已落地：
+
+- integration evidence shell search
+
+原因：
+
+- `.agents/Integration/Reports/index.html` 已经不只是 evidence 列表
+- 它现在还支持本地静态搜索和 facet，至少覆盖 `platform` / `readiness`
+- 但浏览器仍然只是静态 evidence shell，不执行 doctor/onboard/install
+
 ## 推荐 CLI 命令面
 
 当前已经落地的最小集合是：
@@ -392,4 +404,5 @@ src/
 - local metadata search 已落地
 - repo-owned integration materializer / doctor 已落地
 - integration evidence pack / exportable onboarding report 已落地
+- integration evidence shell search 已落地
 - 未来扩展边界仍然保持收口

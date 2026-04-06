@@ -12,7 +12,7 @@
 ## Current Truth
 
 - This repo is a **Rust CLI-first exporter**.
-- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search + semantic retrieval + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + repo-owned integration materializer/doctor + integration doctor hardening + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + integration evidence pack**.
+- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search + semantic retrieval + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + repo-owned integration materializer/doctor + integration doctor hardening + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + integration evidence pack + integration evidence shell search**.
 - Current integration-pack semantics:
   - Codex and Claude Code are ready through CLI-first templates plus an optional minimal stdio MCP bridge
   - the MCP bridge resolves repo-local launcher paths before any explicit `AGENT_EXPORTER_BIN` / `AGENT_EXPORTER_ARGS` override
@@ -27,6 +27,7 @@
   - `integrate` / `onboard` now reject obvious live host/global roots such as `~/.codex`, `~/.claude*`, and direct OpenClaw bundle/plugin roots
   - `doctor integrations --save-report` and `onboard --save-report` now write static integration evidence under `.agents/Integration/Reports`
   - integration evidence reports are integration-owned artifacts and must not be re-ingested into transcript/search corpora
+  - the integration evidence front door now supports static shell search/facets for `platform` and `readiness`
 - The repository is designed to grow into multiple connectors later, but not all at once.
 - Current export semantics stay aligned with CodexMonitor:
   - `thread/read` primary
@@ -77,7 +78,7 @@
   - reports are search-owned local artifacts, not transcript HTML inputs
   - archive shell and reports shell may link them, but retrieval execution stays in CLI
 - Current highest-value next step:
-  - a new post-Phase-26 product decision, still local-first and non-hosted
+  - a new post-Phase-27 product decision, still local-first and non-hosted
 - Current host-safety semantics:
   - the repo may spawn one direct app-server child
   - the repo may only terminate that directly owned child handle

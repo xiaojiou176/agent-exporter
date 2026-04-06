@@ -587,5 +587,83 @@ function update() {
     empty.hidden = visible !== 0;
   }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::core::integration_report::IntegrationReportEntry;
+    use crate::integrations::{IntegrationDoctorCheck, IntegrationReadiness};
+
+    use super::{
+        IntegrationReportDocument, IntegrationReportKind, render_integration_report_document,
+        render_integration_reports_index_document,
+    };
+
+    #[test]
+    fn render_integration_report_document_includes_meta_tags() {
+        let html = render_integration_report_document(&IntegrationReportDocument {
+            kind: IntegrationReportKind::Doctor,
+            platform: "codex".to_string(),
+            target_root: "/tmp/codex-pack".to_string(),
+            generated_at: "2026-04-06T12:00:00Z".to_string(),
+            readiness: "ready".to_string(),
+            summary: "codex pack looks ready".to_string(),
+            launcher_kind: "repo-local-debug".to_string(),
+            launcher_command: "/tmp/agent-exporter".to_string(),
+            written_files: Vec::new(),
+            unchanged_files: Vec::new(),
+            checks: vec![IntegrationDoctorCheck {
+                label: "target_root",
+                readiness: IntegrationReadiness::Ready,
+                detail: "/tmp/codex-pack".to_string(),
+            }],
+            next_steps: vec!["Review the generated pack".to_string()],
+        });
+
+        assert!(html.contains("agent-exporter:report-kind\" content=\"doctor"));
+        assert!(html.contains("agent-exporter:integration-platform\" content=\"codex"));
+        assert!(html.contains("agent-exporter:integration-readiness\" content=\"ready"));
+        assert!(html.contains("agent-exporter:integration-target\" content=\"/tmp/codex-pack"));
+        assert!(html.contains("Open integration reports"));
+    }
+
+    #[test]
+    fn render_integration_reports_index_document_includes_search_and_facets() {
+        let html = render_integration_reports_index_document(
+            "integration reports",
+            "2026-04-06T12:00:00Z",
+            &[
+                IntegrationReportEntry {
+                    file_name: "integration-report-doctor-codex.html".to_string(),
+                    relative_href: "integration-report-doctor-codex.html".to_string(),
+                    title: "Codex doctor".to_string(),
+                    report_kind: Some("doctor".to_string()),
+                    platform: Some("codex".to_string()),
+                    readiness: Some("ready".to_string()),
+                    target_root: Some("/tmp/codex-pack".to_string()),
+                    generated_at: Some("2026-04-06T12:00:00Z".to_string()),
+                },
+                IntegrationReportEntry {
+                    file_name: "integration-report-onboard-claude-code.html".to_string(),
+                    relative_href: "integration-report-onboard-claude-code.html".to_string(),
+                    title: "Claude onboard".to_string(),
+                    report_kind: Some("onboard".to_string()),
+                    platform: Some("claude-code".to_string()),
+                    readiness: Some("partial".to_string()),
+                    target_root: Some("/tmp/claude-pack".to_string()),
+                    generated_at: Some("2026-04-06T12:05:00Z".to_string()),
+                },
+            ],
+        );
+
+        assert!(html.contains("integration-report-search"));
+        assert!(html.contains("data-filter-group=\"platform\""));
+        assert!(html.contains("data-filter-group=\"readiness\""));
+        assert!(html.contains("data-platform=\"codex\""));
+        assert!(html.contains("data-platform=\"claude-code\""));
+        assert!(html.contains("data-readiness=\"ready\""));
+        assert!(html.contains("data-readiness=\"partial\""));
+        assert!(html.contains("Search title, platform, readiness, target"));
+    }
+}
 "#
 }

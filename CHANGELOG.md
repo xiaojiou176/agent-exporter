@@ -70,6 +70,7 @@ The format is based on Keep a Changelog.
 - Repo-owned onboarding command that stitches materialize + doctor + next steps into one first-run path
 - Forbidden-target guards for `integrate` / `onboard`, rejecting live Codex/Claude home roots and direct OpenClaw bundle/plugin roots such as `bundles/<name>` / `plugins/<name>`
 - Integration evidence reports via `doctor/onboard --save-report`, with a dedicated `.agents/Integration/Reports` front door
+- Integration evidence shell search/facets for `platform` and `readiness`
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder

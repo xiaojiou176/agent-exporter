@@ -67,6 +67,7 @@
 - integration pack-shape hardening
 - integration onboarding experience
 - integration evidence pack / exportable onboarding reports
+- integration evidence shell search
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -77,7 +78,7 @@
 
 当前阶段**还没有**完成的是：
 
-- 当前 Phase 26 之后的新一轮产品裁决
+- 当前 Phase 27 之后的新一轮产品裁决
 
 ---
 
@@ -130,7 +131,8 @@
 24. **现在已经落地：integration onboarding experience via `onboard <platform> --target <dir>`**
 25. **现在已经落地：integration onboarding experience via `onboard <platform> --target <dir>`**
 26. **现在已经落地：integration evidence pack via `doctor/onboard --save-report` + `.agents/Integration/Reports/`**
-27. **当前已进入 post-Phase-26 product decision 区，默认仍不膨胀成 hosted search / service**
+27. **现在已经落地：integration evidence shell search via `.agents/Integration/Reports/index.html`**
+28. **当前已进入 post-Phase-27 product decision 区，默认仍不膨胀成 hosted search / service**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -380,7 +382,7 @@ codex app-server
 
 后续文档和实现若继续推进，会先进入：
 
-1. 新的 post-Phase-22 产品裁决
+1. 新的 post-Phase-27 产品裁决
 
 ---
 
@@ -467,6 +469,10 @@ cargo run -- doctor integrations --platform codex --target /absolute/path/to/cod
   - front door: `.agents/Integration/Reports/index.html`
   - 不会回流 `.agents/Conversations` transcript corpus
   - 也不会混进 `.agents/Search/Reports` retrieval report 壳
+- integration evidence shell 现在也已经支持本地静态搜索和 facet：
+  - `platform`
+  - `readiness`
+  - 仍然只是静态 evidence shell，不会在浏览器里执行 doctor/onboard
 
 ## License
 
