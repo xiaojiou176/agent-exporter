@@ -68,6 +68,8 @@
 - integration onboarding experience
 - integration evidence pack / exportable onboarding reports
 - integration evidence shell search
+- machine-readable integration evidence
+- integration evidence timeline/diff
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -78,7 +80,7 @@
 
 当前阶段**还没有**完成的是：
 
-- 当前 Phase 27 之后的新一轮产品裁决
+- 当前 Phase 29 之后的新一轮产品裁决
 
 ---
 
@@ -132,7 +134,9 @@
 25. **现在已经落地：integration onboarding experience via `onboard <platform> --target <dir>`**
 26. **现在已经落地：integration evidence pack via `doctor/onboard --save-report` + `.agents/Integration/Reports/`**
 27. **现在已经落地：integration evidence shell search via `.agents/Integration/Reports/index.html`**
-28. **当前已进入 post-Phase-27 product decision 区，默认仍不膨胀成 hosted search / service**
+28. **现在已经落地：machine-readable integration evidence via `report.json + index.json`**
+29. **现在已经落地：integration evidence timeline/diff via `agent-exporter evidence diff --left <report> --right <report>`**
+30. **当前已进入 post-Phase-29 product decision 区，默认仍不膨胀成 hosted search / service**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -405,6 +409,7 @@ cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "ho
 cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1"
 cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues" --save-report
 cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1" --save-report
+cargo run -- evidence diff --left /absolute/path/to/report-a.json --right /absolute/path/to/report-b.json
 cargo run -- integrate codex --target /absolute/path/to/codex-pack
 cargo run -- integrate claude-code --target /absolute/path/to/claude-pack
 cargo run -- integrate openclaw --target /absolute/path/to/openclaw-pack
@@ -439,6 +444,8 @@ cargo run -- doctor integrations --platform codex --target /absolute/path/to/cod
   - `agent-exporter doctor integrations --platform <platform> --target <dir> --save-report`
   - `agent-exporter onboard <platform> --target <dir> --save-report`
   - report 默认写到当前工作目录下的 `.agents/Integration/Reports`
+  - 现在还会同写 `report.html + report.json`，并维护 `index.html + index.json`
+  - `agent-exporter evidence diff --left <report> --right <report>` 现在能解释两次 evidence 的变化
 - 当前 bridge 只覆盖 publish/search 高价值工具，不代表整个 CLI 全量变成 MCP
 - 当前 MCP bridge 默认依赖 repo 内的 `scripts/agent_exporter_mcp.py`
   - first-run 会优先尝试 repo-local `target/release/agent-exporter`

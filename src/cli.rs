@@ -10,8 +10,11 @@ use crate::core::archive::{
 };
 use crate::core::archive_index;
 use crate::core::integration_report::{
-    collect_integration_report_entries, resolve_integration_reports_dir,
-    write_integration_report_document, write_integration_reports_index_document,
+    IntegrationEvidenceDiff, collect_integration_report_entries,
+    collect_integration_report_json_documents, diff_integration_reports,
+    read_integration_report_json_document, resolve_integration_reports_dir,
+    write_integration_report_document, write_integration_report_json_document,
+    write_integration_reports_index_document, write_integration_reports_index_json_document,
 };
 use crate::core::search_report::{
     collect_search_report_entries, write_search_report_document,
@@ -30,7 +33,8 @@ use crate::model::{ConnectorKind, OutputFormat, SupportStage};
 use crate::output::{
     archive_index as archive_index_output, html as html_output,
     integration_report::{
-        IntegrationReportDocument, IntegrationReportKind, render_integration_report_document,
+        IntegrationReportDocument, IntegrationReportKind, build_integration_report_json_document,
+        build_integration_reports_index_json_document, render_integration_report_document,
         render_integration_reports_index_document,
     },
     json as json_output,
@@ -91,6 +95,11 @@ enum Commands {
         #[command(subcommand)]
         command: OnboardCommands,
     },
+    /// Compare saved integration evidence snapshots without rerunning doctor/onboard.
+    Evidence {
+        #[command(subcommand)]
+        command: EvidenceCommands,
+    },
 }
 
 #[derive(Debug, Subcommand)]
@@ -141,6 +150,12 @@ enum OnboardCommands {
     /// Materialize an OpenClaw onboarding pack into a staging target and explain the next steps.
     #[command(name = "openclaw")]
     OpenClaw(OnboardArgs),
+}
+
+#[derive(Debug, Subcommand)]
+enum EvidenceCommands {
+    /// Diff two saved integration evidence reports (`.json` or sibling `.html` paths).
+    Diff(EvidenceDiffArgs),
 }
 
 #[derive(Debug, clap::Args)]
@@ -268,6 +283,16 @@ struct OnboardArgs {
     /// Save a static integration evidence report under the current working directory.
     #[arg(long, default_value_t = false)]
     save_report: bool,
+}
+
+#[derive(Debug, clap::Args)]
+struct EvidenceDiffArgs {
+    /// Left report path (`.json` preferred; `.html` resolves to sibling `.json`).
+    #[arg(long)]
+    left: PathBuf,
+    /// Right report path (`.json` preferred; `.html` resolves to sibling `.json`).
+    #[arg(long)]
+    right: PathBuf,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
@@ -430,6 +455,9 @@ pub fn run() -> Result<()> {
                 onboard_platform(IntegrationPlatform::OpenClaw, args)?
             }
         },
+        Commands::Evidence { command } => match command {
+            EvidenceCommands::Diff(args) => evidence_diff(args)?,
+        },
     }
     Ok(())
 }
@@ -453,7 +481,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails + integration evidence pack reports + integration evidence shell search."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails + integration evidence pack reports + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -488,7 +516,10 @@ fn print_scaffold_status() {
         "- Real integration evidence path: `agent-exporter doctor integrations --platform <platform> --target <dir> --save-report` or `agent-exporter onboard <platform> --target <dir> --save-report`."
     );
     println!(
-        "- Next step: a new post-Phase-27 product decision, while staying local-first and non-hosted."
+        "- Real evidence diff path: `agent-exporter evidence diff --left <report.json|html> --right <report.json|html>`."
+    );
+    println!(
+        "- Next step: a new post-Phase-29 product decision, while staying local-first and non-hosted."
     );
 }
 
@@ -789,9 +820,11 @@ fn doctor_integrations(args: DoctorIntegrationsArgs) -> Result<()> {
             println!("  {}. {}", index + 1, step);
         }
     }
-    if let Some((report_path, index_path)) = &saved_report {
-        println!("- Report       : {}", report_path.display());
-        println!("- Reports Index: {}", index_path.display());
+    if let Some(bundle) = &saved_report {
+        println!("- Report       : {}", bundle.html_report.display());
+        println!("- Report JSON  : {}", bundle.json_report.display());
+        println!("- Reports Index: {}", bundle.index_html.display());
+        println!("- Reports JSON : {}", bundle.index_json.display());
         println!(
             "- Reports Root : {}",
             resolve_integration_reports_dir(&integration_reports_workspace_root()?).display()
@@ -850,9 +883,11 @@ fn onboard_platform(platform: IntegrationPlatform, args: OnboardArgs) -> Result<
             println!("  {}. {}", index + 1, step);
         }
     }
-    if let Some((report_path, index_path)) = &saved_report {
-        println!("- Report       : {}", report_path.display());
-        println!("- Reports Index: {}", index_path.display());
+    if let Some(bundle) = &saved_report {
+        println!("- Report       : {}", bundle.html_report.display());
+        println!("- Report JSON  : {}", bundle.json_report.display());
+        println!("- Reports Index: {}", bundle.index_html.display());
+        println!("- Reports JSON : {}", bundle.index_json.display());
         println!(
             "- Reports Root : {}",
             resolve_integration_reports_dir(&integration_reports_workspace_root()?).display()
@@ -963,7 +998,7 @@ fn write_doctor_integration_report(
     workspace_root: &std::path::Path,
     outcome: &crate::integrations::IntegrationDoctorOutcome,
     next_steps: &[String],
-) -> Result<(PathBuf, PathBuf)> {
+) -> Result<IntegrationReportBundlePaths> {
     let generated_at = Utc::now().to_rfc3339();
     let report = IntegrationReportDocument {
         kind: IntegrationReportKind::Doctor,
@@ -985,7 +1020,7 @@ fn write_doctor_integration_report(
 fn write_onboard_integration_report(
     workspace_root: &std::path::Path,
     outcome: &crate::integrations::IntegrationOnboardOutcome,
-) -> Result<(PathBuf, PathBuf)> {
+) -> Result<IntegrationReportBundlePaths> {
     let generated_at = Utc::now().to_rfc3339();
     let report = IntegrationReportDocument {
         kind: IntegrationReportKind::Onboard,
@@ -1017,21 +1052,110 @@ fn write_onboard_integration_report(
 fn write_integration_report_bundle(
     workspace_root: &std::path::Path,
     report: &IntegrationReportDocument,
-) -> Result<(PathBuf, PathBuf)> {
+) -> Result<IntegrationReportBundlePaths> {
     let document = render_integration_report_document(report);
-    let report_path = write_integration_report_document(
+    let html_report = write_integration_report_document(
         workspace_root,
         report.kind.as_str(),
         &report.platform,
         &report.generated_at,
         &document,
     )?;
-    let entries = collect_integration_report_entries(workspace_root)?;
+    let html_report_name = html_report
+        .file_name()
+        .and_then(|name| name.to_str())
+        .map(str::to_string)
+        .context("failed to derive integration report html file name")?;
+    let json_report_name = html_report_name.replace(".html", ".json");
+    let json_report_document =
+        build_integration_report_json_document(report, &html_report_name, &json_report_name);
+    let json_report = write_integration_report_json_document(
+        workspace_root,
+        report.kind.as_str(),
+        &report.platform,
+        &report.generated_at,
+        &json_report_document,
+    )?;
+    let html_entries = collect_integration_report_entries(workspace_root)?;
     let index_document = render_integration_reports_index_document(
         &integration_reports_title(workspace_root),
         &report.generated_at,
-        &entries,
+        &html_entries,
     );
-    let index_path = write_integration_reports_index_document(workspace_root, &index_document)?;
-    Ok((report_path, index_path))
+    let index_html = write_integration_reports_index_document(workspace_root, &index_document)?;
+    let json_entries = collect_integration_report_json_documents(workspace_root)?;
+    let index_json_document = build_integration_reports_index_json_document(
+        &integration_reports_title(workspace_root),
+        &report.generated_at,
+        &json_entries,
+    );
+    let index_json =
+        write_integration_reports_index_json_document(workspace_root, &index_json_document)?;
+    Ok(IntegrationReportBundlePaths {
+        html_report,
+        json_report,
+        index_html,
+        index_json,
+    })
+}
+
+#[derive(Debug)]
+struct IntegrationReportBundlePaths {
+    html_report: PathBuf,
+    json_report: PathBuf,
+    index_html: PathBuf,
+    index_json: PathBuf,
+}
+
+fn evidence_diff(args: EvidenceDiffArgs) -> Result<()> {
+    let left = read_integration_report_json_document(&args.left)?;
+    let right = read_integration_report_json_document(&args.right)?;
+    let diff = diff_integration_reports(&left, &right);
+    print_integration_evidence_diff(&diff, &args.left, &args.right);
+    Ok(())
+}
+
+fn print_integration_evidence_diff(
+    diff: &IntegrationEvidenceDiff,
+    left_path: &std::path::Path,
+    right_path: &std::path::Path,
+) {
+    println!("Integration evidence diff");
+    println!("- Platform     : {}", diff.platform);
+    println!("- Target       : {}", diff.target);
+    println!("- Left         : {}", left_path.display());
+    println!("- Right        : {}", right_path.display());
+    println!(
+        "- Readiness    : {} -> {}",
+        diff.left_readiness, diff.right_readiness
+    );
+    println!("- Left Stamp   : {}", diff.left_generated_at);
+    println!("- Right Stamp  : {}", diff.right_generated_at);
+
+    if diff.changed_checks.is_empty() {
+        println!("- Changed Checks: none");
+    } else {
+        println!("- Changed Checks");
+        for check in &diff.changed_checks {
+            println!(
+                "  - {}: {} -> {}",
+                check.label,
+                check.left_readiness.as_deref().unwrap_or("missing"),
+                check.right_readiness.as_deref().unwrap_or("missing")
+            );
+        }
+    }
+
+    if !diff.added_next_steps.is_empty() {
+        println!("- Added Next Steps");
+        for step in &diff.added_next_steps {
+            println!("  - {}", step);
+        }
+    }
+    if !diff.removed_next_steps.is_empty() {
+        println!("- Removed Next Steps");
+        for step in &diff.removed_next_steps {
+            println!("  - {}", step);
+        }
+    }
 }

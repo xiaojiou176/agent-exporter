@@ -1148,6 +1148,16 @@ mod tests {
             "<!DOCTYPE html><html><head><title>integration report</title></head><body><p>integration evidence should not become corpus</p></body></html>",
         )
         .expect("write integration report");
+        std::fs::write(
+            integration_reports_dir.join("integration-report-onboard-codex.json"),
+            "{\"summary\":\"integration evidence should not become corpus\"}",
+        )
+        .expect("write integration report json");
+        std::fs::write(
+            integration_reports_dir.join("index.json"),
+            "{\"report_count\":1}",
+        )
+        .expect("write integration report index json");
 
         let documents = collect_semantic_documents(workspace.path()).expect("collect docs");
         assert_eq!(documents.len(), 1);

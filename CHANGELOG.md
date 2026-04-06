@@ -71,6 +71,8 @@ The format is based on Keep a Changelog.
 - Forbidden-target guards for `integrate` / `onboard`, rejecting live Codex/Claude home roots and direct OpenClaw bundle/plugin roots such as `bundles/<name>` / `plugins/<name>`
 - Integration evidence reports via `doctor/onboard --save-report`, with a dedicated `.agents/Integration/Reports` front door
 - Integration evidence shell search/facets for `platform` and `readiness`
+- Machine-readable integration evidence via paired `report.json + index.json`
+- `evidence diff` for comparing saved integration evidence snapshots
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder
@@ -94,3 +96,4 @@ The format is based on Keep a Changelog.
 - Integration docs now spell out MCP first-run prerequisites and keep OpenClaw at bundle-content honesty
 - Integration pack is no longer docs-only; it now has explicit `integrate` and `doctor integrations` entry points
 - Integration doctor now detects stale materialized targets and probes the current repo-local launcher
+- Integration evidence now writes paired HTML + JSON receipts while keeping integration artifacts out of transcript/search corpora

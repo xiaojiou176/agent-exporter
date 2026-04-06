@@ -1,6 +1,10 @@
 use std::collections::BTreeMap;
 
-use crate::core::integration_report::IntegrationReportEntry;
+use crate::core::integration_report::{
+    IntegrationArtifactLinks, IntegrationReportCheckRecord, IntegrationReportEntry,
+    IntegrationReportJsonDocument, IntegrationReportTimelineEntry,
+    IntegrationReportsIndexJsonDocument,
+};
 use crate::integrations::IntegrationDoctorCheck;
 
 use super::html::escape_html;
@@ -52,6 +56,64 @@ pub struct IntegrationReportDocument {
     pub unchanged_files: Vec<String>,
     pub checks: Vec<IntegrationDoctorCheck>,
     pub next_steps: Vec<String>,
+}
+
+pub fn build_integration_report_json_document(
+    report: &IntegrationReportDocument,
+    html_report_file_name: &str,
+    json_report_file_name: &str,
+) -> IntegrationReportJsonDocument {
+    IntegrationReportJsonDocument {
+        schema_version: 1,
+        title: format!("{} - {}", report.platform, report.kind.title()),
+        kind: report.kind.as_str().to_string(),
+        platform: report.platform.clone(),
+        target: report.target_root.clone(),
+        generated_at: report.generated_at.clone(),
+        readiness: report.readiness.clone(),
+        summary: report.summary.clone(),
+        launcher_status: launcher_status(report),
+        launcher_kind: report.launcher_kind.clone(),
+        launcher_command: report.launcher_command.clone(),
+        bridge_status: bridge_status(report),
+        pack_shape_checks: pack_shape_checks(report),
+        checks: report.checks.iter().map(check_record).collect::<Vec<_>>(),
+        next_steps: report.next_steps.clone(),
+        written_files: report.written_files.clone(),
+        unchanged_files: report.unchanged_files.clone(),
+        artifact_links: IntegrationArtifactLinks {
+            html_report: html_report_file_name.to_string(),
+            json_report: json_report_file_name.to_string(),
+            index_html: "index.html".to_string(),
+            index_json: "index.json".to_string(),
+        },
+    }
+}
+
+pub fn build_integration_reports_index_json_document(
+    title: &str,
+    generated_at: &str,
+    reports: &[IntegrationReportJsonDocument],
+) -> IntegrationReportsIndexJsonDocument {
+    IntegrationReportsIndexJsonDocument {
+        schema_version: 1,
+        title: title.to_string(),
+        generated_at: generated_at.to_string(),
+        report_count: reports.len(),
+        timeline: reports
+            .iter()
+            .map(|report| IntegrationReportTimelineEntry {
+                title: report.title.clone(),
+                kind: report.kind.clone(),
+                platform: report.platform.clone(),
+                readiness: report.readiness.clone(),
+                target: report.target.clone(),
+                generated_at: report.generated_at.clone(),
+                html_href: report.artifact_links.html_report.clone(),
+                json_href: report.artifact_links.json_report.clone(),
+            })
+            .collect(),
+    }
 }
 
 pub fn render_integration_report_document(report: &IntegrationReportDocument) -> String {
@@ -278,6 +340,65 @@ fn render_check(check: &IntegrationDoctorCheck) -> String {
         readiness = escape_html(check.readiness.as_str()),
         detail = escape_html(&check.detail),
     )
+}
+
+fn check_record(check: &IntegrationDoctorCheck) -> IntegrationReportCheckRecord {
+    IntegrationReportCheckRecord {
+        label: check.label.to_string(),
+        readiness: check.readiness.as_str().to_string(),
+        detail: check.detail.clone(),
+    }
+}
+
+fn pack_shape_checks(report: &IntegrationReportDocument) -> Vec<IntegrationReportCheckRecord> {
+    report
+        .checks
+        .iter()
+        .filter(|check| {
+            matches!(
+                check.label,
+                "repo_templates"
+                    | "target_files"
+                    | "target_content_sync"
+                    | "codex_config_shape"
+                    | "claude_project_shape"
+                    | "claude_pack_shape"
+                    | "openclaw_bundle_shape"
+            ) || check.label.contains("shape")
+                || check.label.contains("sync")
+        })
+        .map(check_record)
+        .collect()
+}
+
+fn launcher_status(report: &IntegrationReportDocument) -> String {
+    report
+        .checks
+        .iter()
+        .find(|check| check.label == "launcher_probe")
+        .map(|check| check.readiness.as_str().to_string())
+        .unwrap_or_else(|| report.readiness.clone())
+}
+
+fn bridge_status(report: &IntegrationReportDocument) -> String {
+    let mut statuses = report
+        .checks
+        .iter()
+        .filter(|check| matches!(check.label, "bridge_script" | "python3"))
+        .map(|check| check.readiness.as_str());
+
+    let Some(first) = statuses.next() else {
+        return "unknown".to_string();
+    };
+    let mut aggregate = first;
+    for status in statuses {
+        aggregate = match (aggregate, status) {
+            ("missing", _) | (_, "missing") => "missing",
+            ("partial", _) | (_, "partial") => "partial",
+            _ => "ready",
+        };
+    }
+    aggregate.to_string()
 }
 
 fn render_index_card(entry: &IntegrationReportEntry) -> String {
@@ -590,11 +711,12 @@ function update() {
 
 #[cfg(test)]
 mod tests {
-    use crate::core::integration_report::IntegrationReportEntry;
+    use crate::core::integration_report::{IntegrationReportEntry, IntegrationReportJsonDocument};
     use crate::integrations::{IntegrationDoctorCheck, IntegrationReadiness};
 
     use super::{
-        IntegrationReportDocument, IntegrationReportKind, render_integration_report_document,
+        IntegrationReportDocument, IntegrationReportKind, build_integration_report_json_document,
+        build_integration_reports_index_json_document, render_integration_report_document,
         render_integration_reports_index_document,
     };
 
@@ -663,6 +785,91 @@ mod tests {
         assert!(html.contains("data-readiness=\"ready\""));
         assert!(html.contains("data-readiness=\"partial\""));
         assert!(html.contains("Search title, platform, readiness, target"));
+    }
+
+    #[test]
+    fn build_integration_report_json_document_promotes_machine_readable_fields() {
+        let report = IntegrationReportDocument {
+            kind: IntegrationReportKind::Doctor,
+            platform: "codex".to_string(),
+            target_root: "/tmp/codex-pack".to_string(),
+            generated_at: "2026-04-06T12:00:00Z".to_string(),
+            readiness: "ready".to_string(),
+            summary: "codex pack looks ready".to_string(),
+            launcher_kind: "repo-local-debug".to_string(),
+            launcher_command: "/tmp/agent-exporter".to_string(),
+            written_files: Vec::new(),
+            unchanged_files: Vec::new(),
+            checks: vec![
+                IntegrationDoctorCheck {
+                    label: "bridge_script",
+                    readiness: IntegrationReadiness::Ready,
+                    detail: "ok".to_string(),
+                },
+                IntegrationDoctorCheck {
+                    label: "python3",
+                    readiness: IntegrationReadiness::Ready,
+                    detail: "python3".to_string(),
+                },
+                IntegrationDoctorCheck {
+                    label: "launcher_probe",
+                    readiness: IntegrationReadiness::Ready,
+                    detail: "repo-local binary available".to_string(),
+                },
+                IntegrationDoctorCheck {
+                    label: "codex_config_shape",
+                    readiness: IntegrationReadiness::Ready,
+                    detail: "command + args present".to_string(),
+                },
+            ],
+            next_steps: vec!["Review the generated pack".to_string()],
+        };
+
+        let json = build_integration_report_json_document(
+            &report,
+            "integration-report-doctor-codex.html",
+            "integration-report-doctor-codex.json",
+        );
+
+        assert_eq!(json.bridge_status, "ready");
+        assert_eq!(json.launcher_status, "ready");
+        assert_eq!(json.pack_shape_checks.len(), 1);
+        assert_eq!(json.artifact_links.index_json, "index.json");
+    }
+
+    #[test]
+    fn build_integration_reports_index_json_document_exposes_timeline() {
+        let report = IntegrationReportJsonDocument {
+            schema_version: 1,
+            title: "Codex doctor".to_string(),
+            kind: "doctor".to_string(),
+            platform: "codex".to_string(),
+            target: "/tmp/codex-pack".to_string(),
+            generated_at: "2026-04-06T12:00:00Z".to_string(),
+            readiness: "ready".to_string(),
+            summary: "ready".to_string(),
+            launcher_status: "ready".to_string(),
+            launcher_kind: "repo-local-debug".to_string(),
+            launcher_command: "/tmp/agent-exporter".to_string(),
+            bridge_status: "ready".to_string(),
+            pack_shape_checks: Vec::new(),
+            checks: Vec::new(),
+            next_steps: Vec::new(),
+            written_files: Vec::new(),
+            unchanged_files: Vec::new(),
+            artifact_links: IntegrationArtifactLinks {
+                html_report: "integration-report-doctor-codex.html".to_string(),
+                json_report: "integration-report-doctor-codex.json".to_string(),
+                index_html: "index.html".to_string(),
+                index_json: "index.json".to_string(),
+            },
+        };
+
+        let index =
+            build_integration_reports_index_json_document("integration reports", "now", &[report]);
+
+        assert_eq!(index.report_count, 1);
+        assert_eq!(index.timeline[0].json_href, "integration-report-doctor-codex.json");
     }
 }
 "#

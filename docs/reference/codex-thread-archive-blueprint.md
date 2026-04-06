@@ -298,6 +298,31 @@
 - 它现在还支持本地静态搜索和 facet，至少覆盖 `platform` / `readiness`
 - 但浏览器仍然只是静态 evidence shell，不执行 doctor/onboard/install
 
+### Phase 28
+
+已落地：
+
+- machine-readable integration evidence
+
+原因：
+
+- `doctor/onboard --save-report` 已经不只写 `report.html`
+- 现在还会同写 `report.json`
+- `.agents/Integration/Reports/` 也会维护 `index.json`
+- 这些 JSON 仍然只是 integration-owned local artifacts，不回流 transcript/search corpus
+
+### Phase 29
+
+已落地：
+
+- integration evidence timeline / diff
+
+原因：
+
+- 现在已经有 `agent-exporter evidence diff --left <report> --right <report>`
+- 它会解释 readiness、changed checks、以及 added/removed next steps
+- 它比较的是已保存 evidence snapshots，不会重新执行 doctor/onboard/install
+
 ## 推荐 CLI 命令面
 
 当前已经落地的最小集合是：
@@ -405,4 +430,6 @@ src/
 - repo-owned integration materializer / doctor 已落地
 - integration evidence pack / exportable onboarding report 已落地
 - integration evidence shell search 已落地
+- machine-readable integration evidence 已落地
+- integration evidence timeline/diff 已落地
 - 未来扩展边界仍然保持收口

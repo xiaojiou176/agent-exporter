@@ -131,6 +131,8 @@ fn onboard_codex_save_report_writes_integration_evidence() {
         .join("Reports");
     let index = reports_root.join("index.html");
     assert!(index.is_file());
+    let index_json = reports_root.join("index.json");
+    assert!(index_json.is_file());
 
     let report_files = fs::read_dir(&reports_root)
         .expect("read reports root")
@@ -147,11 +149,31 @@ fn onboard_codex_save_report_writes_integration_evidence() {
         })
         .collect::<Vec<_>>();
     assert_eq!(report_files.len(), 1);
+    let report_json_files = fs::read_dir(&reports_root)
+        .expect("read reports root")
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .filter(|path| {
+            path.extension()
+                .and_then(|value| value.to_str())
+                .is_some_and(|value| value.eq_ignore_ascii_case("json"))
+                && path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| name != "index.json")
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(report_json_files.len(), 1);
 
     let report = read(&report_files[0]);
     assert!(report.contains("agent-exporter:report-kind\" content=\"onboard"));
     assert!(report.contains("agent-exporter:integration-platform\" content=\"codex"));
     assert!(report.contains("Open integration reports"));
+    let report_json = read(&report_json_files[0]);
+    assert!(report_json.contains("\"platform\": \"codex\""));
+    assert!(report_json.contains("\"kind\": \"onboard\""));
+    assert!(report_json.contains("\"artifact_links\""));
+    assert!(report_json.contains("\"index_json\": \"index.json\""));
 }
 
 #[test]
@@ -194,12 +216,102 @@ fn doctor_codex_save_report_writes_front_door_without_touching_transcript_corpus
         .join("Reports");
     let index = reports_root.join("index.html");
     assert!(index.is_file());
+    let index_json = reports_root.join("index.json");
+    assert!(index_json.is_file());
     let index_content = read(&index);
     assert!(index_content.contains("integration-report-search"));
     assert!(index_content.contains("No integration reports matched the current search."));
+    let index_json_content = read(&index_json);
+    assert!(index_json_content.contains("\"timeline\""));
+    assert!(index_json_content.contains("\"report_count\": 1"));
 
     let conversations_dir = workspace.path().join(".agents").join("Conversations");
     assert!(!conversations_dir.exists());
+}
+
+#[test]
+fn evidence_diff_reports_readiness_and_check_changes() {
+    let workspace = tempdir().expect("workspace");
+    let target = tempdir().expect("target dir");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("integrate")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .assert()
+        .success();
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("doctor")
+        .arg("integrations")
+        .arg("--platform")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .arg("--save-report")
+        .assert()
+        .success();
+
+    let config_path = target.path().join(".codex").join("config.toml");
+    let broken = read(&config_path).replace("args = [", "# args = [");
+    fs::write(&config_path, broken).expect("write broken config");
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("doctor")
+        .arg("integrations")
+        .arg("--platform")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path())
+        .arg("--save-report")
+        .assert()
+        .success();
+
+    let reports_root = workspace
+        .path()
+        .join(".agents")
+        .join("Integration")
+        .join("Reports");
+    let mut report_jsons = fs::read_dir(&reports_root)
+        .expect("read reports root")
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .filter(|path| {
+            path.extension()
+                .and_then(|value| value.to_str())
+                .is_some_and(|value| value.eq_ignore_ascii_case("json"))
+                && path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| name != "index.json")
+        })
+        .collect::<Vec<_>>();
+    report_jsons.sort();
+    assert_eq!(report_jsons.len(), 2);
+
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .arg("evidence")
+        .arg("diff")
+        .arg("--left")
+        .arg(&report_jsons[0])
+        .arg("--right")
+        .arg(&report_jsons[1]);
+
+    command
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration evidence diff"))
+        .stdout(predicate::str::contains("Readiness    : ready -> partial"))
+        .stdout(predicate::str::contains("codex_config_shape"))
+        .stdout(predicate::str::contains("Added Next Steps"));
 }
 
 #[test]

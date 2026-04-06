@@ -248,6 +248,16 @@ mod tests {
             "<!DOCTYPE html><html><head><title>integration report</title></head><body></body></html>",
         )
         .expect("write integration report");
+        std::fs::write(
+            integration_reports_dir.join("integration-report-doctor-codex.json"),
+            "{\"title\":\"integration report\"}",
+        )
+        .expect("write integration report json");
+        std::fs::write(
+            integration_reports_dir.join("index.json"),
+            "{\"report_count\":1}",
+        )
+        .expect("write integration report index json");
 
         let entries = collect_html_archive_entries(workspace.path()).expect("collect entries");
         assert_eq!(entries.len(), 1);

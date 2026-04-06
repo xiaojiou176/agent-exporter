@@ -178,3 +178,35 @@ Phase 27 之后，`.agents/Integration/Reports/index.html` 已经不只是一个
 - `readiness` facet
 
 但它仍然只是 evidence shell，不会在浏览器里执行 doctor/onboard/install。
+
+## Machine-Readable Evidence
+
+Phase 28 之后，integration evidence 不再只有给人看的 HTML 页。
+
+现在 `doctor/onboard --save-report` 还会同写：
+
+- `report.html`
+- `report.json`
+- `index.html`
+- `index.json`
+
+你可以把它理解成：
+
+> HTML 像纸质结果单，给人看。
+> JSON 像条码单，给后续本地 timeline/diff 和其他静态工作流消费。
+
+这些 JSON 仍然留在 `.agents/Integration/Reports/`，不会回流 transcript corpus，也不会混进 retrieval report 壳。
+
+## Evidence Timeline & Diff
+
+Phase 29 之后，这条 integration evidence 主链还额外长出了一把“小扳手”：
+
+- `agent-exporter evidence diff --left <report.json|html> --right <report.json|html>`
+
+它只会比较**已经保存好的** integration evidence snapshots，回答：
+
+- readiness 是变好还是变坏了
+- 哪些 checks 变了
+- 哪些 next steps 新增/消失了
+
+它不会重新执行 doctor/onboard/install，也不会把浏览器壳层升级成执行器。

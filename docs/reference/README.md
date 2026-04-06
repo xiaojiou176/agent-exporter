@@ -6,7 +6,7 @@
 
 ## Current Reality
 
-当前 reference 层已经对齐 **Phase 27 integration evidence shell search landed**：
+当前 reference 层已经对齐 **Phase 29 machine-readable integration evidence + timeline/diff landed**：
 
 - 默认主路径仍然是 `app-server`
 - `local direct-read` 已经 landed，不再是 future plan
@@ -34,6 +34,8 @@
 - integration materialization now rejects obvious live host/global roots instead of relying on docs-only warnings
 - integration evidence reports under `.agents/Integration/Reports` 已经 landed，不再是 future plan
 - integration evidence shell search/facets 已经 landed，不再是 future plan
+- machine-readable integration evidence via `report.json + index.json` 已经 landed，不再是 future plan
+- integration evidence timeline/diff via `agent-exporter evidence diff` 已经 landed，不再是 future plan
 - `local` 只代表 **archival truth**
 - `claude-code` 当前也只代表 **degraded local import truth**
 - `local` / `claude-code` 的导出状态都不能写成 complete 或 canonical
@@ -67,3 +69,4 @@
 2. 为什么 `local` 与 `claude-code` 已经 landed 但仍然不是 canonical replacement
 3. 为什么 reports-shell metadata search landed 后仍然还不是 hosted / semantic platform
 4. 为什么 `degraded` 是正确披露，而不是保守措辞
+5. 为什么 integration evidence 现在既有 human-facing HTML receipt，也有 machine-readable JSON receipt
