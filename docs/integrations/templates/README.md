@@ -52,6 +52,7 @@ agent-exporter integrate openclaw --target /absolute/path/to/openclaw-pack
 ```
 
 它只会写到你明确给出的 target 下，不会静默改你的 `~/.codex`、`~/.claude` 或 OpenClaw host 目录。
+现在它还会直接拒绝明显的 live host/global roots；请先使用一个中性的 staging target。
 
 ## Repo-Owned Doctor
 
@@ -83,6 +84,22 @@ doctor 会检查：
 
 - Codex `command` + 非空 `args` 数组
 - Claude `CLAUDE.md` + `.claude/commands/*.md` 的 pack 形状
+
+## Repo-Owned Onboarding
+
+如果你更想要一条一次性更顺手的 first-run 路径，现在已经可以直接用：
+
+```bash
+agent-exporter onboard codex --target /absolute/path/to/codex-pack
+agent-exporter onboard claude-code --target /absolute/path/to/claude-pack
+agent-exporter onboard openclaw --target /absolute/path/to/openclaw-pack
+```
+
+它会：
+
+1. 先材料化 pack
+2. 再跑只读 doctor
+3. 最后打印更清楚的人话 summary 和 next steps
 
 ## OpenClaw 边界
 

@@ -65,6 +65,7 @@
 - drift-aware integration doctor hardening
 - platform-aware integration doctor diagnostics
 - integration pack-shape hardening
+- integration onboarding experience
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -75,7 +76,7 @@
 
 当前阶段**还没有**完成的是：
 
-- 当前 Phase 22 之后的新一轮产品裁决
+- 当前 Phase 25 之后的新一轮产品裁决
 
 ---
 
@@ -125,7 +126,8 @@
 21. **现在已经落地：integration doctor drift checks + launcher probe**
 22. **现在已经落地：platform-aware integration doctor diagnostics**
 23. **现在已经落地：integration pack-shape hardening**
-24. **当前已进入 post-Phase-24 product decision 区，默认仍不膨胀成 hosted search / service**
+24. **现在已经落地：integration onboarding experience via `onboard <platform> --target <dir>`**
+25. **当前已进入 post-Phase-25 product decision 区，默认仍不膨胀成 hosted search / service**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -424,6 +426,10 @@ cargo run -- doctor integrations --platform codex --target /absolute/path/to/cod
   - `agent-exporter integrate claude-code --target <dir>`
   - `agent-exporter integrate openclaw --target <dir>`
   - `agent-exporter doctor integrations --platform <platform> --target <dir>`
+- 当前 repo 现在还多了一条更顺手的 onboarding 主链：
+  - `agent-exporter onboard codex --target <dir>`
+  - `agent-exporter onboard claude-code --target <dir>`
+  - `agent-exporter onboard openclaw --target <dir>`
 - 当前 bridge 只覆盖 publish/search 高价值工具，不代表整个 CLI 全量变成 MCP
 - 当前 MCP bridge 默认依赖 repo 内的 `scripts/agent_exporter_mcp.py`
   - first-run 会优先尝试 repo-local `target/release/agent-exporter`
@@ -432,6 +438,10 @@ cargo run -- doctor integrations --platform codex --target /absolute/path/to/cod
 - 如果你要改成已安装 binary 或自定义 launcher，再显式设置 `AGENT_EXPORTER_BIN` / `AGENT_EXPORTER_ARGS`
 - OpenClaw 当前准备好的是 **bundle content / plugin skeleton**，不是 repo-native OpenClaw runtime；接法见 `docs/integrations/openclaw.md`
 - Installer 只会往显式 `--target` 下材料化，不会静默改你的 Home 目录
+- `integrate` / `onboard` 现在还会直接拒绝明显的 live host/global roots：
+  - `~/.codex`
+  - `~/.claude*`
+  - direct OpenClaw bundle/plugin roots
 - Doctor 只做只读 readiness 检查，不会偷偷替你装东西
 - Doctor 现在还会额外检查：
   - 当前 target 内容是否和当前 repo 重新材料化后的版本一致
@@ -444,6 +454,7 @@ cargo run -- doctor integrations --platform codex --target /absolute/path/to/cod
 - Doctor 现在还会继续收紧 pack-shape 细节：
   - Codex：`command` + 非空 `args` 数组
   - Claude Code：`CLAUDE.md` 与 `.claude/commands/*.md` 的基本 pack 形状
+- `onboard` 会把 `integrate + doctor + next steps` 串成一条更低摩擦的 first-run path
 
 ## License
 

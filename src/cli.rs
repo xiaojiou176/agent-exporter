@@ -19,7 +19,8 @@ use crate::core::semantic_search::{
 };
 use crate::integrations::{
     IntegrationDoctorCheck, IntegrationDoctorRequest, IntegrationMaterializeRequest,
-    IntegrationPlatform, doctor_integration, materialize_integration,
+    IntegrationOnboardRequest, IntegrationPlatform, doctor_integration, doctor_next_steps,
+    doctor_summary, materialize_integration, onboard_integration,
 };
 use crate::model::{ConnectorKind, OutputFormat, SupportStage};
 use crate::output::{
@@ -66,7 +67,7 @@ enum Commands {
         #[command(subcommand)]
         command: SearchCommands,
     },
-    /// Materialize repo-owned integration assets into an explicit target directory.
+    /// Materialize repo-owned integration assets into an explicit staging target directory.
     Integrate {
         #[command(subcommand)]
         command: IntegrateCommands,
@@ -75,6 +76,11 @@ enum Commands {
     Doctor {
         #[command(subcommand)]
         command: DoctorCommands,
+    },
+    /// Materialize a platform pack and immediately explain the resulting readiness and next steps.
+    Onboard {
+        #[command(subcommand)]
+        command: OnboardCommands,
     },
 }
 
@@ -102,11 +108,11 @@ enum SearchCommands {
 
 #[derive(Debug, Subcommand)]
 enum IntegrateCommands {
-    /// Materialize Codex integration assets into an explicit target directory.
+    /// Materialize Codex integration assets into an explicit staging target directory.
     Codex(IntegrateArgs),
-    /// Materialize Claude Code integration assets into an explicit target directory.
+    /// Materialize Claude Code integration assets into an explicit staging target directory.
     ClaudeCode(IntegrateArgs),
-    /// Materialize OpenClaw bundle/plugin assets into an explicit target directory.
+    /// Materialize OpenClaw bundle/plugin assets into an explicit staging target directory.
     #[command(name = "openclaw")]
     OpenClaw(IntegrateArgs),
 }
@@ -115,6 +121,17 @@ enum IntegrateCommands {
 enum DoctorCommands {
     /// Check integration readiness for one platform and one explicit target directory.
     Integrations(DoctorIntegrationsArgs),
+}
+
+#[derive(Debug, Subcommand)]
+enum OnboardCommands {
+    /// Materialize a Codex onboarding pack into a staging target and explain the next steps.
+    Codex(IntegrateArgs),
+    /// Materialize a Claude Code onboarding pack into a staging target and explain the next steps.
+    ClaudeCode(IntegrateArgs),
+    /// Materialize an OpenClaw onboarding pack into a staging target and explain the next steps.
+    #[command(name = "openclaw")]
+    OpenClaw(IntegrateArgs),
 }
 
 #[derive(Debug, clap::Args)]
@@ -214,7 +231,8 @@ struct SearchHybridArgs {
 
 #[derive(Debug, clap::Args)]
 struct IntegrateArgs {
-    /// Explicit target directory where integration assets should be materialized.
+    /// Explicit staging target directory where integration assets should be materialized.
+    /// Live host/global roots such as `~/.codex`, `~/.claude*`, and direct OpenClaw bundle/plugin roots are rejected.
     #[arg(long)]
     target: PathBuf,
 }
@@ -380,6 +398,15 @@ pub fn run() -> Result<()> {
         Commands::Doctor { command } => match command {
             DoctorCommands::Integrations(args) => doctor_integrations(args)?,
         },
+        Commands::Onboard { command } => match command {
+            OnboardCommands::Codex(args) => onboard_platform(IntegrationPlatform::Codex, args)?,
+            OnboardCommands::ClaudeCode(args) => {
+                onboard_platform(IntegrationPlatform::ClaudeCode, args)?
+            }
+            OnboardCommands::OpenClaw(args) => {
+                onboard_platform(IntegrationPlatform::OpenClaw, args)?
+            }
+        },
     }
     Ok(())
 }
@@ -403,7 +430,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -433,8 +460,9 @@ fn print_scaffold_status() {
     println!(
         "- Real integration doctor path: `agent-exporter doctor integrations --platform <platform> --target <dir>`."
     );
+    println!("- Real onboarding path: `agent-exporter onboard <platform> --target <dir>`.");
     println!(
-        "- Next step: a new post-Phase-24 product decision, while staying local-first and non-hosted."
+        "- Next step: a new post-Phase-25 product decision, while staying local-first and non-hosted."
     );
 }
 
@@ -715,11 +743,62 @@ fn doctor_integrations(args: DoctorIntegrationsArgs) -> Result<()> {
     println!("- Platform     : {}", outcome.platform.as_str());
     println!("- Target       : {}", outcome.target_root.display());
     println!("- Readiness    : {}", outcome.overall_readiness.as_str());
+    println!("- Summary      : {}", doctor_summary(&outcome));
     println!("- Launcher     : {}", outcome.launcher.kind);
     println!("- Command      : {}", outcome.launcher.shell_command());
+    let next_steps = doctor_next_steps(&outcome);
+    if !next_steps.is_empty() {
+        println!("- Next Steps");
+        for (index, step) in next_steps.iter().enumerate() {
+            println!("  {}. {}", index + 1, step);
+        }
+    }
     println!("- Checks");
     for check in &outcome.checks {
         print_doctor_check(check);
+    }
+
+    Ok(())
+}
+
+fn onboard_platform(platform: IntegrationPlatform, args: IntegrateArgs) -> Result<()> {
+    let outcome = onboard_integration(&IntegrationOnboardRequest {
+        platform,
+        target_root: args.target,
+    })?;
+
+    println!("Integration onboarding completed");
+    println!("- Platform     : {}", outcome.platform.as_str());
+    println!("- Target       : {}", outcome.target_root.display());
+    println!(
+        "- Readiness    : {}",
+        outcome.doctor.overall_readiness.as_str()
+    );
+    println!("- Summary      : {}", doctor_summary(&outcome.doctor));
+    println!("- Launcher     : {}", outcome.doctor.launcher.kind);
+    println!(
+        "- Command      : {}",
+        outcome.doctor.launcher.shell_command()
+    );
+    println!(
+        "- Written      : {}",
+        outcome.materialized.written_files.len()
+    );
+    println!(
+        "- Unchanged    : {}",
+        outcome.materialized.unchanged_files.len()
+    );
+    if !outcome.materialized.written_files.is_empty() {
+        println!("- Files Written");
+        for path in &outcome.materialized.written_files {
+            println!("  - {}", path.display());
+        }
+    }
+    if !outcome.next_steps.is_empty() {
+        println!("- Next Steps");
+        for (index, step) in outcome.next_steps.iter().enumerate() {
+            println!("  {}. {}", index + 1, step);
+        }
     }
 
     Ok(())

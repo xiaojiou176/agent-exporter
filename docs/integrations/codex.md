@@ -8,6 +8,7 @@
 ## 当前最稳接法
 
 1. 先运行 `agent-exporter integrate codex --target <DIR>` 材料化一份可审计的 Codex pack
+   - `<DIR>` 应该是 staging/pack 目录，不要直接指向 `~/.codex`
 2. 在项目里保留或合并 `AGENTS.md`
 3. 如果你要把 repo-shared skill 也一起带上，就连同 `.agents/skills/export-archive/` 一起放进项目
 4. 给团队一个固定约定：当需要导出 / 发布 / 检索 / 保存 report 时，直接调用 `agent-exporter`
@@ -22,6 +23,18 @@ agent-exporter doctor integrations --platform codex --target <DIR>
 ```
 
 去确认 target 里的 `AGENTS.md`、`.codex/config.toml`、`.agents/skills/export-archive/`、bridge script 路径和 launcher readiness 是否已经到 `ready`。
+
+## Onboard
+
+如果你更想要一条一次性更顺手的 first-run 路径，可以直接用：
+
+```bash
+agent-exporter onboard codex --target <DIR>
+```
+
+这条主链也会拒绝直接把材料写进 `~/.codex` 这类 live host/global root。
+
+它会把 materialize + doctor + next steps 串在一起。
 
 ## MCP first-run 说明
 

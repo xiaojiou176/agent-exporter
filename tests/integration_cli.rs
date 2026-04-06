@@ -71,6 +71,93 @@ fn integrate_codex_materializes_target_with_resolved_paths() {
 }
 
 #[test]
+fn onboard_codex_materializes_and_explains_next_steps() {
+    let target = tempdir().expect("target dir");
+
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .arg("onboard")
+        .arg("codex")
+        .arg("--target")
+        .arg(target.path());
+
+    command
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration onboarding completed"))
+        .stdout(predicate::str::contains("Readiness    : ready"))
+        .stdout(predicate::str::contains("Next Steps"))
+        .stdout(predicate::str::contains(
+            "review `AGENTS.md`, `.agents/skills/`, and `.codex/config.toml`",
+        ));
+
+    assert!(target.path().join("AGENTS.md").is_file());
+    assert!(
+        target
+            .path()
+            .join(".agents")
+            .join("skills")
+            .join("export-archive")
+            .join("SKILL.md")
+            .is_file()
+    );
+    assert!(target.path().join(".codex").join("config.toml").is_file());
+}
+
+#[test]
+fn integrate_codex_rejects_live_codex_home_root() {
+    let home = tempdir().expect("home dir");
+    let forbidden_target = home.path().join(".codex");
+
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .env("HOME", home.path())
+        .arg("integrate")
+        .arg("codex")
+        .arg("--target")
+        .arg(&forbidden_target);
+
+    command.assert().failure().stderr(predicate::str::contains(
+        "choose a staging pack directory instead of the live Codex home root `~/.codex`",
+    ));
+}
+
+#[test]
+fn onboard_claude_code_rejects_live_claude_home_root() {
+    let home = tempdir().expect("home dir");
+    let forbidden_target = home.path().join(".claude-testing");
+
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .env("HOME", home.path())
+        .arg("onboard")
+        .arg("claude-code")
+        .arg("--target")
+        .arg(&forbidden_target);
+
+    command.assert().failure().stderr(predicate::str::contains(
+        "choose a staging pack directory instead of a live Claude home root such as `~/.claude*`",
+    ));
+}
+
+#[test]
+fn integrate_openclaw_rejects_direct_bundle_root_targets() {
+    let target = tempdir().expect("target dir");
+    let forbidden_target = target.path().join("openclaw-codex-bundle");
+
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .arg("integrate")
+        .arg("openclaw")
+        .arg("--target")
+        .arg(&forbidden_target);
+
+    command.assert().failure().stderr(predicate::str::contains(
+        "point `--target` at a neutral staging directory above the bundle/plugin roots",
+    ));
+}
+
+#[test]
 fn integrate_claude_code_refuses_to_overwrite_existing_files() {
     let target = tempdir().expect("target dir");
     let conflict = target.path().join(".mcp.json");
@@ -115,6 +202,10 @@ fn doctor_integrations_reports_codex_ready_after_materialization() {
         .success()
         .stdout(predicate::str::contains("Integration doctor completed"))
         .stdout(predicate::str::contains("Readiness    : ready"))
+        .stdout(predicate::str::contains(
+            "Summary      : codex pack looks ready",
+        ))
+        .stdout(predicate::str::contains("Next Steps"))
         .stdout(predicate::str::contains("bridge_script [ready]"))
         .stdout(predicate::str::contains("target_files [ready]"))
         .stdout(predicate::str::contains("3/3 expected files present"))
@@ -141,6 +232,10 @@ fn doctor_integrations_reports_missing_when_target_is_absent() {
         .assert()
         .success()
         .stdout(predicate::str::contains("Readiness    : missing"))
+        .stdout(predicate::str::contains("Next Steps"))
+        .stdout(predicate::str::contains(
+            "Run `agent-exporter integrate claude-code --target",
+        ))
         .stdout(predicate::str::contains("target_root [missing]"));
 }
 
@@ -170,6 +265,9 @@ fn doctor_integrations_reports_claude_ready_after_materialization() {
         .assert()
         .success()
         .stdout(predicate::str::contains("Readiness    : ready"))
+        .stdout(predicate::str::contains(
+            "Summary      : claude-code pack looks ready",
+        ))
         .stdout(predicate::str::contains("claude_project_shape [ready]"))
         .stdout(predicate::str::contains("claude_pack_shape [ready]"));
 }
@@ -202,6 +300,7 @@ fn doctor_integrations_reports_claude_partial_when_mcp_json_is_invalid() {
         .assert()
         .success()
         .stdout(predicate::str::contains("Readiness    : partial"))
+        .stdout(predicate::str::contains("Next Steps"))
         .stdout(predicate::str::contains("claude_project_shape [partial]"));
 }
 
@@ -279,6 +378,9 @@ fn doctor_integrations_reports_openclaw_ready_after_materialization() {
         .assert()
         .success()
         .stdout(predicate::str::contains("Readiness    : ready"))
+        .stdout(predicate::str::contains(
+            "Summary      : openclaw pack looks ready",
+        ))
         .stdout(predicate::str::contains("openclaw_bundle_shape [ready]"));
 }
 
@@ -314,6 +416,7 @@ fn doctor_integrations_reports_codex_partial_when_config_shape_is_incomplete() {
         .assert()
         .success()
         .stdout(predicate::str::contains("Readiness    : partial"))
+        .stdout(predicate::str::contains("Next Steps"))
         .stdout(predicate::str::contains("codex_config_shape [partial]"));
 }
 
@@ -353,6 +456,7 @@ fn doctor_integrations_reports_claude_partial_when_pack_shape_is_incomplete() {
         .assert()
         .success()
         .stdout(predicate::str::contains("Readiness    : partial"))
+        .stdout(predicate::str::contains("Next Steps"))
         .stdout(predicate::str::contains("claude_pack_shape [partial]"));
 }
 
@@ -387,5 +491,6 @@ fn doctor_integrations_reports_partial_when_target_drifted() {
         .assert()
         .success()
         .stdout(predicate::str::contains("Readiness    : partial"))
+        .stdout(predicate::str::contains("Next Steps"))
         .stdout(predicate::str::contains("target_content_sync [partial]"));
 }

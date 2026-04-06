@@ -6,7 +6,7 @@
 
 - 当前目标：**Codex canonical transcript/archive 导出**
 - 未来目标：Claude Code、以及其他本地 CLI
-- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + minimal stdio MCP bridge + repo-owned integration materializer/doctor + drift-aware integration doctor hardening + platform-aware integration doctor diagnostics + integration pack-shape hardening 已落地；当前已进入 post-Phase-24 产品裁决区；默认 Codex 主路径仍是 app-server**
+- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + minimal stdio MCP bridge + repo-owned integration materializer/doctor + drift-aware integration doctor hardening + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience 已落地；当前已进入 post-Phase-25 产品裁决区；默认 Codex 主路径仍是 app-server**
 
 ---
 
@@ -84,12 +84,14 @@
 - drift-aware integration doctor hardening
 - platform-aware integration doctor diagnostics
 - integration pack-shape hardening
+- integration onboarding experience
 - `export codex --thread-id ...` 真实 CLI 主链
 - `export claude-code --session-path ...` 真实 CLI 主链
 - `--format markdown|json|html`
 - `publish archive-index --workspace-root <repo>`
 - `integrate <platform> --target <dir>`
 - `doctor integrations --platform <platform> --target <dir>`
+- `onboard <platform> --target <dir>`
 - `--source app-server|local`
 - `degraded` archival semantics for local source
 - integration pack 默认按 repo-local MCP bridge 理解
@@ -100,6 +102,8 @@
   - 如果 launcher 只剩 `cargo run` 回退，doctor 会保守报告 `partial`，不会在只读模式下触发 build
   - doctor 现在还会按平台检查 `.codex/config.toml`、`.mcp.json` 和 OpenClaw bundle manifests 的基本形状
   - doctor 现在还会进一步收紧 Codex `command/args` 形状，以及 Claude pack 本身的 `CLAUDE.md` / commands 形状
+  - `onboard` 现在会把 materialize、doctor 和下一步建议串成一条更顺手的 first-run path
+  - `integrate` / `onboard` 现在会拒绝明显的 live host/global roots，例如 `~/.codex`、`~/.claude*` 和 direct OpenClaw bundle/plugin roots
 
 ### 当前明确非目标
 

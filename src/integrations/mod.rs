@@ -81,6 +81,21 @@ pub struct IntegrationDoctorOutcome {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IntegrationOnboardRequest {
+    pub platform: IntegrationPlatform,
+    pub target_root: PathBuf,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IntegrationOnboardOutcome {
+    pub platform: IntegrationPlatform,
+    pub target_root: PathBuf,
+    pub materialized: IntegrationMaterializeOutcome,
+    pub doctor: IntegrationDoctorOutcome,
+    pub next_steps: Vec<String>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LauncherSpec {
     pub kind: &'static str,
     pub command: String,
@@ -114,6 +129,7 @@ pub fn materialize_integration(
 ) -> Result<IntegrationMaterializeOutcome> {
     let repo_root = repo_root();
     let launcher = resolve_launcher(&repo_root)?;
+    validate_materialize_target(request.platform, &request.target_root)?;
     prepare_target_dir(&request.target_root)?;
 
     let mut written_files = Vec::new();
@@ -327,6 +343,144 @@ pub fn doctor_integration(request: &IntegrationDoctorRequest) -> Result<Integrat
     })
 }
 
+pub fn onboard_integration(
+    request: &IntegrationOnboardRequest,
+) -> Result<IntegrationOnboardOutcome> {
+    let materialized = materialize_integration(&IntegrationMaterializeRequest {
+        platform: request.platform,
+        target_root: request.target_root.clone(),
+    })?;
+    let doctor = doctor_integration(&IntegrationDoctorRequest {
+        platform: request.platform,
+        target_root: request.target_root.clone(),
+    })?;
+    let next_steps = doctor_next_steps(&doctor);
+
+    Ok(IntegrationOnboardOutcome {
+        platform: request.platform,
+        target_root: request.target_root.clone(),
+        materialized,
+        doctor,
+        next_steps,
+    })
+}
+
+pub fn doctor_summary(outcome: &IntegrationDoctorOutcome) -> String {
+    match outcome.overall_readiness {
+        IntegrationReadiness::Ready => format!(
+            "{} pack looks ready inside `{}`.",
+            outcome.platform.as_str(),
+            outcome.target_root.display()
+        ),
+        IntegrationReadiness::Partial => format!(
+            "{} pack is partially ready; at least one check still needs attention in `{}`.",
+            outcome.platform.as_str(),
+            outcome.target_root.display()
+        ),
+        IntegrationReadiness::Missing => format!(
+            "{} pack is missing required integration material in `{}`.",
+            outcome.platform.as_str(),
+            outcome.target_root.display()
+        ),
+    }
+}
+
+pub fn doctor_next_steps(outcome: &IntegrationDoctorOutcome) -> Vec<String> {
+    let mut next_steps = Vec::new();
+
+    if has_check(outcome, "target_root", IntegrationReadiness::Missing)
+        || has_check(outcome, "target_files", IntegrationReadiness::Missing)
+    {
+        next_steps.push(format!(
+            "Run `agent-exporter integrate {} --target {}` first.",
+            outcome.platform.as_str(),
+            outcome.target_root.display()
+        ));
+    }
+
+    if has_check(
+        outcome,
+        "target_content_sync",
+        IntegrationReadiness::Partial,
+    ) {
+        next_steps.push(
+            "Re-run `integrate` into an empty target or manually refresh stale materialized files."
+                .to_string(),
+        );
+    }
+
+    if has_check(outcome, "materialized_paths", IntegrationReadiness::Partial) {
+        next_steps.push(
+            "Replace placeholder or generic launcher strings by re-running `integrate` from the current repo."
+                .to_string(),
+        );
+    }
+
+    if has_check(outcome, "launcher_probe", IntegrationReadiness::Partial) {
+        next_steps.push(
+            "Give doctor a concrete repo-local binary (`target/debug` or `target/release`) if you want launcher probe to reach `ready`."
+                .to_string(),
+        );
+    }
+
+    if has_check(outcome, "codex_config_shape", IntegrationReadiness::Partial) {
+        next_steps.push(
+            "Ensure `.codex/config.toml` contains `mcp_servers.agent_exporter.command` and a non-empty `args` array."
+                .to_string(),
+        );
+    }
+
+    if has_check(
+        outcome,
+        "claude_project_shape",
+        IntegrationReadiness::Partial,
+    ) {
+        next_steps.push(
+            "Ensure `.mcp.json` parses and contains `mcpServers.agent-exporter.command`."
+                .to_string(),
+        );
+    }
+
+    if has_check(outcome, "claude_pack_shape", IntegrationReadiness::Partial) {
+        next_steps.push(
+            "Ensure `CLAUDE.md` keeps a heading and `.claude/commands/*.md` keep a description line plus a bash code block."
+                .to_string(),
+        );
+    }
+
+    if has_check(
+        outcome,
+        "openclaw_bundle_shape",
+        IntegrationReadiness::Partial,
+    ) || has_check(
+        outcome,
+        "openclaw_bundle_shape",
+        IntegrationReadiness::Missing,
+    ) {
+        next_steps.push(
+            "Ensure both OpenClaw bundle manifests and `.mcp.json` files are present and parseable before calling the pack ready."
+                .to_string(),
+        );
+    }
+
+    match outcome.platform {
+        IntegrationPlatform::Codex => next_steps.push(
+            "If this target is your final project root, review `AGENTS.md`, `.agents/skills/`, and `.codex/config.toml` before trusting the project in Codex."
+                .to_string(),
+        ),
+        IntegrationPlatform::ClaudeCode => next_steps.push(
+            "If this target is your final project root, keep `CLAUDE.md`, `.claude/commands/*`, and `.mcp.json` together as one project pack."
+                .to_string(),
+        ),
+        IntegrationPlatform::OpenClaw => next_steps.push(
+            "Pick the bundle variant you want to use and copy it into your OpenClaw bundle/plugin root; this remains bundle-content readiness, not runtime installation."
+                .to_string(),
+        ),
+    }
+
+    next_steps
+}
+
 fn collapse_readiness(checks: &[IntegrationDoctorCheck]) -> IntegrationReadiness {
     let mut has_partial = false;
     for check in checks {
@@ -341,6 +495,17 @@ fn collapse_readiness(checks: &[IntegrationDoctorCheck]) -> IntegrationReadiness
     } else {
         IntegrationReadiness::Ready
     }
+}
+
+fn has_check(
+    outcome: &IntegrationDoctorOutcome,
+    label: &'static str,
+    readiness: IntegrationReadiness,
+) -> bool {
+    outcome
+        .checks
+        .iter()
+        .any(|check| check.label == label && check.readiness == readiness)
 }
 
 fn repo_root() -> PathBuf {
@@ -424,6 +589,112 @@ fn prepare_target_dir(target_root: &Path) -> Result<()> {
             target_root.display()
         )
     })
+}
+
+fn validate_materialize_target(platform: IntegrationPlatform, target_root: &Path) -> Result<()> {
+    let normalized = normalize_target_root(target_root)?;
+
+    if let Some(home_root) = home_root() {
+        let codex_root = home_root.join(".codex");
+        if path_is_or_inside(&normalized, &codex_root) {
+            bail!(
+                "integration target `{}` is forbidden: choose a staging pack directory instead of the live Codex home root `~/.codex`",
+                target_root.display()
+            );
+        }
+
+        if let Some(first_after_home) = first_component_after(&normalized, &home_root) {
+            if first_after_home.starts_with(".claude") {
+                bail!(
+                    "integration target `{}` is forbidden: choose a staging pack directory instead of a live Claude home root such as `~/.claude*`",
+                    target_root.display()
+                );
+            }
+        }
+    }
+
+    if platform == IntegrationPlatform::OpenClaw && is_openclaw_host_like_root(&normalized) {
+        bail!(
+            "integration target `{}` is forbidden for OpenClaw: point `--target` at a neutral staging directory above the bundle/plugin roots, not a direct OpenClaw bundle or plugin root",
+            target_root.display()
+        );
+    }
+
+    Ok(())
+}
+
+fn normalize_target_root(target_root: &Path) -> Result<PathBuf> {
+    let absolute = if target_root.is_absolute() {
+        target_root.to_path_buf()
+    } else {
+        std::env::current_dir()
+            .context("failed to resolve current working directory for integration target")?
+            .join(target_root)
+    };
+
+    if absolute.exists() {
+        return fs::canonicalize(&absolute).with_context(|| {
+            format!(
+                "failed to canonicalize integration target `{}`",
+                target_root.display()
+            )
+        });
+    }
+
+    let mut existing_prefix = absolute.clone();
+    let mut pending = Vec::new();
+    while !existing_prefix.exists() {
+        let Some(name) = existing_prefix.file_name() else {
+            break;
+        };
+        pending.push(name.to_os_string());
+        if !existing_prefix.pop() {
+            break;
+        }
+    }
+
+    let mut normalized = fs::canonicalize(&existing_prefix).with_context(|| {
+        format!(
+            "failed to canonicalize integration target parent `{}`",
+            existing_prefix.display()
+        )
+    })?;
+    for name in pending.iter().rev() {
+        normalized.push(name);
+    }
+    Ok(normalized)
+}
+
+fn home_root() -> Option<PathBuf> {
+    let home = std::env::var_os("HOME").map(PathBuf::from)?;
+    fs::canonicalize(&home).ok().or(Some(home))
+}
+
+fn path_is_or_inside(path: &Path, root: &Path) -> bool {
+    path == root || path.starts_with(root)
+}
+
+fn first_component_after(path: &Path, root: &Path) -> Option<String> {
+    let relative = path.strip_prefix(root).ok()?;
+    relative
+        .components()
+        .next()
+        .map(|component| component.as_os_str().to_string_lossy().into_owned())
+}
+
+fn is_openclaw_host_like_root(path: &Path) -> bool {
+    let Some(name) = path.file_name().map(|value| value.to_string_lossy()) else {
+        return false;
+    };
+    matches!(
+        name.as_ref(),
+        "openclaw-codex-bundle"
+            | "openclaw-claude-bundle"
+            | ".codex-plugin"
+            | ".claude-plugin"
+            | "plugins"
+            | "bundles"
+    )
 }
 
 fn render_template(

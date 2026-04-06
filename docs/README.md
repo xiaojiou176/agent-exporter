@@ -6,7 +6,7 @@
 
 ## Current Phase Snapshot
 
-当前这套文档已经进入 **Phase 24 integration pack-shape hardening landed**。
+当前这套文档已经进入 **Phase 25 integration onboarding experience landed**。
 
 你可以先把它理解成：这套文档现在要同时解释“正门、侧门、以及第二种输出格式”，但不能把它们说成同一种真相。
 
@@ -30,8 +30,10 @@
 - 当 launcher 只剩 `cargo run` 回退时，doctor 会保守停在 `partial`，而不是在只读模式下触发 build
 - `doctor integrations` 现在还会按平台检查 Codex / Claude Code / OpenClaw 最关键的 config/bundle 形状
 - `doctor integrations` 现在还会继续收紧 Codex `command/args` 和 Claude pack 形状
+- `onboard <platform> --target <dir>` 已经 landed，说明接入流程现在不再只是一组分散命令
+- `integrate` / `onboard` 现在还会拒绝明显的 live host/global roots，例如 `~/.codex`、`~/.claude*` 和 direct OpenClaw bundle/plugin roots
 - `local` 和 `claude-code` 当前都按 **degraded** 理解，不能冒充 canonical parity
-- 当前已进入 post-Phase-24 产品裁决区，而不是直接膨胀成 hosted / 平台壳
+- 当前已进入 post-Phase-25 产品裁决区，而不是直接膨胀成 hosted / 平台壳
 
 ## Read Order
 

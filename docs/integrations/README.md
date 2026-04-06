@@ -34,11 +34,15 @@
 - `agent-exporter integrate claude-code --target <DIR>`
 - `agent-exporter integrate openclaw --target <DIR>`
 - `agent-exporter doctor integrations --platform <platform> --target <DIR>`
+- `agent-exporter onboard codex --target <DIR>`
+- `agent-exporter onboard claude-code --target <DIR>`
+- `agent-exporter onboard openclaw --target <DIR>`
 
 你可以把它理解成：
 
 > `integrate` 负责把 repo-owned 接线材料材料化到一个显式 target，
 > `doctor` 负责用只读方式检查这份材料和 bridge/launcher readiness 到底处在 `ready / partial / missing` 哪一层。
+> `onboard` 则把这两步再加上人话 next steps 串成一条 first-run 主链。
 
 这两条入口都守住同一个硬边界：
 
@@ -46,6 +50,7 @@
 - 不自动扫描全局安装目录
 - 不偷偷替你 build / install / mutate shell
 - 不把 OpenClaw bundle content 夸大成 repo-native runtime
+- `integrate` / `onboard` 会直接拒绝明显的 live host/global roots，例如 `~/.codex`、`~/.claude*`，以及 direct OpenClaw bundle/plugin roots
 
 ## Doctor Hardening
 

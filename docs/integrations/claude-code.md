@@ -8,6 +8,7 @@ Claude Code 当前最稳的接法，是把 `agent-exporter` 作为 **project ski
 ## 当前最稳接法
 
 1. 先运行 `agent-exporter integrate claude-code --target <DIR>` 材料化一份可审计的 Claude Code pack
+   - `<DIR>` 应该是 staging/pack 目录，不要直接指向 `~/.claude*`
 2. 在项目里加入 `CLAUDE.md`
 3. 在项目里加入 `.claude/commands/` 或 `.claude/skills/`
 4. 让命令直接调用本地 `agent-exporter`
@@ -22,6 +23,18 @@ agent-exporter doctor integrations --platform claude-code --target <DIR>
 ```
 
 去检查 `CLAUDE.md`、`.claude/commands/*`、`.mcp.json`、bridge script 路径和 launcher readiness。
+
+## Onboard
+
+如果你更想要一条一次性更顺手的 first-run 路径，可以直接用：
+
+```bash
+agent-exporter onboard claude-code --target <DIR>
+```
+
+这条主链也会拒绝直接把材料写进 `~/.claude*` 这类 live Claude home roots。
+
+它会把 materialize + doctor + next steps 串在一起。
 
 ## MCP first-run 说明
 
