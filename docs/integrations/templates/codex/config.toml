@@ -1,4 +1,3 @@
 [mcp_servers.agent_exporter]
 command = "python3"
 args = ["/absolute/path/to/agent-exporter/scripts/agent_exporter_mcp.py"]
-env = { AGENT_EXPORTER_BIN = "/absolute/path/to/agent-exporter/target/release/agent-exporter" }

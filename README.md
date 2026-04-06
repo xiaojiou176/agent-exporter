@@ -404,6 +404,12 @@ cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thre
 
 - 已经准备好的：CLI-first templates / skills / command snippets / bundle skeletons / minimal stdio MCP bridge
 - 当前 bridge 只覆盖 publish/search 高价值工具，不代表整个 CLI 全量变成 MCP
+- 当前 MCP bridge 默认依赖 repo 内的 `scripts/agent_exporter_mcp.py`
+  - first-run 会优先尝试 repo-local `target/release/agent-exporter`
+  - 没有 release binary 时，会继续尝试 repo-local `target/debug/agent-exporter`
+  - 如果本地还没提前 build，它会再退到 `cargo run --manifest-path <repo>/Cargo.toml --bin agent-exporter --`
+- 如果你要改成已安装 binary 或自定义 launcher，再显式设置 `AGENT_EXPORTER_BIN` / `AGENT_EXPORTER_ARGS`
+- OpenClaw 当前准备好的是 **bundle content / plugin skeleton**，不是 repo-native OpenClaw runtime；接法见 `docs/integrations/openclaw.md`
 
 ## License
 

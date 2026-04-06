@@ -11,6 +11,25 @@
 2. 给团队一个固定约定：当需要导出 / 发布 / 检索 / 保存 report 时，直接调用 `agent-exporter`
 3. 如果你的 Codex 运行时支持 MCP，再补 `config.toml` 里的 MCP server 配置
 
+## MCP first-run 说明
+
+Codex 这条线现在已经不要求你先硬编码一个 release binary 路径。
+
+当前模板默认只需要：
+
+1. 一个 repo checkout
+2. `python3`
+3. repo 内的 `scripts/agent_exporter_mcp.py`
+4. 至少满足下面三条中的一条
+   - repo-local `target/release/agent-exporter`
+   - repo-local `target/debug/agent-exporter`
+   - 本机可用的 `cargo`
+
+如果你已经有自己固定的安装 binary，再显式覆盖：
+
+- `AGENT_EXPORTER_BIN`
+- `AGENT_EXPORTER_ARGS`
+
 ## 推荐命令
 
 ```bash
@@ -32,3 +51,4 @@ agent-exporter search hybrid --workspace-root <repo> --query "thread-1" --save-r
 - 这条接法今天是 **真实可用** 的
 - 当前 repo 已经内建一个最小 stdio MCP bridge：`scripts/agent_exporter_mcp.py`
 - 当前 bridge 暴露的是 publish/search 工具面，不是全量 CLI
+- CLI-first 仍然是最稳 front door；MCP 是对 publish/search 的轻量接线，不是第二套产品面

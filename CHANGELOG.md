@@ -60,6 +60,7 @@ The format is based on Keep a Changelog.
 - LICENSE / SECURITY / CODE_OF_CONDUCT baseline for GitHub/open-source closeout
 - Minimal stdio MCP bridge for publish/search workflows
 - MCP bridge smoke coverage and MCP config templates
+- Integration template README for Codex / Claude Code / OpenClaw first-run setup
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder
@@ -79,3 +80,5 @@ The format is based on Keep a Changelog.
 - Local reports shell now includes static metadata search/filter without changing retrieval execution semantics
 - A minimal stdio MCP bridge now exposes publish/search workflows to external agent clients
 - Codex / Claude connector summaries now describe the shared archive transcript contract instead of a Markdown-only contract
+- MCP bridge templates now default to repo-local launcher discovery instead of requiring a hard-coded release binary path
+- Integration docs now spell out MCP first-run prerequisites and keep OpenClaw at bundle-content honesty

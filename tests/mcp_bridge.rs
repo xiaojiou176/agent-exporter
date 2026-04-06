@@ -19,6 +19,13 @@ fn agent_exporter_bin() -> PathBuf {
     PathBuf::from(env!("CARGO_BIN_EXE_agent-exporter"))
 }
 
+fn repo_local_debug_bin() -> PathBuf {
+    PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("target")
+        .join("debug")
+        .join("agent-exporter")
+}
+
 fn write_message(stdin: &mut impl Write, value: &Value) {
     let body = serde_json::to_vec(value).expect("json body");
     write!(stdin, "Content-Length: {}\r\n\r\n", body.len()).expect("write header");
@@ -113,6 +120,76 @@ fn mcp_bridge_lists_tools_and_can_publish_archive_index() {
         &json!({
             "jsonrpc": "2.0",
             "id": 3,
+            "method": "tools/call",
+            "params": {
+                "name": "publish_archive_index",
+                "arguments": {
+                    "workspace_root": workspace.path().display().to_string()
+                }
+            }
+        }),
+    );
+    let publish = read_message(&mut stdout);
+    let text = publish["result"]["content"][0]["text"]
+        .as_str()
+        .expect("text result");
+    assert!(text.contains("Archive index published"));
+    assert!(
+        workspace
+            .path()
+            .join(".agents")
+            .join("Conversations")
+            .join("index.html")
+            .exists()
+    );
+
+    drop(stdin);
+    let status = child.wait().expect("wait child");
+    assert!(status.success());
+}
+
+#[test]
+fn mcp_bridge_uses_repo_local_default_launcher_without_explicit_bin_override() {
+    let workspace = tempdir().expect("workspace");
+    assert!(
+        repo_local_debug_bin().exists(),
+        "expected repo-local debug binary to exist for default launcher"
+    );
+
+    let mut child = Command::new(python_command())
+        .arg(mcp_script_path())
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .expect("spawn mcp bridge");
+
+    let mut stdin = child.stdin.take().expect("stdin");
+    let mut stdout = BufReader::new(child.stdout.take().expect("stdout"));
+
+    write_message(
+        &mut stdin,
+        &json!({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "method": "initialize",
+            "params": {
+                "protocolVersion": "2025-03-26",
+                "capabilities": {},
+                "clientInfo": {"name": "test", "version": "0.1.0"}
+            }
+        }),
+    );
+    let initialize = read_message(&mut stdout);
+    assert_eq!(
+        initialize["result"]["serverInfo"]["name"],
+        "agent-exporter-mcp"
+    );
+
+    write_message(
+        &mut stdin,
+        &json!({
+            "jsonrpc": "2.0",
+            "id": 2,
             "method": "tools/call",
             "params": {
                 "name": "publish_archive_index",

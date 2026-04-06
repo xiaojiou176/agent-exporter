@@ -4,9 +4,11 @@ import os
 import shlex
 import subprocess
 import sys
+from pathlib import Path
 from typing import Any
 
 PROTOCOL_VERSION = "2025-03-26"
+REPO_ROOT = Path(__file__).resolve().parent.parent
 
 
 def read_message() -> dict[str, Any] | None:
@@ -86,10 +88,29 @@ def tool_specs() -> list[dict[str, Any]]:
     ]
 
 
+def default_base_command() -> list[str]:
+    for candidate in (
+        REPO_ROOT / "target" / "release" / "agent-exporter",
+        REPO_ROOT / "target" / "debug" / "agent-exporter",
+    ):
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return [str(candidate)]
+    return [
+        "cargo",
+        "run",
+        "--quiet",
+        "--manifest-path",
+        str(REPO_ROOT / "Cargo.toml"),
+        "--bin",
+        "agent-exporter",
+        "--",
+    ]
+
+
 def base_command() -> list[str]:
-    command = os.environ.get("AGENT_EXPORTER_BIN", "agent-exporter")
+    command = os.environ.get("AGENT_EXPORTER_BIN")
     extra_args = os.environ.get("AGENT_EXPORTER_ARGS", "")
-    parts = [command]
+    parts = [command] if command is not None else default_base_command()
     if extra_args.strip():
         parts.extend(shlex.split(extra_args))
     return parts

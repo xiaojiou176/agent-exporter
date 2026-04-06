@@ -24,12 +24,51 @@
 
 当前 MCP bridge 暴露的是最小 publish/search 工具面，不是全量 CLI 面。
 
+## First-Run Contract
+
+这一层最容易踩坑的地方，不是模板不存在，而是第一次接线时把前置条件想得太乐观。
+
+你可以先把 MCP bridge 理解成一个“本地转接头”：
+
+- 你需要保留 repo checkout，因为 bridge 本体就是 `scripts/agent_exporter_mcp.py`
+- 默认 first-run 不再要求你先手写 `AGENT_EXPORTER_BIN=/absolute/path/to/target/release/agent-exporter`
+- bridge 会按这个顺序找本地执行入口：
+  1. repo-local `target/release/agent-exporter`
+  2. repo-local `target/debug/agent-exporter`
+  3. `cargo run --manifest-path <repo>/Cargo.toml --bin agent-exporter --`
+- 如果你本机已经有一个更稳定的安装方式，再显式设置 `AGENT_EXPORTER_BIN` / `AGENT_EXPORTER_ARGS`
+
+说得更直白一点：
+
+> 现在的模板默认更像“拿着 repo 直接接线”，
+> 而不是“先自己猜一套 release binary 绝对路径再去改配置”。
+
+## OpenClaw Boundary
+
+OpenClaw 这一层当前准备好的是：
+
+- Codex-compatible bundle content
+- Claude-compatible bundle content
+- bundle 内可直接一起带上的 `.mcp.json`
+
+OpenClaw 这一层当前**没有**声称的是：
+
+- repo-native OpenClaw runtime
+- hosted plugin registry
+- 自动发现你的 OpenClaw 安装目录
+
+所以这层的正确理解是：
+
+> `agent-exporter` 已经把“可复制进 bundle 的内容”准备好了，
+> 但具体复制到你哪一个 OpenClaw host 目录，仍然由你的本机安装方式决定。
+
 ## 目录
 
 - `codex.md`
 - `claude-code.md`
 - `openclaw.md`
 - `templates/`
+- `templates/README.md`
 
 ## 设计原则
 

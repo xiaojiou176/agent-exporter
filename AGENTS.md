@@ -85,6 +85,10 @@
 - `publish archive-index --workspace-root <repo>`
 - `--source app-server|local`
 - `degraded` archival semantics for local source
+- integration pack 默认按 repo-local MCP bridge 理解
+  - bridge 会先尝试 repo-local build 产物
+  - 再尝试 `cargo run --manifest-path <repo>/Cargo.toml --bin agent-exporter --`
+  - OpenClaw 当前是 bundle content / plugin skeleton，不是 repo-native runtime
 
 ### 当前明确非目标
 

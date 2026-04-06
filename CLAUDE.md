@@ -13,6 +13,10 @@
 
 - This repo is a **Rust CLI-first exporter**.
 - Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search + semantic retrieval + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search**.
+- Current integration-pack semantics:
+  - Codex and Claude Code are ready through CLI-first templates plus an optional minimal stdio MCP bridge
+  - the MCP bridge resolves repo-local launcher paths before any explicit `AGENT_EXPORTER_BIN` / `AGENT_EXPORTER_ARGS` override
+  - OpenClaw is prepared as bundle content and plugin skeletons, not as a repo-native runtime
 - The repository is designed to grow into multiple connectors later, but not all at once.
 - Current export semantics stay aligned with CodexMonitor:
   - `thread/read` primary
