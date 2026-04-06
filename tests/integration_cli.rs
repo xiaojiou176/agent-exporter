@@ -71,11 +71,32 @@ fn collect_integration_report_jsons(workspace_root: &Path) -> Vec<PathBuf> {
                         name != "index.json"
                             && name != "baseline-registry.json"
                             && name != "decision-history.json"
+                            && name.starts_with("integration-report-")
                     })
         })
         .collect::<Vec<_>>();
     report_jsons.sort();
     report_jsons
+}
+
+fn collect_remediation_bundle_jsons(workspace_root: &Path) -> Vec<PathBuf> {
+    let reports_root = integration_reports_root(workspace_root);
+    let mut bundle_jsons = fs::read_dir(&reports_root)
+        .expect("read reports root")
+        .filter_map(|entry| entry.ok())
+        .map(|entry| entry.path())
+        .filter(|path| {
+            path.extension()
+                .and_then(|value| value.to_str())
+                .is_some_and(|value| value.eq_ignore_ascii_case("json"))
+                && path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| name.starts_with("remediation-bundle-"))
+        })
+        .collect::<Vec<_>>();
+    bundle_jsons.sort();
+    bundle_jsons
 }
 
 #[test]
@@ -173,7 +194,8 @@ fn onboard_codex_save_report_writes_integration_evidence() {
         .assert()
         .success()
         .stdout(predicate::str::contains("Integration onboarding completed"))
-        .stdout(predicate::str::contains("Reports Index"));
+        .stdout(predicate::str::contains("Reports Index"))
+        .stdout(predicate::str::contains("Remediation  :"));
 
     let reports_root = workspace
         .path()
@@ -212,6 +234,10 @@ fn onboard_codex_save_report_writes_integration_evidence() {
                     .file_name()
                     .and_then(|name| name.to_str())
                     .is_some_and(|name| name != "index.json")
+                && path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| name.starts_with("integration-report-"))
         })
         .collect::<Vec<_>>();
     assert_eq!(report_json_files.len(), 1);
@@ -366,7 +392,9 @@ fn evidence_gate_and_explain_surfaces_verdict_and_steps() {
                 && path
                     .file_name()
                     .and_then(|name| name.to_str())
-                    .is_some_and(|name| name != "index.json")
+                    .is_some_and(|name| {
+                        name != "index.json" && name.starts_with("integration-report-")
+                    })
         })
         .collect::<Vec<_>>();
     report_jsons.sort();
@@ -404,6 +432,18 @@ fn evidence_gate_and_explain_surfaces_verdict_and_steps() {
         .stdout(predicate::str::contains("Integration evidence explain"))
         .stdout(predicate::str::contains("- Remediation"))
         .stdout(predicate::str::contains(".codex/config.toml"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .arg("evidence")
+        .arg("remediation")
+        .arg("--report")
+        .arg(candidate)
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration remediation bundle"))
+        .stdout(predicate::str::contains("- Bundle"))
+        .stdout(predicate::str::contains(".codex/config.toml"));
 }
 
 #[test]
@@ -435,7 +475,9 @@ fn evidence_baseline_list_show_and_promote_happy_path() {
                 && path
                     .file_name()
                     .and_then(|name| name.to_str())
-                    .is_some_and(|name| name != "index.json")
+                    .is_some_and(|name| {
+                        name != "index.json" && name.starts_with("integration-report-")
+                    })
         })
         .unwrap_or(report_path);
 
@@ -574,7 +616,9 @@ fn evidence_diff_reports_readiness_and_check_changes() {
                 && path
                     .file_name()
                     .and_then(|name| name.to_str())
-                    .is_some_and(|name| name != "index.json")
+                    .is_some_and(|name| {
+                        name != "index.json" && name.starts_with("integration-report-")
+                    })
         })
         .collect::<Vec<_>>();
     report_jsons.sort();
@@ -751,6 +795,19 @@ fn evidence_baseline_policy_promotion_and_history_commands_work() {
         .success()
         .stdout(predicate::str::contains("Promoted     : yes"))
         .stdout(predicate::str::contains("Summary"));
+
+    Command::cargo_bin("agent-exporter")
+        .expect("binary should build")
+        .current_dir(workspace.path())
+        .arg("evidence")
+        .arg("current")
+        .arg("--baseline-name")
+        .arg("codex-main")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("Integration current decision"))
+        .stdout(predicate::str::contains("Baseline     : codex-main"))
+        .stdout(predicate::str::contains("Promotion    : eligible"));
 
     Command::cargo_bin("agent-exporter")
         .expect("binary should build")

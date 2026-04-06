@@ -12,9 +12,10 @@ use crate::core::archive_index;
 use crate::core::integration_report::{
     IntegrationBaselineRecord, IntegrationDecisionRecord, IntegrationEvidenceDiff,
     IntegrationEvidenceGateOutcome, IntegrationEvidenceGatePolicy, IntegrationEvidencePolicyPack,
-    IntegrationReportCheckRecord, IntegrationReportJsonDocument,
-    append_integration_decision_record, assess_promotion_eligibility, build_baseline_record,
-    build_integration_evidence_explain, canonical_report_json_path,
+    IntegrationEvidenceRemediationBundle, IntegrationReportCheckRecord,
+    IntegrationReportJsonDocument, append_integration_decision_record,
+    assess_promotion_eligibility, build_baseline_record, build_integration_evidence_explain,
+    build_integration_evidence_remediation_bundle, canonical_report_json_path,
     collect_integration_report_entries, collect_integration_report_json_documents,
     collect_repo_owned_integration_policy_packs, diff_integration_reports,
     effective_gate_policy_for_platform, find_integration_baseline_for_identity,
@@ -25,8 +26,9 @@ use crate::core::integration_report::{
     resolve_integration_decision_history_path, resolve_integration_evidence_policy_pack,
     resolve_integration_reports_dir, upsert_integration_baseline_record,
     write_integration_baseline_registry_document, write_integration_decision_history_document,
-    write_integration_report_document, write_integration_report_json_document,
-    write_integration_reports_index_document, write_integration_reports_index_json_document,
+    write_integration_remediation_bundle_json_document, write_integration_report_document,
+    write_integration_report_json_document, write_integration_reports_index_document,
+    write_integration_reports_index_json_document,
 };
 use crate::core::search_report::{
     collect_search_report_entries, write_search_report_document,
@@ -172,6 +174,8 @@ enum EvidenceCommands {
     Gate(EvidenceGateArgs),
     /// Explain the ordered remediation sequence for one saved integration evidence report.
     Explain(EvidenceExplainArgs),
+    /// Build a structured remediation bundle for one saved integration evidence report.
+    Remediation(EvidenceRemediationArgs),
     /// Manage official baselines for saved integration evidence.
     Baseline {
         #[command(subcommand)]
@@ -184,6 +188,8 @@ enum EvidenceCommands {
     },
     /// Compare a candidate against the official baseline, record decision history, and promote when eligible.
     Promote(EvidencePromoteArgs),
+    /// Automatically summarize the current decision for one official baseline.
+    Current(EvidenceCurrentArgs),
     /// Show recent decision history.
     History(EvidenceHistoryArgs),
 }
@@ -367,6 +373,13 @@ struct EvidenceExplainArgs {
 }
 
 #[derive(Debug, clap::Args)]
+struct EvidenceRemediationArgs {
+    /// Saved report path (`.json` preferred; `.html` resolves to sibling `.json`).
+    #[arg(long)]
+    report: PathBuf,
+}
+
+#[derive(Debug, clap::Args)]
 struct EvidenceBaselineShowArgs {
     /// Registered baseline name.
     #[arg(long)]
@@ -423,6 +436,13 @@ struct EvidenceHistoryArgs {
     /// Maximum entries to print.
     #[arg(long, default_value_t = 10)]
     limit: usize,
+}
+
+#[derive(Debug, clap::Args)]
+struct EvidenceCurrentArgs {
+    /// Baseline registry name.
+    #[arg(long)]
+    baseline_name: String,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, ValueEnum)]
@@ -589,6 +609,7 @@ pub fn run() -> Result<()> {
             EvidenceCommands::Diff(args) => evidence_diff(args)?,
             EvidenceCommands::Gate(args) => evidence_gate(args)?,
             EvidenceCommands::Explain(args) => evidence_explain(args)?,
+            EvidenceCommands::Remediation(args) => evidence_remediation(args)?,
             EvidenceCommands::Baseline { command } => match command {
                 EvidenceBaselineCommands::List => evidence_baseline_list()?,
                 EvidenceBaselineCommands::Show(args) => evidence_baseline_show(args)?,
@@ -599,6 +620,7 @@ pub fn run() -> Result<()> {
                 EvidencePolicyCommands::Show(args) => evidence_policy_show(args)?,
             },
             EvidenceCommands::Promote(args) => evidence_promote(args)?,
+            EvidenceCommands::Current(args) => evidence_current(args)?,
             EvidenceCommands::History(args) => evidence_history(args)?,
         },
     }
@@ -624,7 +646,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails + integration evidence pack reports + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff + evidence gate/explain + baseline registry + policy packs + decision promotion/history + read-only governance MCP surface + local decision governance desk."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails + integration evidence pack reports + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff + evidence gate/explain + baseline registry + policy packs + promotion engine/history + remediation bundle studio + read-only governance MCP surface + current-decision automation + local governance workbench."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -671,6 +693,9 @@ fn print_scaffold_status() {
         "- Real evidence explain path: `agent-exporter evidence explain --report <report.json|html>`."
     );
     println!(
+        "- Real remediation bundle path: `agent-exporter evidence remediation --report <report.json|html>`."
+    );
+    println!(
         "- Real baseline registry path: `agent-exporter evidence baseline list|show|promote` backed by `.agents/Integration/Reports/baseline-registry.json`."
     );
     println!(
@@ -683,7 +708,10 @@ fn print_scaffold_status() {
         "- Real decision history path: `agent-exporter evidence history` backed by `.agents/Integration/Reports/decision-history.json`."
     );
     println!(
-        "- Next step: a new post-Phase-31 product decision, while staying local-first and non-hosted."
+        "- Real current-decision path: `agent-exporter evidence current --baseline-name <name>`."
+    );
+    println!(
+        "- Next step: a new post-Phase-34 product decision, while staying local-first and non-hosted."
     );
 }
 
@@ -1001,6 +1029,10 @@ fn doctor_integrations(args: DoctorIntegrationsArgs) -> Result<()> {
     if let Some(bundle) = &saved_report {
         println!("- Report       : {}", bundle.html_report.display());
         println!("- Report JSON  : {}", bundle.json_report.display());
+        println!(
+            "- Remediation  : {}",
+            bundle.remediation_bundle_json.display()
+        );
         println!("- Reports Index: {}", bundle.index_html.display());
         println!("- Reports JSON : {}", bundle.index_json.display());
         println!(
@@ -1064,6 +1096,10 @@ fn onboard_platform(platform: IntegrationPlatform, args: OnboardArgs) -> Result<
     if let Some(bundle) = &saved_report {
         println!("- Report       : {}", bundle.html_report.display());
         println!("- Report JSON  : {}", bundle.json_report.display());
+        println!(
+            "- Remediation  : {}",
+            bundle.remediation_bundle_json.display()
+        );
         println!("- Reports Index: {}", bundle.index_html.display());
         println!("- Reports JSON : {}", bundle.index_json.display());
         println!(
@@ -1319,6 +1355,7 @@ fn build_decision_desk_summary(
         },
         promotion,
         history: recent_history,
+        remediation_bundle: Some(build_integration_evidence_remediation_bundle(candidate)),
         gate,
     })
 }
@@ -1422,6 +1459,14 @@ fn write_integration_report_bundle(
         &report.generated_at,
         &json_report_document,
     )?;
+    let remediation_bundle = build_integration_evidence_remediation_bundle(&json_report_document);
+    let remediation_bundle_json = write_integration_remediation_bundle_json_document(
+        workspace_root,
+        report.kind.as_str(),
+        &report.platform,
+        &report.generated_at,
+        &remediation_bundle,
+    )?;
     let html_entries = collect_integration_report_entries(workspace_root)?;
     let index_document = render_integration_reports_index_document(
         &integration_reports_title(workspace_root),
@@ -1440,6 +1485,7 @@ fn write_integration_report_bundle(
     Ok(IntegrationReportBundlePaths {
         html_report,
         json_report,
+        remediation_bundle_json,
         index_html,
         index_json,
     })
@@ -1449,6 +1495,7 @@ fn write_integration_report_bundle(
 struct IntegrationReportBundlePaths {
     html_report: PathBuf,
     json_report: PathBuf,
+    remediation_bundle_json: PathBuf,
     index_html: PathBuf,
     index_json: PathBuf,
 }
@@ -1501,6 +1548,20 @@ fn evidence_explain(args: EvidenceExplainArgs) -> Result<()> {
     println!("- Target       : {}", report.target);
     println!("- Readiness    : {}", report.readiness);
     print_integration_explain_steps(&explain_steps);
+    Ok(())
+}
+
+fn evidence_remediation(args: EvidenceRemediationArgs) -> Result<()> {
+    let report = read_integration_report_json_document(&args.report)?;
+    let bundle = build_integration_evidence_remediation_bundle(&report);
+    println!("Integration remediation bundle");
+    println!("- Report       : {}", args.report.display());
+    println!("- Platform     : {}", bundle.platform);
+    println!("- Target       : {}", bundle.target);
+    println!("- Readiness    : {}", bundle.readiness);
+    println!("- Status       : {}", bundle.bundle_status);
+    println!("- Summary      : {}", bundle.summary);
+    print_integration_remediation_bundle(&bundle);
     Ok(())
 }
 
@@ -1657,10 +1718,20 @@ fn evidence_policy_show(args: EvidencePolicyShowArgs) -> Result<()> {
         policy.gate.warning_check_labels.len()
     );
     println!(
-        "- Promotion    : verdicts [{}], readiness [{}], non-regression {}",
+        "- Promotion    : verdicts [{}], readiness [{}], non-regression {}, no-blocking {}, no-next-steps {}",
         policy.promotion.allowed_verdicts.join(", "),
         policy.promotion.allowed_candidate_readiness.join(", "),
         if policy.promotion.require_non_regression {
+            "required"
+        } else {
+            "optional"
+        },
+        if policy.promotion.require_no_blocking_changes {
+            "required"
+        } else {
+            "optional"
+        },
+        if policy.promotion.require_no_next_steps {
             "required"
         } else {
             "optional"
@@ -1809,6 +1880,90 @@ fn evidence_history(args: EvidenceHistoryArgs) -> Result<()> {
     Ok(())
 }
 
+fn evidence_current(args: EvidenceCurrentArgs) -> Result<()> {
+    let workspace_root = integration_reports_workspace_root()?;
+    let registry = read_integration_baseline_registry_document(&workspace_root)?;
+    let baseline_record = find_integration_baseline_record(&registry, &args.baseline_name)
+        .cloned()
+        .with_context(|| format!("baseline `{}` is not registered", args.baseline_name))?;
+    let baseline_report_path =
+        canonical_report_json_path(PathBuf::from(&baseline_record.report_json_path).as_path())?;
+    let baseline = read_integration_report_json_document(&baseline_report_path)?;
+    let reports = collect_integration_report_json_documents(&workspace_root)?;
+    let candidate = reports
+        .into_iter()
+        .filter(|report| {
+            report.platform == baseline_record.platform
+                && report.target == baseline_record.target
+                && decision_desk_report_json_path(&workspace_root, report) != baseline_report_path
+        })
+        .max_by(|left, right| left.generated_at.cmp(&right.generated_at));
+
+    println!("Integration current decision");
+    println!("- Baseline     : {}", baseline_record.name);
+    println!(
+        "- Policy       : {} v{}",
+        baseline_record.policy_name, baseline_record.policy_version
+    );
+    println!("- Baseline JSON: {}", baseline_record.report_json_path);
+
+    let Some(candidate) = candidate else {
+        println!("- Candidate    : none");
+        println!("- Verdict      : insufficient");
+        println!("- Promotion    : insufficient");
+        println!("- Summary      : no newer candidate report matched this official baseline yet");
+        return Ok(());
+    };
+
+    let candidate_report_path = decision_desk_report_json_path(&workspace_root, &candidate);
+    let (policy_path, policy_pack) =
+        resolve_integration_evidence_policy_pack(Some(&baseline_record.policy_name))?;
+    let gate_policy = effective_gate_policy_for_platform(&policy_pack, &candidate.platform);
+    let outcome = gate_integration_reports(&baseline, &candidate, &gate_policy)?;
+    let assessment = assess_promotion_eligibility(&outcome, &candidate, &policy_pack);
+    let history = read_integration_decision_history_document(&workspace_root)?;
+    let latest_decision = candidate_report_path.canonicalize().ok().and_then(|path| {
+        latest_integration_decision_for_candidate(&history, &path.display().to_string()).cloned()
+    });
+    let promotion_state = latest_decision
+        .as_ref()
+        .map(|entry| {
+            if entry.promoted {
+                "promoted"
+            } else {
+                "not-promoted"
+            }
+        })
+        .unwrap_or_else(|| {
+            if assessment.eligible {
+                "eligible"
+            } else {
+                "ineligible"
+            }
+        });
+    let promotion_summary = latest_decision
+        .as_ref()
+        .map(|entry| entry.summary.clone())
+        .unwrap_or_else(|| assessment.summary.clone());
+    let bundle = build_integration_evidence_remediation_bundle(&candidate);
+
+    println!("- Candidate    : {}", candidate_report_path.display());
+    println!("- Verdict      : {}", outcome.verdict.as_str());
+    println!("- Promotion    : {}", promotion_state);
+    println!("- Policy Path  : {}", policy_path.display());
+    println!("- Summary      : {}", promotion_summary);
+    print_integration_evidence_gate(
+        &outcome,
+        &baseline_report_path.display().to_string(),
+        &candidate_report_path.display().to_string(),
+        &policy_path.display().to_string(),
+        &policy_pack,
+        &gate_policy,
+    );
+    print_integration_remediation_bundle(&bundle);
+    Ok(())
+}
+
 fn print_integration_evidence_diff(
     diff: &IntegrationEvidenceDiff,
     left_path: &std::path::Path,
@@ -1931,6 +2086,14 @@ fn print_integration_explain_steps(
         println!("     why     : {}", step.why);
         println!("     recheck : {}", step.recheck);
     }
+}
+
+fn print_integration_remediation_bundle(bundle: &IntegrationEvidenceRemediationBundle) {
+    println!("- Bundle      : {}", bundle.title);
+    println!("- Status      : {}", bundle.bundle_status);
+    println!("- Steps       : {}", bundle.step_count);
+    println!("- Summary     : {}", bundle.summary);
+    print_integration_explain_steps(&bundle.steps);
 }
 
 fn doctor_check_records(

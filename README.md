@@ -72,9 +72,10 @@
 - machine-readable integration evidence
 - integration evidence timeline/diff
 - evidence gate / explain
-- baseline registry / policy packs / decision promotion/history
-- read-only governance MCP surface
-- local decision governance desk
+- baseline registry / policy packs / promotion engine/history
+- remediation bundle studio
+- read-only governance MCP surface + current-decision automation
+- local governance workbench
 - 一条真实可用的 `export codex --thread-id ...` 导出主链
 - 一条真实可用的 `export claude-code --session-path ...` 导出主链
 - 一条真实可用的 `--format markdown|json|html` 输出命令面
@@ -85,7 +86,7 @@
 
 当前阶段**还没有**完成的是：
 
-- 当前 Phase 31 之后的新一轮产品裁决
+- 当前 Phase 34 之后的新一轮产品裁决
 
 ---
 
@@ -154,7 +155,9 @@
 29. **现在已经落地：integration evidence timeline/diff via `agent-exporter evidence diff --left <report> --right <report>`**
 30. **现在已经落地：Local Evidence Decision Plane / Remediation Studio**
 31. **现在已经落地：Baseline Registry / Policy Packs / Decision Promotion / Decision History**
-32. **当前已进入 post-Phase-31 product decision 区，默认仍不膨胀成 hosted search / service**
+32. **现在已经落地：Remediation Bundle Studio + Governance Workbench Polish**
+33. **现在已经落地：Read-only Governance MCP + Current-Decision Automation**
+34. **当前已进入 post-Phase-34 product decision 区，默认仍不膨胀成 hosted search / service**
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
@@ -404,7 +407,7 @@ codex app-server
 
 后续文档和实现若继续推进，会先进入：
 
-1. 新的 post-Phase-31 产品裁决
+1. 新的 post-Phase-34 产品裁决
 
 ---
 

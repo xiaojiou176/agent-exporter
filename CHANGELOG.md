@@ -76,6 +76,7 @@ The format is based on Keep a Changelog.
 - `evidence diff` for comparing saved integration evidence snapshots
 - Baseline registry, policy packs, decision promotion/history, and read-only governance MCP tools
 - Decision governance rendering inside the local archive front door
+- Remediation bundle studio and current-decision automation for local governance workflows
 
 ### Changed
 - `scaffold` now reports the real v1 export path instead of a plan-only placeholder

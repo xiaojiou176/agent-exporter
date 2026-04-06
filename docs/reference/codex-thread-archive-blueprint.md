@@ -356,6 +356,21 @@
 - `publish archive-index` 现在已经会把 official baseline、active policy、promotion status 和 recent history 组织进本地 decision governance desk
 - 现有 MCP bridge 也已经扩到 read-only governance consumption surface
 
+### Phase 32-34
+
+已落地：
+
+- remediation bundle studio
+- governance workbench polish
+- read-only governance MCP + current-decision automation
+
+原因：
+
+- `agent-exporter evidence remediation --report` 现在已经把 explain 路径升级成可共享的 remediation bundle
+- `agent-exporter evidence current --baseline-name <name>` 现在已经能只读总结 official baseline 的当前决策
+- MCP bridge 现在也已经扩到 remediation/current-decision 这类 governance tools
+- `publish archive-index` 现在已经把 official baseline、active policy、promotion status、remediation bundle 和 recent history 组织成更成熟的 local governance workbench
+
 ## 推荐 CLI 命令面
 
 当前已经落地的最小集合是：

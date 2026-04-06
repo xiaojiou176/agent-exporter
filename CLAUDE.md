@@ -12,7 +12,7 @@
 ## Current Truth
 
 - This repo is a **Rust CLI-first exporter**.
-- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search + semantic retrieval + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + repo-owned integration materializer/doctor + integration doctor hardening + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + integration evidence pack + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff + evidence gate / explain + baseline registry + policy packs + decision promotion/history + read-only governance MCP surface + local decision governance desk**.
+- Current implementation delivery is **Codex dual-source export + minimal Claude Code session-path export + shared JSON/HTML export + local archive index + local metadata search + semantic retrieval + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + repo-owned integration materializer/doctor + integration doctor hardening + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + integration evidence pack + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff + evidence gate / explain + baseline registry + policy packs + promotion engine/history + remediation bundle studio + read-only governance MCP surface + current-decision automation + local governance workbench**.
 - Current integration-pack semantics:
   - Codex and Claude Code are ready through CLI-first templates plus an optional minimal stdio MCP bridge
   - the MCP bridge resolves repo-local launcher paths before any explicit `AGENT_EXPORTER_BIN` / `AGENT_EXPORTER_ARGS` override
@@ -86,7 +86,7 @@
   - reports are search-owned local artifacts, not transcript HTML inputs
   - archive shell and reports shell may link them, but retrieval execution stays in CLI
 - Current highest-value next step:
-  - a new post-Phase-31 product decision, still local-first and non-hosted
+  - a new post-Phase-34 product decision, still local-first and non-hosted
 - Current host-safety semantics:
   - the repo may spawn one direct app-server child
   - the repo may only terminate that directly owned child handle

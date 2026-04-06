@@ -1,7 +1,9 @@
 use std::collections::BTreeMap;
 
 use crate::core::archive_index::ArchiveIndexEntry;
-use crate::core::integration_report::{IntegrationEvidenceGateOutcome, IntegrationReportEntry};
+use crate::core::integration_report::{
+    IntegrationEvidenceGateOutcome, IntegrationEvidenceRemediationBundle, IntegrationReportEntry,
+};
 use crate::core::search_report::SearchReportEntry;
 use crate::output::html::escape_html;
 
@@ -47,6 +49,7 @@ pub struct DecisionDeskSummary {
     pub active_policy: DecisionDeskPolicySummary,
     pub promotion: DecisionDeskPromotionSummary,
     pub history: Vec<DecisionDeskHistoryEntry>,
+    pub remediation_bundle: Option<IntegrationEvidenceRemediationBundle>,
     pub gate: Option<IntegrationEvidenceGateOutcome>,
 }
 
@@ -410,13 +413,14 @@ fn render_decision_desk(summary: Option<&DecisionDeskSummary>) -> String {
         concat!(
             "<section class=\"decision-desk\" aria-label=\"decision desk\">\n",
             "  <header class=\"decision-header\">\n",
-            "    <p class=\"eyebrow\">Local Evidence Decision Desk</p>\n",
-            "    <h2>Baseline / Candidate / Verdict</h2>\n",
-            "    <p class=\"hero-copy\">这张总控台只读当前 workspace 下已经保存好的 integration evidence。它负责告诉你现在的 verdict、变化项和修复顺序，但不会在浏览器里执行 doctor、onboard 或 gate。</p>\n",
+            "    <p class=\"eyebrow\">Local Governance Workbench</p>\n",
+            "    <h2>Official standard / candidate / action bundle</h2>\n",
+            "    <p class=\"hero-copy\">这张工作台只读当前 workspace 下已经保存好的 integration evidence、baseline registry、policy packs 和 decision history。它负责告诉你现在的 official standard、candidate verdict、promotion status 和 remediation bundle，但不会在浏览器里执行 doctor、onboard 或 gate。</p>\n",
             "    <div class=\"verdict-strip\">\n",
             "      <span class=\"chip verdict-chip\">{verdict}</span>\n",
             "      <span class=\"chip\">{regression}</span>\n",
             "      <span class=\"chip\">evidence reports <span>{count}</span></span>\n",
+            "      <span class=\"chip\">history <span>{history_count}</span></span>\n",
             "      <a class=\"open-link\" href=\"{evidence_shell_href}\">Open integration reports</a>\n",
             "    </div>\n",
             "  </header>\n",
@@ -442,6 +446,7 @@ fn render_decision_desk(summary: Option<&DecisionDeskSummary>) -> String {
         verdict = escape_html(verdict_label),
         regression = escape_html(regression_label),
         count = summary.evidence_report_count,
+        history_count = summary.history.len(),
         evidence_shell_href = escape_html(&summary.evidence_shell_href),
         baseline_card = baseline_card,
         candidate_card = candidate_card,
@@ -493,17 +498,32 @@ fn render_decision_snapshot(label: &str, snapshot: Option<&DecisionDeskSnapshot>
 }
 
 fn render_decision_remediation(summary: &DecisionDeskSummary) -> String {
-    let steps = summary
-        .gate
-        .as_ref()
-        .map(|gate| gate.remediation_steps.clone())
+    let bundle = summary.remediation_bundle.as_ref();
+    let steps = bundle
+        .map(|bundle| bundle.steps.clone())
+        .or_else(|| {
+            summary
+                .gate
+                .as_ref()
+                .map(|gate| gate.remediation_steps.clone())
+        })
         .unwrap_or_default();
 
     let body = if steps.is_empty() {
         "<p class=\"empty-inline\">No remediation steps are available yet. Save at least one candidate evidence report with actionable next steps before relying on this panel for ordering.</p>".to_string()
     } else {
+        let summary_line = bundle
+            .map(|bundle| {
+                format!(
+                    "<p class=\"mono-inline\">status: <code>{}</code> | steps: <code>{}</code></p><p>{}</p>",
+                    escape_html(&bundle.bundle_status),
+                    bundle.step_count,
+                    escape_html(&bundle.summary),
+                )
+            })
+            .unwrap_or_default();
         format!(
-            "<ol class=\"step-list\">{}</ol>",
+            "{summary_line}<ol class=\"step-list\">{}</ol>",
             steps
                 .iter()
                 .map(|step| {
@@ -521,15 +541,16 @@ fn render_decision_remediation(summary: &DecisionDeskSummary) -> String {
                     )
                 })
                 .collect::<Vec<_>>()
-                .join("")
+                .join(""),
+            summary_line = summary_line
         )
     };
 
     format!(
         concat!(
             "<article class=\"summary-card decision-card remediation-card\">",
-            "<p class=\"eyebrow\">Remediation order</p>",
-            "<h2>Fix this first</h2>",
+            "<p class=\"eyebrow\">Remediation bundle</p>",
+            "<h2>What to fix next</h2>",
             "{body}",
             "</article>"
         ),
@@ -543,7 +564,7 @@ fn render_decision_governance(summary: &DecisionDeskSummary) -> String {
         concat!(
             "<article class=\"summary-card decision-card governance-card\">",
             "<p class=\"eyebrow\">Governance</p>",
-            "<h2>Official baseline / policy / promotion</h2>",
+            "<h2>Official baseline / active policy / promotion</h2>",
             "<p class=\"mono-inline\">baseline name: <code>{baseline_name}</code></p>",
             "<p class=\"mono-inline\">active policy: <code>{policy_name}</code> <code>{policy_version}</code></p>",
             "<p class=\"mono-inline\">promotion status: <code>{promotion_state}</code></p>",
@@ -585,7 +606,7 @@ fn render_decision_changes(summary: &DecisionDeskSummary) -> String {
         concat!(
             "<section class=\"summary-card decision-changes\">",
             "<p class=\"eyebrow\">Changed checks</p>",
-            "<h2>What moved between baseline and candidate</h2>",
+            "<h2>Policy-aware change ledger</h2>",
             "{body}",
             "</section>"
         ),

@@ -6,7 +6,7 @@
 
 ## Current Reality
 
-当前 reference 层已经对齐 **Phase 31 local decision governance landed**：
+当前 reference 层已经对齐 **Phase 32-34 local governance workbench landed**：
 
 - 默认主路径仍然是 `app-server`
 - `local direct-read` 已经 landed，不再是 future plan
@@ -40,8 +40,9 @@
 - baseline registry via `agent-exporter evidence baseline ...` 已经 landed，不再是 future plan
 - policy packs via `agent-exporter evidence policy ...` 已经 landed，不再是 future plan
 - decision promotion/history via `agent-exporter evidence promote` / `evidence history` 已经 landed，不再是 future plan
-- read-only governance MCP surface 已经 landed，不再是 future plan
-- local-first decision governance desk 已经 landed，不再是 future plan
+- remediation bundle studio via `agent-exporter evidence remediation` 已经 landed，不再是 future plan
+- read-only governance MCP surface + current-decision automation 已经 landed，不再是 future plan
+- local-first governance workbench 已经 landed，不再是 future plan
 - hosted / browser executor / cloud backend 仍然不是当前允许方向
 - `local` 只代表 **archival truth**
 - `claude-code` 当前也只代表 **degraded local import truth**

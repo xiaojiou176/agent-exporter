@@ -161,6 +161,7 @@ fn collect_integration_report_jsons(workspace_root: &Path) -> Vec<PathBuf> {
                         name != "index.json"
                             && name != "baseline-registry.json"
                             && name != "decision-history.json"
+                            && name.starts_with("integration-report-")
                     })
         })
         .collect::<Vec<_>>();
@@ -215,6 +216,7 @@ fn integration_report_jsons(workspace_root: &Path) -> Vec<PathBuf> {
                         name != "index.json"
                             && name != "baseline-registry.json"
                             && name != "decision-history.json"
+                            && name.starts_with("integration-report-")
                     })
         })
         .collect::<Vec<_>>();
@@ -369,6 +371,10 @@ fn publish_archive_index_renders_decision_desk_from_integration_evidence() {
                     .file_name()
                     .and_then(|name| name.to_str())
                     .is_some_and(|name| name != "index.json")
+                && path
+                    .file_name()
+                    .and_then(|name| name.to_str())
+                    .is_some_and(|name| name.starts_with("integration-report-"))
         })
         .collect::<Vec<_>>();
     report_jsons.sort();
@@ -409,12 +415,12 @@ fn publish_archive_index_renders_decision_desk_from_integration_evidence() {
 
     let content = fs::read_to_string(conversations_dir(workspace.path()).join("index.html"))
         .expect("archive index");
-    assert!(content.contains("Local Evidence Decision Desk"));
-    assert!(content.contains("Baseline"));
+    assert!(content.contains("Local Governance Workbench"));
+    assert!(content.contains("Official baseline"));
     assert!(content.contains("Candidate"));
-    assert!(content.contains("Remediation order"));
+    assert!(content.contains("Remediation bundle"));
     assert!(content.contains("Changed checks"));
-    assert!(content.contains("Official baseline / policy / promotion"));
+    assert!(content.contains("Official baseline / active policy / promotion"));
     assert!(content.contains("baseline name:"));
     assert!(content.contains("active policy:"));
     assert!(content.contains("promotion status:"));
@@ -458,7 +464,7 @@ fn publish_archive_index_shows_insufficient_when_reports_are_not_comparable() {
 
     let content = fs::read_to_string(conversations_dir(workspace.path()).join("index.html"))
         .expect("archive index");
-    assert!(content.contains("Local Evidence Decision Desk"));
+    assert!(content.contains("Local Governance Workbench"));
     assert!(content.contains("insufficient"));
     assert!(content.contains("Insufficient comparison input"));
     assert!(content.contains("No artifact selected"));

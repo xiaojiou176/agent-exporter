@@ -172,6 +172,20 @@ pub struct IntegrationEvidenceExplainStep {
 }
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct IntegrationEvidenceRemediationBundle {
+    pub schema_version: u32,
+    pub title: String,
+    pub platform: String,
+    pub target: String,
+    pub readiness: String,
+    pub summary: String,
+    pub bundle_status: String,
+    pub step_count: usize,
+    pub source_report_json_path: String,
+    pub steps: Vec<IntegrationEvidenceExplainStep>,
+}
+
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct IntegrationEvidenceGatePolicy {
     #[serde(default = "default_policy_name")]
     pub name: String,
@@ -472,6 +486,38 @@ pub fn write_integration_report_json_document(
     fs::write(&report_path, format!("{payload}\n")).with_context(|| {
         format!(
             "failed to write integration report json `{}`",
+            report_path.display()
+        )
+    })?;
+    Ok(report_path)
+}
+
+pub fn write_integration_remediation_bundle_json_document(
+    workspace_root: &Path,
+    kind: &str,
+    platform: &str,
+    generated_at: &str,
+    document: &IntegrationEvidenceRemediationBundle,
+) -> Result<PathBuf> {
+    let reports_dir = resolve_integration_reports_dir(workspace_root);
+    fs::create_dir_all(&reports_dir).with_context(|| {
+        format!(
+            "failed to prepare integration report directory `{}`",
+            reports_dir.display()
+        )
+    })?;
+
+    let report_path = reports_dir.join(format!(
+        "remediation-bundle-{}-{}-{}.json",
+        slugify(kind),
+        slugify(platform),
+        slugify(generated_at)
+    ));
+    let payload = serde_json::to_string_pretty(document)
+        .context("failed to render remediation bundle json")?;
+    fs::write(&report_path, format!("{payload}\n")).with_context(|| {
+        format!(
+            "failed to write remediation bundle json `{}`",
             report_path.display()
         )
     })?;
@@ -834,6 +880,48 @@ pub fn build_integration_evidence_explain(
             recheck: recheck.clone(),
         })
         .collect()
+}
+
+pub fn build_integration_evidence_remediation_bundle(
+    report: &IntegrationReportJsonDocument,
+) -> IntegrationEvidenceRemediationBundle {
+    let steps = build_integration_evidence_explain(
+        &report.platform,
+        &report.target,
+        &combined_check_records(report),
+        &report.next_steps,
+    );
+    let bundle_status = if steps.is_empty() {
+        "clear".to_string()
+    } else {
+        "actionable".to_string()
+    };
+    let summary = if steps.is_empty() {
+        format!(
+            "No remediation bundle is needed because `{}` is currently `{}`.",
+            report.title, report.readiness
+        )
+    } else {
+        format!(
+            "{} remediation step(s) prepared for `{}` at readiness `{}`.",
+            steps.len(),
+            report.title,
+            report.readiness
+        )
+    };
+
+    IntegrationEvidenceRemediationBundle {
+        schema_version: 1,
+        title: format!("{} remediation bundle", report.title),
+        platform: report.platform.clone(),
+        target: report.target.clone(),
+        readiness: report.readiness.clone(),
+        summary,
+        bundle_status,
+        step_count: steps.len(),
+        source_report_json_path: report.artifact_links.json_report.clone(),
+        steps,
+    }
 }
 
 pub fn diff_integration_reports(

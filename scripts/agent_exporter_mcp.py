@@ -126,6 +126,18 @@ def tool_specs() -> list[dict[str, Any]]:
             },
         },
         {
+            "name": "integration_evidence_remediation",
+            "description": "Read the remediation bundle for a saved integration evidence report",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "report": {"type": "string", "description": "Saved report path"},
+                },
+                "required": ["report"],
+                "additionalProperties": False,
+            },
+        },
+        {
             "name": "integration_evidence_baseline_list",
             "description": "Read the saved baseline registry from a workspace",
             "inputSchema": {
@@ -182,6 +194,19 @@ def tool_specs() -> list[dict[str, Any]]:
                     "limit": {"type": "integer", "description": "Maximum history entries to return", "default": 10},
                 },
                 "required": ["workspace_root"],
+                "additionalProperties": False,
+            },
+        },
+        {
+            "name": "integration_evidence_current_decision",
+            "description": "Automatically summarize the current decision for one official baseline",
+            "inputSchema": {
+                "type": "object",
+                "properties": {
+                    "workspace_root": {"type": "string", "description": "Workspace root path"},
+                    "baseline_name": {"type": "string", "description": "Baseline registry name"},
+                },
+                "required": ["workspace_root", "baseline_name"],
                 "additionalProperties": False,
             },
         },
@@ -294,6 +319,9 @@ def handle_tool_call(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
     if name == "integration_evidence_explain":
         return run_cli(["evidence", "explain", "--report", arguments["report"]])
 
+    if name == "integration_evidence_remediation":
+        return run_cli(["evidence", "remediation", "--report", arguments["report"]])
+
     if name == "integration_evidence_baseline_list":
         registry_path = resolve_baseline_registry_path(arguments["workspace_root"])
         if not registry_path.is_file():
@@ -368,6 +396,17 @@ def handle_tool_call(name: str, arguments: dict[str, Any]) -> dict[str, Any]:
             "decisions": entries[:limit],
         }
         return success_text(json.dumps(payload, ensure_ascii=False, indent=2))
+
+    if name == "integration_evidence_current_decision":
+        return run_cli(
+            [
+                "evidence",
+                "current",
+                "--baseline-name",
+                arguments["baseline_name"],
+            ],
+            cwd=arguments["workspace_root"],
+        )
 
     return error_text(f"unknown tool: {name}")
 

@@ -6,7 +6,7 @@
 
 ## Current Phase Snapshot
 
-当前这套文档已经进入 **Phase 31 local decision governance landed**。
+当前这套文档已经进入 **Phase 32-34 local governance workbench landed**。
 
 你可以先把它理解成：这套文档现在要同时解释“正门、侧门、以及第二种输出格式”，但不能把它们说成同一种真相。
 
@@ -41,11 +41,13 @@
 - `agent-exporter evidence explain --report <report>` 与 `doctor integrations --explain` 已经 landed，说明系统现在会给出 remediation order、why-first 和 recheck guidance
 - `agent-exporter evidence baseline list|show|promote` 已经 landed，说明 integration evidence 现在有正式 baseline registry
 - `agent-exporter evidence policy list|show` 已经 landed，说明 gate 规则现在有 repo-owned policy packs
-- `agent-exporter evidence promote` / `evidence history` 已经 landed，说明“这次通过是否升格成下次标准”已经有 decision promotion/history 账本
-- `publish archive-index` 现在已经会把 transcript/search/evidence 三壳导航、official baseline、active policy、promotion status 和 decision history 组织成一个本地 decision governance desk
+- `agent-exporter evidence promote` / `evidence history` 已经 landed，说明“这次通过是否升格成下次标准”已经有 promotion/history 账本
+- `agent-exporter evidence remediation --report` 已经 landed，说明 explain 现在已经升级成 structured remediation bundle
+- `agent-exporter evidence current --baseline-name <name>` 已经 landed，说明本地 workflow 现在可以只读追踪 current decision
+- `publish archive-index` 现在已经会把 transcript/search/evidence 三壳导航、official baseline、active policy、promotion status、remediation bundle 和 decision history 组织成一个本地 governance workbench
 - `local` 和 `claude-code` 当前都按 **degraded** 理解，不能冒充 canonical parity
-- 当前已进入 post-Phase-31 产品裁决区，而不是直接膨胀成 hosted / 平台壳
-- local-first decision governance desk 已经 landed
+- 当前已进入 post-Phase-34 产品裁决区，而不是直接膨胀成 hosted / 平台壳
+- local-first governance workbench 已经 landed
   - 但它必须继续保持 non-hosted / browser non-executor / no-corpus-merge
 
 ## Read Order

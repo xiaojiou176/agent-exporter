@@ -93,6 +93,7 @@ fn integration_report_jsons(workspace_root: &std::path::Path) -> Vec<PathBuf> {
                     name != "index.json"
                         && name != "baseline-registry.json"
                         && name != "decision-history.json"
+                        && name.starts_with("integration-report-")
                 })
         })
         .collect::<Vec<_>>();
@@ -155,11 +156,13 @@ fn mcp_bridge_lists_tools_and_can_publish_archive_index() {
     assert!(tool_names.contains(&"integration_evidence_diff"));
     assert!(tool_names.contains(&"integration_evidence_gate"));
     assert!(tool_names.contains(&"integration_evidence_explain"));
+    assert!(tool_names.contains(&"integration_evidence_remediation"));
     assert!(tool_names.contains(&"integration_evidence_baseline_list"));
     assert!(tool_names.contains(&"integration_evidence_baseline_show"));
     assert!(tool_names.contains(&"integration_evidence_policy_list"));
     assert!(tool_names.contains(&"integration_evidence_policy_show"));
     assert!(tool_names.contains(&"integration_evidence_decision_history"));
+    assert!(tool_names.contains(&"integration_evidence_current_decision"));
 
     write_message(
         &mut stdin,
@@ -250,7 +253,7 @@ fn mcp_bridge_reads_integration_evidence_tools() {
         .filter(|path| {
             path.file_name()
                 .and_then(|name| name.to_str())
-                .is_some_and(|name| name != "index.json")
+                .is_some_and(|name| name != "index.json" && name.starts_with("integration-report-"))
         })
         .collect::<Vec<_>>();
     report_jsons.sort();
@@ -347,6 +350,26 @@ fn mcp_bridge_reads_integration_evidence_tools() {
             "id": 3,
             "method": "tools/call",
             "params": {
+                "name": "integration_evidence_remediation",
+                "arguments": {
+                    "report": candidate.display().to_string()
+                }
+            }
+        }),
+    );
+    let remediation = read_message(&mut stdout);
+    let remediation_text = remediation["result"]["content"][0]["text"]
+        .as_str()
+        .expect("remediation result text");
+    assert!(remediation_text.contains("Integration remediation bundle"));
+
+    write_message(
+        &mut stdin,
+        &json!({
+            "jsonrpc": "2.0",
+            "id": 4,
+            "method": "tools/call",
+            "params": {
                 "name": "integration_evidence_diff",
                 "arguments": {
                     "left": baseline.display().to_string(),
@@ -365,7 +388,7 @@ fn mcp_bridge_reads_integration_evidence_tools() {
         &mut stdin,
         &json!({
             "jsonrpc": "2.0",
-            "id": 4,
+            "id": 5,
             "method": "tools/call",
             "params": {
                 "name": "integration_evidence_gate",
@@ -389,7 +412,7 @@ fn mcp_bridge_reads_integration_evidence_tools() {
         &mut stdin,
         &json!({
             "jsonrpc": "2.0",
-            "id": 5,
+            "id": 6,
             "method": "tools/call",
             "params": {
                 "name": "integration_evidence_baseline_list",
@@ -410,7 +433,7 @@ fn mcp_bridge_reads_integration_evidence_tools() {
         &mut stdin,
         &json!({
             "jsonrpc": "2.0",
-            "id": 6,
+            "id": 7,
             "method": "tools/call",
             "params": {
                 "name": "integration_evidence_baseline_show",
@@ -487,6 +510,28 @@ fn mcp_bridge_reads_integration_evidence_tools() {
         .expect("history result text");
     assert!(history_text.contains("\"decision_count\":"));
     assert!(history_text.contains("codex-main"));
+
+    write_message(
+        &mut stdin,
+        &json!({
+            "jsonrpc": "2.0",
+            "id": 11,
+            "method": "tools/call",
+            "params": {
+                "name": "integration_evidence_current_decision",
+                "arguments": {
+                    "workspace_root": workspace.path().display().to_string(),
+                    "baseline_name": "codex-main"
+                }
+            }
+        }),
+    );
+    let current = read_message(&mut stdout);
+    let current_text = current["result"]["content"][0]["text"]
+        .as_str()
+        .expect("current result text");
+    assert!(current_text.contains("Integration current decision"));
+    assert!(current_text.contains("codex-main"));
 
     drop(stdin);
     let status = child.wait().expect("wait child");
