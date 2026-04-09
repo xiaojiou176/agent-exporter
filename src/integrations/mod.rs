@@ -520,6 +520,17 @@ fn bridge_script_path(repo_root: &Path) -> PathBuf {
 }
 
 fn resolve_launcher(repo_root: &Path) -> Result<LauncherSpec> {
+    if let Ok(current_bin) = std::env::var("CARGO_BIN_EXE_agent-exporter") {
+        let current_bin_path = PathBuf::from(&current_bin);
+        if current_bin_path.is_file() {
+            return Ok(LauncherSpec {
+                kind: "repo-local-cargo-bin-exe",
+                command: current_bin,
+                args: Vec::new(),
+            });
+        }
+    }
+
     let release_bin = repo_root
         .join("target")
         .join("release")

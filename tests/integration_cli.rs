@@ -13,6 +13,13 @@ fn repo_root() -> PathBuf {
 }
 
 fn expected_launcher_fragment() -> String {
+    if let Ok(current_bin) = std::env::var("CARGO_BIN_EXE_agent-exporter") {
+        let current_bin_path = PathBuf::from(&current_bin);
+        if current_bin_path.is_file() {
+            return current_bin;
+        }
+    }
+
     let debug_bin = repo_root()
         .join("target")
         .join("debug")
