@@ -293,9 +293,9 @@ pub fn doctor_integration(request: &IntegrationDoctorRequest) -> Result<Integrat
         .filter_map(|path| fs::read_to_string(path).ok())
         .filter(|content| {
             content.contains(MCP_SCRIPT_PLACEHOLDER)
-                || content.contains("agent-exporter publish archive-index")
-                || content.contains("agent-exporter search semantic")
-                || content.contains("agent-exporter search hybrid")
+                || contains_generic_launcher_reference(content, "agent-exporter publish archive-index")
+                || contains_generic_launcher_reference(content, "agent-exporter search semantic")
+                || contains_generic_launcher_reference(content, "agent-exporter search hybrid")
         })
         .count();
 
@@ -745,6 +745,19 @@ fn quote_shell_arg(value: &str) -> String {
     } else {
         format!("'{}'", value.replace('\'', "'\"'\"'"))
     }
+}
+
+fn contains_generic_launcher_reference(content: &str, pattern: &str) -> bool {
+    content.match_indices(pattern).any(|(index, _)| {
+        let Some(previous) = content[..index].chars().next_back() else {
+            return true;
+        };
+
+        !matches!(
+            previous,
+            '/' | '\\' | '\'' | '"' | '_' | '-' | '.'
+        ) && !previous.is_ascii_alphanumeric()
+    })
 }
 
 enum WriteDisposition {
