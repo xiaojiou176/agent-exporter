@@ -2,11 +2,16 @@
 
 ## Repo Summary
 
-`agent-exporter` 是一个本地优先的 AI Agent CLI 会话导出仓库。
+`agent-exporter` 是一个 **local-first archive and governance workbench for AI agent transcripts**。
 
-- 当前目标：**Codex canonical transcript/archive 导出**
-- 未来目标：Claude Code、以及其他本地 CLI
-- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + minimal stdio MCP bridge + repo-owned integration materializer/doctor + drift-aware integration doctor hardening + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + integration evidence pack + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff + evidence gate / explain + baseline registry + policy packs + promotion engine/history + remediation bundle studio + read-only governance MCP surface + current-decision automation + local governance workbench 已落地；当前已进入 post-Phase-34 产品裁决区；默认 Codex 主路径仍是 app-server**
+- `Product Kernel`：本地优先地导出、归档、检索 transcript 与 evidence，并把治理决策收进 repo-owned workbench
+- `Primary Surface`：**CLI-first**
+- `Secondary Surface 1`：local archive shell / reports shell
+- `Secondary Surface 2`：repo-owned integration pack
+- `Secondary Surface 3`：read-only governance MCP bridge
+- `Flagship Public Packet`：**GitHub repo + CLI quickstart + archive shell proof**
+- `Front Door Today`：**先讲 CLI quickstart，再讲 archive shell proof；integration pack 和 governance MCP 仍然按 secondary surfaces 记账，不抢主门**
+- 当前阶段：**Codex dual-source + Claude Code minimal connector + shared JSON/HTML export + archive index + local metadata search + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + local retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + minimal stdio MCP bridge + repo-owned integration materializer/doctor + drift-aware integration doctor hardening + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + integration evidence pack + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff + evidence gate / explain + baseline registry + policy packs + promotion engine/history + remediation bundle studio + read-only governance MCP surface + current-decision automation + repo-local governance workbench capability 已吸收进当前产品真相；Wave 1 front door 仍以 CLI-first 解释，默认 Codex 主路径仍是 app-server**
 
 ---
 

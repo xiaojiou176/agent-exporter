@@ -139,65 +139,83 @@ pub fn render_archive_index_document(
             "<body>\n",
             "  <main class=\"page-shell\">\n",
             "    <header class=\"hero-card\">\n",
-            "      <p class=\"eyebrow\">agent-exporter local archive shell</p>\n",
+            "      <p class=\"eyebrow\">agent-exporter local archive shell proof</p>\n",
             "      <h1>{title}</h1>\n",
-            "      <p class=\"hero-copy\">这是一张 workspace conversations 的本地 archive shell。你可以把它理解成一个多 agent 档案前厅：页内 metadata filter 负责快速翻卡片，CLI 的 semantic / hybrid retrieval 负责更深一层的检索。它仍然是本地静态页面，不会替你走远程服务。</p>\n",
+            "      <p class=\"hero-copy\">产品总正门仍然是 CLI quickstart；如果你已经来到这里，就把这页理解成 archive shell proof 和 transcript/browser 侧厅。这里的主航道仍然是 transcript/archive 浏览与搜索，search reports 和 integration evidence 是并列工作线，Decision Desk 则是右手边的治理 lane，而不是整个产品的唯一主角。这里仍然是 local-first 的静态前厅，不会替你调用远程服务，也不会在浏览器里执行 doctor/onboard。</p>\n",
             "      <dl class=\"meta-grid\">\n",
             "        <div><dt>生成时间</dt><dd><code>{generated_at}</code></dd></div>\n",
-            "        <div><dt>HTML transcripts</dt><dd><code>{entry_count}</code></dd></div>\n",
+            "        <div><dt>Transcript exports</dt><dd><code>{entry_count}</code></dd></div>\n",
             "        <div><dt>Connectors</dt><dd><code>{connector_count}</code></dd></div>\n",
-            "        <div><dt>Retrieval lanes</dt><dd><code>metadata / semantic / hybrid</code></dd></div>\n",
-            "        <div><dt>Saved reports</dt><dd><code>{report_count}</code></dd></div>\n",
+            "        <div><dt>Saved search reports</dt><dd><code>{report_count}</code></dd></div>\n",
             "        <div><dt>Integration evidence</dt><dd><code>{integration_report_count}</code></dd></div>\n",
+            "        <div><dt>Primary front door</dt><dd><code>CLI quickstart</code></dd></div>\n",
+            "        <div><dt>Archive lanes</dt><dd><code>browse / search / governance</code></dd></div>\n",
+            "        <div><dt>Workbench style</dt><dd><code>local-first / static / no executor</code></dd></div>\n",
             "      </dl>\n",
-            "      <div class=\"link-row\">\n",
+            "      <div class=\"hero-actions\">\n",
+            "        <a class=\"open-link primary-link\" href=\"#archive-browser\">Start with transcripts</a>\n",
+            "        <a class=\"open-link\" href=\"#tool-lanes\">See side lanes</a>\n",
+            "        <a class=\"open-link\" href=\"#saved-reports\">Open saved reports</a>\n",
+            "      </div>\n",
+            "      <div class=\"link-row compact-row\">\n",
             "        <a class=\"open-link\" href=\"../Search/Reports/index.html\">Open reports shell</a>\n",
             "        <a class=\"open-link\" href=\"../Integration/Reports/index.html\">Open integration reports</a>\n",
             "      </div>\n",
             "    </header>\n",
-            "{decision_section}\n",
-            "    <section class=\"lane-grid\" aria-label=\"retrieval lanes\">\n",
-            "      <article class=\"lane-card\">\n",
-            "        <p class=\"eyebrow\">Lane 1</p>\n",
-            "        <h2>Metadata filter</h2>\n",
-            "        <p>用下面的搜索框和 facet buttons 先做本地 metadata filter。它像翻书架标签卡，只看标题、connector、thread id、completeness 和 source。</p>\n",
-            "      </article>\n",
-            "      <article class=\"lane-card\">\n",
-            "        <p class=\"eyebrow\">Lane 2</p>\n",
-            "        <h2>Semantic retrieval</h2>\n",
-            "        <p>如果你要按语义找“内容相近”的 transcript，继续用当前纯语义命令面；加上 <code>--save-report</code> 就能把这次查询留成可重复打开的本地 report：</p>\n",
-            "        <pre><code>agent-exporter search semantic --workspace-root &lt;repo-root&gt; --query \"login issues\" --save-report</code></pre>\n",
-            "      </article>\n",
-            "      <article class=\"lane-card\">\n",
-            "        <p class=\"eyebrow\">Lane 3</p>\n",
-            "        <h2>Hybrid retrieval</h2>\n",
-            "        <p>如果你既想保留 semantic ranking，又想吃到 metadata signal，就走 blended lane；同样可以把结果保存成 local report：</p>\n",
-            "        <pre><code>agent-exporter search hybrid --workspace-root &lt;repo-root&gt; --query \"thread-1\" --save-report</code></pre>\n",
-            "      </article>\n",
-            "    </section>\n",
-            "    <section class=\"summary-grid\" aria-label=\"archive summaries\">\n",
+            "    <section class=\"summary-grid\" aria-label=\"workspace summaries\">\n",
             "{connector_summary}\n",
             "{completeness_summary}\n",
             "{source_summary}\n",
             "{report_summary}\n",
             "{integration_summary}\n",
             "    </section>\n",
+            "    <section class=\"section-card section-intro\" id=\"archive-browser\">\n",
+            "      <p class=\"eyebrow\">Archive browser</p>\n",
+            "      <h2>先从对话记录开始，而不是先看治理票据</h2>\n",
+            "      <p class=\"hero-copy\">这里是这张侧厅里的主航道。先筛 transcript、打开对话、理解 archive 本身，再决定要不要跳去 search reports 或 governance lane。换句话说：先看内容，再看诊断，再看制度。</p>\n",
+            "    </section>\n",
             "    <section class=\"search-bar\" aria-label=\"archive search\">\n",
-            "      <label class=\"search-label\" for=\"archive-search\">Metadata search</label>\n",
+            "      <label class=\"search-label\" for=\"archive-search\">Transcript search</label>\n",
             "      <input id=\"archive-search\" class=\"search-input\" type=\"search\" placeholder=\"Search title, connector, thread id, completeness, source...\" autocomplete=\"off\">\n",
             "      <div class=\"facet-grid\">\n",
             "{connector_facets}\n",
             "{completeness_facets}\n",
             "      </div>\n",
-            "      <p id=\"archive-search-status\" class=\"search-status\">Showing <strong>{entry_count}</strong> transcripts.</p>\n",
+            "      <p id=\"archive-search-status\" class=\"search-status\">Showing <strong>{entry_count}</strong> transcript{entry_suffix}.</p>\n",
+            "    </section>\n",
+            "    <section class=\"card-grid transcript-grid\" aria-label=\"transcript browser\">\n",
+            "{body}\n",
+            "    </section>\n",
+            "    <p id=\"archive-empty-result\" class=\"empty-result\" hidden>No transcripts matched the current search.</p>\n",
+            "    <section class=\"lane-grid\" id=\"tool-lanes\" aria-label=\"tool lanes\">\n",
+            "      <article class=\"lane-card\">\n",
+            "        <p class=\"eyebrow\">Lane A</p>\n",
+            "        <h2>Browse transcripts</h2>\n",
+            "        <p>先把 transcript 当主角。用前面的搜索框和 facets 快速定位 conversation export，再决定要不要跳去更深的 report 或 governance 工具。</p>\n",
+            "      </article>\n",
+            "      <article class=\"lane-card\">\n",
+            "        <p class=\"eyebrow\">Lane B</p>\n",
+            "        <h2>Semantic retrieval</h2>\n",
+            "        <p>如果你要按语义找“内容相近”的 transcript，继续用 CLI 的 semantic / hybrid retrieval。search reports 仍然是独立抽屉，但从这里可以顺着跳过去，不会迷路。</p>\n",
+            "        <pre><code>agent-exporter search semantic --workspace-root &lt;repo-root&gt; --query \"login issues\" --save-report</code></pre>\n",
+            "        <pre><code>agent-exporter search hybrid --workspace-root &lt;repo-root&gt; --query \"thread-1\" --save-report</code></pre>\n",
+            "      </article>\n",
+            "      <article class=\"lane-card\">\n",
+            "        <p class=\"eyebrow\">Lane C</p>\n",
+            "        <h2>Governance lane</h2>\n",
+            "        <p>Decision Desk 很重要，但它不是整张桌子的主语。它负责 official baseline、policy、promotion、history 和 remediation；当你处理“接线是否健康”时，再从这里切过去。</p>\n",
+            "        <pre><code>agent-exporter evidence current --baseline-name &lt;name&gt;</code></pre>\n",
+            "      </article>\n",
+            "    </section>\n",
+            "    <section class=\"section-card section-intro report-intro\" id=\"saved-reports\">\n",
+            "      <p class=\"eyebrow\">Saved reports</p>\n",
+            "      <h2>Search 和 evidence 仍然是两条独立 lane</h2>\n",
+            "      <p class=\"hero-copy\">search reports 帮你回看检索，integration evidence 帮你回看接线结果和治理账本。它们都挂在这个 archive workbench 下面，但不会混成同一份 corpus，也不会反过来盖过 transcript/archive 主航道。</p>\n",
             "    </section>\n",
             "    <section class=\"report-grid\" aria-label=\"retrieval reports\">\n",
             "{report_cards}\n",
             "    </section>\n",
-            "    <section class=\"card-grid\">\n",
-            "{body}\n",
-            "    </section>\n",
-            "    <p id=\"archive-empty-result\" class=\"empty-result\" hidden>No transcripts matched the current search.</p>\n",
+            "<div id=\"governance-lane\">{decision_section}</div>\n",
             "  </main>\n",
             "  <script>\n{script}\n  </script>\n",
             "</body>\n",
@@ -209,6 +227,7 @@ pub fn render_archive_index_document(
         connector_count = distinct_connectors,
         report_count = reports.len(),
         integration_report_count = integration_reports.len(),
+        entry_suffix = if entries.len() == 1 { "" } else { "s" },
         decision_section = decision_section,
         connector_facets = connector_facets,
         completeness_facets = completeness_facets,
@@ -415,7 +434,7 @@ fn render_decision_desk(summary: Option<&DecisionDeskSummary>) -> String {
             "  <header class=\"decision-header\">\n",
             "    <p class=\"eyebrow\">Local Governance Workbench</p>\n",
             "    <h2>Official standard / candidate / action bundle</h2>\n",
-            "    <p class=\"hero-copy\">这张工作台只读当前 workspace 下已经保存好的 integration evidence、baseline registry、policy packs 和 decision history。它负责告诉你现在的 official standard、candidate verdict、promotion status 和 remediation bundle，但不会在浏览器里执行 doctor、onboard 或 gate。</p>\n",
+            "    <p class=\"hero-copy\">这张工作台只读当前 workspace 下已经保存好的 integration evidence、baseline registry、policy packs 和 decision history。它负责告诉你现在的 official standard、candidate verdict、promotion status 和 remediation bundle，但在层级上仍然是 transcript/archive 主航道旁边的一条治理 lane，不会在浏览器里执行 doctor、onboard 或 gate。</p>\n",
             "    <div class=\"verdict-strip\">\n",
             "      <span class=\"chip verdict-chip\">{verdict}</span>\n",
             "      <span class=\"chip\">{regression}</span>\n",
@@ -732,30 +751,43 @@ fn render_summary_section(title: &str, items: Vec<(String, usize)>) -> String {
 
 fn archive_index_style() -> &'static str {
     r#"    :root {
-      --page-bg: linear-gradient(180deg, #f4efe5 0%, #ebe2d0 100%);
-      --panel: rgba(255, 251, 244, 0.93);
-      --panel-strong: #fffdf9;
-      --ink: #20303b;
-      --muted: #61717c;
-      --border: #d4c6b2;
-      --accent: #9b5b23;
-      --shadow: 0 18px 40px rgba(54, 42, 30, 0.12);
+      --page-bg:
+        radial-gradient(circle at top left, rgba(201, 107, 54, 0.12), transparent 32%),
+        radial-gradient(circle at top right, rgba(45, 92, 122, 0.16), transparent 26%),
+        linear-gradient(180deg, #f7f1e7 0%, #eee3d2 100%);
+      --panel: rgba(255, 251, 245, 0.96);
+      --panel-strong: rgba(255, 255, 255, 0.98);
+      --panel-muted: rgba(246, 236, 223, 0.78);
+      --ink: #1b2530;
+      --muted: #5d6a74;
+      --border: rgba(104, 80, 55, 0.16);
+      --accent: #b25e2c;
+      --accent-strong: #8f4318;
+      --accent-soft: rgba(178, 94, 44, 0.12);
+      --blue-soft: rgba(45, 92, 122, 0.14);
+      --success: #1f7a58;
+      --warning: #9b5f0d;
+      --danger: #9a2a2a;
+      --shadow: 0 22px 48px rgba(41, 31, 20, 0.10);
+      --shadow-strong: 0 34px 90px rgba(41, 31, 20, 0.16);
       --mono: "SFMono-Regular", "JetBrains Mono", "Menlo", monospace;
-      --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      --sans: "Avenir Next", "Segoe UI", "Helvetica Neue", "Arial Nova", sans-serif;
+      --display: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
     }
 
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
-      font-family: var(--serif);
+      font-family: var(--sans);
       color: var(--ink);
       background: var(--page-bg);
     }
 
     .page-shell {
-      width: min(1080px, calc(100vw - 32px));
+      width: min(1240px, calc(100vw - 32px));
       margin: 0 auto;
-      padding: 28px 0 52px;
+      padding: 28px 0 72px;
     }
 
     .hero-card,
@@ -764,50 +796,64 @@ fn archive_index_style() -> &'static str {
     .entry-card,
     .empty-state,
     .decision-header,
-    .decision-changes {
+    .decision-changes,
+    .section-card {
       background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 24px;
+      border-radius: 28px;
       box-shadow: var(--shadow);
-      backdrop-filter: blur(14px);
+      backdrop-filter: blur(16px);
     }
 
     .hero-card,
     .lane-card,
     .summary-card,
     .entry-card,
-    .empty-state {
+    .empty-state,
+    .section-card {
       padding: 24px;
     }
 
-    .hero-card { margin-bottom: 24px; }
-
-    .lane-grid,
-    .report-grid,
-    .summary-grid,
-    .decision-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 18px;
-      margin-bottom: 20px;
+    .hero-card {
+      margin-bottom: 22px;
+      padding: 30px;
+      box-shadow: var(--shadow-strong);
     }
 
-    .decision-desk { margin-bottom: 24px; }
+    .section-card {
+      margin-bottom: 18px;
+    }
+
+    .summary-grid,
+    .lane-grid,
+    .report-grid,
+    .decision-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .transcript-grid {
+      margin-bottom: 22px;
+    }
+
+    .decision-desk {
+      margin: 6px 0 28px;
+    }
 
     .decision-header,
     .decision-changes {
       padding: 24px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(14px);
       margin-bottom: 18px;
+      border-radius: 24px;
+      box-shadow: var(--shadow);
     }
 
-    .verdict-strip {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 16px;
-      align-items: center;
+    .decision-header {
+      background:
+        linear-gradient(135deg, rgba(178, 94, 44, 0.08), rgba(45, 92, 122, 0.06)),
+        var(--panel);
     }
 
     .decision-card,
@@ -815,163 +861,191 @@ fn archive_index_style() -> &'static str {
       min-height: 100%;
     }
 
-    .check-list,
-    .step-list {
-      margin: 0;
-      padding-left: 20px;
-      color: var(--muted);
-    }
-
-    .change-item {
-      margin-bottom: 12px;
-    }
-
-    .empty-inline {
-      color: var(--muted);
-      line-height: 1.7;
-    }
-
     .eyebrow {
       margin: 0 0 10px;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.14em;
       font-family: var(--mono);
-      font-size: 12px;
+      font-size: 11px;
       color: var(--accent);
     }
 
     h1, h2 {
       margin: 0 0 12px;
-      line-height: 1.2;
-      font-weight: 700;
+      line-height: 1.06;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+      font-family: var(--display);
     }
 
-    h1 { font-size: clamp(32px, 4vw, 46px); }
-    h2 { font-size: clamp(22px, 3vw, 28px); }
+    h1 { font-size: clamp(34px, 4.7vw, 62px); }
+    h2 { font-size: clamp(24px, 2.8vw, 34px); }
 
     .hero-copy,
     p {
       margin: 0;
-      line-height: 1.7;
+      line-height: 1.68;
       color: var(--muted);
       word-break: break-word;
+    }
+
+    .hero-copy {
+      max-width: 78ch;
+      font-size: 16px;
     }
 
     .meta-grid {
       display: grid;
       gap: 12px;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      margin: 18px 0 0;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      margin: 22px 0 0;
     }
 
     .meta-grid div {
-      padding: 12px 14px;
+      padding: 14px 16px;
       background: var(--panel-strong);
-      border: 1px solid rgba(212, 198, 178, 0.9);
-      border-radius: 16px;
+      border: 1px solid rgba(104, 80, 55, 0.10);
+      border-radius: 18px;
     }
 
     dt {
       margin-bottom: 6px;
-      font-size: 12px;
+      font-size: 11px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--muted);
       font-family: var(--mono);
     }
 
-    dd { margin: 0; }
+    dd {
+      margin: 0;
+      font-size: 15px;
+      color: var(--ink);
+      font-weight: 600;
+    }
 
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 18px;
+    .hero-actions,
+    .link-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 18px;
+    }
+
+    .compact-row {
+      margin-top: 12px;
     }
 
     .chip-row {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      margin-bottom: 12px;
+      margin: 0 0 14px;
     }
 
     .chip {
       display: inline-flex;
       align-items: center;
+      gap: 6px;
       border-radius: 999px;
-      padding: 4px 10px;
-      background: rgba(155, 91, 35, 0.12);
-      color: var(--accent);
+      padding: 6px 11px;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      border: 1px solid rgba(178, 94, 44, 0.14);
       font-family: var(--mono);
       font-size: 12px;
     }
 
     .chip span,
     .facet-button span {
-      margin-left: 6px;
-      opacity: 0.7;
+      opacity: 0.72;
+    }
+
+    .verdict-chip {
+      background: rgba(45, 92, 122, 0.12);
+      color: #234f68;
+      border-color: rgba(45, 92, 122, 0.15);
     }
 
     .mono-inline,
     code,
-    .open-link {
+    .open-link,
+    pre {
       font-family: var(--mono);
     }
 
     .mono-inline {
       margin-top: 10px;
       color: var(--ink);
+      font-size: 13px;
     }
 
     .open-link {
       display: inline-flex;
-      margin-top: 14px;
+      align-items: center;
+      justify-content: center;
+      min-height: 42px;
       padding: 10px 14px;
       border-radius: 999px;
-      border: 1px solid rgba(155, 91, 35, 0.25);
+      border: 1px solid rgba(178, 94, 44, 0.22);
       text-decoration: none;
-      color: var(--accent);
-      background: rgba(255, 255, 255, 0.7);
+      color: var(--accent-strong);
+      background: rgba(255, 255, 255, 0.78);
+      transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
     }
 
     .open-link:hover {
-      background: rgba(255, 255, 255, 0.95);
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.96);
+      border-color: rgba(178, 94, 44, 0.38);
+    }
+
+    .primary-link {
+      background: linear-gradient(135deg, #b25e2c, #8f4318);
+      color: #fffaf2;
+      border-color: transparent;
+    }
+
+    .primary-link:hover {
+      background: linear-gradient(135deg, #bd6b39, #9a4d20);
     }
 
     .search-bar {
       display: grid;
-      gap: 10px;
-      margin: 0 0 18px;
-      padding: 18px 20px;
-      border-radius: 18px;
-      border: 1px solid rgba(212, 198, 178, 0.95);
-      background: rgba(255, 251, 244, 0.85);
+      gap: 12px;
+      margin: 0 0 20px;
+      padding: 20px 22px;
+      border-radius: 22px;
+      border: 1px solid rgba(104, 80, 55, 0.12);
+      background: var(--panel-muted);
       box-shadow: var(--shadow);
     }
 
     .search-label {
       font-family: var(--mono);
-      font-size: 12px;
-      letter-spacing: 0.1em;
+      font-size: 11px;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
       color: var(--accent);
     }
 
     .search-input {
       width: 100%;
-      padding: 12px 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(155, 91, 35, 0.25);
-      background: rgba(255, 255, 255, 0.9);
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(104, 80, 55, 0.14);
+      background: rgba(255, 255, 255, 0.96);
       color: var(--ink);
       font-family: var(--mono);
       font-size: 14px;
     }
 
     .search-status,
-    .empty-result {
+    .empty-result,
+    .empty-inline {
       color: var(--muted);
       font-size: 14px;
+      line-height: 1.65;
     }
 
     .facet-grid {
@@ -986,34 +1060,127 @@ fn archive_index_style() -> &'static str {
     }
 
     .facet-button {
-      border: 1px solid rgba(155, 91, 35, 0.25);
-      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(104, 80, 55, 0.14);
+      background: rgba(255, 255, 255, 0.9);
       border-radius: 999px;
-      padding: 8px 12px;
+      padding: 9px 13px;
       color: var(--ink);
       font-family: var(--mono);
       font-size: 12px;
       cursor: pointer;
+      transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+    }
+
+    .facet-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(178, 94, 44, 0.24);
     }
 
     .facet-button.is-active {
-      background: rgba(155, 91, 35, 0.12);
-      color: var(--accent);
-      border-color: rgba(155, 91, 35, 0.35);
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      border-color: rgba(178, 94, 44, 0.28);
+    }
+
+    .entry-card,
+    .summary-card,
+    .lane-card {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .entry-card::before,
+    .summary-card::before,
+    .lane-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 28%);
+      pointer-events: none;
+    }
+
+    .entry-card h2,
+    .summary-card h2,
+    .lane-card h2,
+    .decision-card h2 {
+      font-size: clamp(20px, 2vw, 28px);
+    }
+
+    .section-intro h2,
+    .decision-header h2 {
+      max-width: 20ch;
+    }
+
+    .section-intro p {
+      max-width: 72ch;
+    }
+
+    .decision-nav {
+      margin-top: 4px;
+    }
+
+    .check-list,
+    .step-list {
+      margin: 0;
+      padding-left: 20px;
+      color: var(--muted);
+    }
+
+    .step-list li,
+    .check-list li {
+      margin-bottom: 12px;
+    }
+
+    .change-item {
+      margin-bottom: 12px;
     }
 
     pre {
       margin: 14px 0 0;
-      padding: 14px;
+      padding: 16px;
       overflow-x: auto;
-      border-radius: 16px;
-      background: rgba(32, 48, 59, 0.92);
-      color: #f9f4eb;
+      border-radius: 18px;
+      background: #19232d;
+      color: #f9f3ea;
+      border: 1px solid rgba(255, 255, 255, 0.08);
     }
 
-    @media (max-width: 720px) {
+    .empty-state {
+      padding: 28px;
+      background: rgba(255, 253, 248, 0.98);
+    }
+
+    .empty-result {
+      margin-top: -4px;
+      margin-bottom: 18px;
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible {
+      outline: 3px solid rgba(45, 92, 122, 0.36);
+      outline-offset: 3px;
+    }
+
+    @media (max-width: 860px) {
       .page-shell {
-        width: min(100vw - 20px, 1080px);
+        width: min(100vw - 20px, 1240px);
+      }
+
+      .hero-card,
+      .lane-card,
+      .summary-card,
+      .entry-card,
+      .empty-state,
+      .section-card,
+      .decision-header,
+      .decision-changes {
+        border-radius: 22px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .page-shell {
         padding: 16px 0 28px;
       }
 
@@ -1021,10 +1188,16 @@ fn archive_index_style() -> &'static str {
       .lane-card,
       .summary-card,
       .entry-card,
-      .empty-state {
-        border-radius: 20px;
+      .empty-state,
+      .section-card,
+      .decision-header,
+      .decision-changes {
         padding: 18px;
       }
+
+      h1 { font-size: clamp(30px, 10vw, 44px); }
+      h2 { font-size: clamp(22px, 7vw, 30px); }
+      .hero-copy { font-size: 15px; }
     }"#
 }
 
@@ -1153,7 +1326,8 @@ mod tests {
             None,
         );
 
-        assert!(html.contains("agent-exporter local archive shell"));
+        assert!(html.contains("Start with transcripts"));
+        assert!(html.contains("Open saved reports"));
         assert!(html.contains("Open reports shell"));
         assert!(html.contains(
             "search semantic --workspace-root &lt;repo-root&gt; --query \"login issues\" --save-report"

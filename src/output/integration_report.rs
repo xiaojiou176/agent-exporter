@@ -192,7 +192,7 @@ pub fn render_integration_report_document(report: &IntegrationReportDocument) ->
             "    <header class=\"hero-card\">\n",
             "      <p class=\"eyebrow\">agent-exporter integration evidence</p>\n",
             "      <h1>{title}</h1>\n",
-            "      <p class=\"hero-copy\">{description}</p>\n",
+            "      <p class=\"hero-copy\">{description} 这页属于 repo-owned integration pack 这条 secondary surface：它是接线结果单，不是整个产品的主门。真正的 primary front door 仍然是 CLI quickstart，archive shell proof 是第一层可浏览证明，transcript/archive 则继续是最先可浏览的工作线。</p>\n",
             "      <dl class=\"meta-grid\">\n",
             "        <div><dt>Platform</dt><dd><code>{platform}</code></dd></div>\n",
             "        <div><dt>Kind</dt><dd><code>{kind}</code></dd></div>\n",
@@ -294,7 +294,7 @@ pub fn render_integration_reports_index_document(
             "    <header class=\"hero-card\">\n",
             "      <p class=\"eyebrow\">agent-exporter integration reports</p>\n",
             "      <h1>{title}</h1>\n",
-            "      <p class=\"hero-copy\">这是一张 integration evidence 的本地 front door。它只组织已经保存下来的 onboarding/doctor 报告，不会重新执行诊断，也不会进入 transcript/search corpus。</p>\n",
+            "      <p class=\"hero-copy\">这是一张 integration evidence 的本地侧门。它只组织已经保存下来的 onboarding/doctor 报告，不会重新执行诊断，也不会进入 transcript/search corpus；primary front door 仍然是 CLI quickstart，archive shell proof 仍是第一层可浏览证明。</p>\n",
             "      <dl class=\"meta-grid\">\n",
             "        <div><dt>Generated</dt><dd><code>{generated_at}</code></dd></div>\n",
             "        <div><dt>Saved reports</dt><dd><code>{report_count}</code></dd></div>\n",
@@ -505,71 +505,106 @@ fn integration_report_style() -> &'static str {
     r#"
   :root {
     color-scheme: light;
-    --bg: #f4efe6;
-    --ink: #1f1a14;
-    --muted: #6c6256;
-    --card: #fffdf8;
-    --line: #d8ccb9;
-    --accent: #946b2d;
-    --accent-soft: #f1e3c8;
+    --bg:
+      radial-gradient(circle at top left, rgba(201, 107, 54, 0.10), transparent 30%),
+      radial-gradient(circle at top right, rgba(45, 92, 122, 0.14), transparent 26%),
+      linear-gradient(180deg, #f7f1e7 0%, #eee3d2 100%);
+    --ink: #1d2731;
+    --muted: #5f6b76;
+    --card: rgba(255, 251, 245, 0.96);
+    --line: rgba(104, 80, 55, 0.16);
+    --accent: #b25e2c;
+    --accent-strong: #8f4318;
+    --accent-soft: rgba(178, 94, 44, 0.12);
+    --panel-strong: rgba(255, 255, 255, 0.98);
+    --shadow: 0 22px 48px rgba(41, 31, 20, 0.10);
+    --shadow-strong: 0 34px 90px rgba(41, 31, 20, 0.16);
+    --mono: "SFMono-Regular", "JetBrains Mono", "Menlo", monospace;
+    --sans: "Avenir Next", "Segoe UI", "Helvetica Neue", "Arial Nova", sans-serif;
+    --display: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
   }
   * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
   body {
     margin: 0;
-    font-family: "Iowan Old Style", "Palatino Linotype", serif;
-    background: linear-gradient(180deg, #f7f0e2 0%, var(--bg) 100%);
+    font-family: var(--sans);
+    background: var(--bg);
     color: var(--ink);
   }
   .page-shell {
-    max-width: 1040px;
+    max-width: 1160px;
     margin: 0 auto;
-    padding: 32px 20px 56px;
+    padding: 28px 20px 64px;
   }
   .hero-card, .section-card, .entry-card {
-    background: rgba(255, 253, 248, 0.94);
+    background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 24px;
-    box-shadow: 0 18px 48px rgba(61, 47, 26, 0.08);
+    border-radius: 28px;
+    box-shadow: var(--shadow);
+    backdrop-filter: blur(16px);
   }
   .hero-card, .section-card {
     padding: 24px;
     margin-bottom: 24px;
   }
+  .hero-card {
+    padding: 30px;
+    box-shadow: var(--shadow-strong);
+    background:
+      linear-gradient(135deg, rgba(178, 94, 44, 0.08), rgba(45, 92, 122, 0.06)),
+      var(--card);
+  }
   .eyebrow {
     margin: 0 0 8px;
-    font-size: 12px;
+    font-size: 11px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--muted);
+    color: var(--accent);
+    font-family: var(--mono);
   }
-  h1, h2 { margin: 0 0 12px; }
+  h1, h2 {
+    margin: 0 0 12px;
+    line-height: 1.06;
+    letter-spacing: -0.02em;
+    font-family: var(--display);
+  }
+  h1 { font-size: clamp(32px, 4.2vw, 52px); }
+  h2 { font-size: clamp(22px, 2.6vw, 30px); }
   .hero-copy, .summary-card, .check-detail, .search-status, .empty-inline, .empty-state p, .empty-result {
     color: var(--muted);
     line-height: 1.6;
   }
   .summary-card {
-    padding: 14px 16px;
+    padding: 16px 18px;
     background: var(--accent-soft);
-    border-radius: 16px;
+    border: 1px solid rgba(178, 94, 44, 0.12);
+    border-radius: 18px;
     color: var(--ink);
     margin: 12px 0 16px;
   }
   .meta-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 12px 18px;
     margin: 0 0 16px;
   }
+  .meta-grid div {
+    padding: 14px 16px;
+    background: var(--panel-strong);
+    border: 1px solid rgba(104, 80, 55, 0.10);
+    border-radius: 18px;
+  }
   .meta-grid dt {
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--muted);
     margin-bottom: 4px;
+    font-family: var(--mono);
   }
   .meta-grid dd, .mono-inline, code {
     margin: 0;
-    font-family: "SFMono-Regular", "Menlo", monospace;
+    font-family: var(--mono);
     font-size: 13px;
   }
   .link-row, .chip-row {
@@ -580,19 +615,30 @@ fn integration_report_style() -> &'static str {
   .open-link {
     display: inline-flex;
     align-items: center;
+    min-height: 42px;
     padding: 10px 14px;
     border-radius: 999px;
     text-decoration: none;
     border: 1px solid var(--line);
     color: var(--ink);
-    background: #fff;
+    background: rgba(255, 255, 255, 0.82);
+    transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+  }
+  .open-link:hover {
+    transform: translateY(-1px);
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(178, 94, 44, 0.28);
   }
   .chip {
     display: inline-flex;
+    align-items: center;
+    gap: 6px;
     padding: 6px 10px;
     border-radius: 999px;
     background: var(--accent-soft);
-    color: var(--ink);
+    color: var(--accent-strong);
+    border: 1px solid rgba(178, 94, 44, 0.14);
+    font-family: var(--mono);
     font-size: 12px;
   }
   .check-grid, .card-grid, .two-col {
@@ -611,6 +657,12 @@ fn integration_report_style() -> &'static str {
   .check-card, .entry-card {
     padding: 18px;
   }
+  .check-card, .entry-card {
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.36), transparent 30%),
+      rgba(255, 253, 248, 0.96);
+    border-radius: 22px;
+  }
   .mono-list, .step-list {
     margin: 0;
     padding-left: 20px;
@@ -618,25 +670,28 @@ fn integration_report_style() -> &'static str {
   .search-bar {
     padding: 20px 24px;
     margin-bottom: 24px;
-    background: rgba(255, 253, 248, 0.92);
+    background: rgba(248, 239, 227, 0.84);
     border: 1px solid var(--line);
-    border-radius: 22px;
+    border-radius: 24px;
+    box-shadow: var(--shadow);
   }
   .search-label, .facet-label {
     display: block;
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--muted);
+    letter-spacing: 0.12em;
+    color: var(--accent);
     margin-bottom: 8px;
+    font-family: var(--mono);
   }
   .search-input {
     width: 100%;
-    padding: 12px 14px;
-    border-radius: 14px;
+    padding: 13px 15px;
+    border-radius: 16px;
     border: 1px solid var(--line);
-    background: #fff;
+    background: rgba(255, 255, 255, 0.96);
     margin-bottom: 16px;
+    font-family: var(--mono);
   }
   .facet-grid {
     display: grid;
@@ -651,23 +706,36 @@ fn integration_report_style() -> &'static str {
   }
   .facet-button {
     border: 1px solid var(--line);
-    background: #fff;
+    background: rgba(255, 255, 255, 0.92);
     border-radius: 999px;
     padding: 8px 12px;
     cursor: pointer;
+    font-family: var(--mono);
+    transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+  }
+  .facet-button:hover {
+    transform: translateY(-1px);
+    border-color: rgba(178, 94, 44, 0.22);
   }
   .facet-button.active {
     background: var(--accent-soft);
-    border-color: var(--accent);
+    border-color: rgba(178, 94, 44, 0.30);
+    color: var(--accent-strong);
   }
   .empty-state, .empty-result {
     padding: 24px;
     text-align: center;
   }
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible {
+    outline: 3px solid rgba(45, 92, 122, 0.36);
+    outline-offset: 3px;
+  }
   [hidden] { display: none !important; }
   @media (max-width: 700px) {
     .page-shell { padding-inline: 14px; }
-    .hero-card, .section-card, .search-bar, .entry-card { border-radius: 18px; }
+    .hero-card, .section-card, .search-bar, .entry-card { border-radius: 20px; }
   }
 "#
 }

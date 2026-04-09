@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" role="img" aria-labelledby="title desc">
+  <title id="title">agent-exporter local-first archive shell proof map</title>
+  <desc id="desc">A clear diagram that shows the CLI quickstart feeding transcript export, archive shell proof, reports shell, integration evidence, and governance lane without claiming a hosted service.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#faf4ea"/>
+      <stop offset="55%" stop-color="#f1e5d4"/>
+      <stop offset="100%" stop-color="#ebe0cf"/>
+    </linearGradient>
+    <linearGradient id="hero" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b55f2d"/>
+      <stop offset="100%" stop-color="#8e4519"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="24" stdDeviation="28" flood-color="#5a4128" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+
+  <rect width="1440" height="900" fill="url(#bg)"/>
+  <circle cx="180" cy="150" r="220" fill="#d8844a" opacity="0.12"/>
+  <circle cx="1230" cy="120" r="210" fill="#3f6f8b" opacity="0.14"/>
+  <circle cx="1210" cy="770" r="250" fill="#c5a377" opacity="0.10"/>
+
+  <g filter="url(#shadow)">
+    <rect x="88" y="72" rx="34" ry="34" width="1264" height="180" fill="#fffaf3" opacity="0.98"/>
+    <rect x="118" y="102" rx="24" ry="24" width="404" height="120" fill="url(#hero)"/>
+    <text x="146" y="142" fill="#fff7ef" font-family="'Avenir Next','Helvetica Neue',sans-serif" font-size="22" font-weight="700" letter-spacing="3">PRIMARY FRONT DOOR</text>
+    <text x="146" y="186" fill="#fffef9" font-family="'Avenir Next','Helvetica Neue',sans-serif" font-size="54" font-weight="700">CLI quickstart first</text>
+    <text x="560" y="136" fill="#9f582b" font-family="'JetBrains Mono','SFMono-Regular',monospace" font-size="20" letter-spacing="2">CURRENT FLAGSHIP PUBLIC PACKET</text>
+    <text x="560" y="184" fill="#1e2831" font-family="'Avenir Next','Helvetica Neue',sans-serif" font-size="34" font-weight="650">GitHub repo + CLI quickstart + archive shell proof</text>
+    <text x="560" y="216" fill="#5c6872" font-family="'Avenir Next','Helvetica Neue',sans-serif" font-size="22">Pages is a companion docs surface. It does not replace the repo front door.</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="104" y="318" rx="30" ry="30" width="360" height="196" fill="#fffdf9"/>
+    <text x="138" y="360" fill="#a95b2a" font-family="'JetBrains Mono','SFMono-Regular',monospace" font-size="20" letter-spacing="2">STEP 1</text>
+    <text x="138" y="412" fill="#1d2731" font-family="'Avenir Next','Helvetica Neue',sans-serif" font-size="42" font-weight="700">Check connectors</text>
+    <text x="138" y="452" fill="#5f6b76" font-family="'Avenir Next','Helvetica Neue',sans-serif" font-size="24">Run `cargo run -- connectors` and confirm the current source roadmap.</text>
+    <rect x="138" y="470" rx="16" ry="16" width="292" height="28" fill="#f1e3d7"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="540" y="284" rx="30" ry="30" width="360" height="250" fill="#fffdf9"/>
+    <text x="574" y="326" fill="#a95b2a" font-family="'JetBrains Mono','SFMono-Regular',monospace" font-size="20" letter-spacing="2">STEP 2</text>
+    <text x="574" y="378" fill="#1d2731" font-family="'Avenir Next','Helvetica Neue',sans-serif" font-size="42" font-weight="700">Export transcript</text>
+    <text x="574" y="418" fill="#5f6b76" font-family="'Avenir Next','Helvetica Neue',sans-serif" font-size="24">Produce a local HTML receipt under `.agents/Conversations/*.html`.</text>
+    <rect x="574" y="440" rx="18" ry="18" width="294" height="58" fill="#f8f0e4" stroke="#e8d6c1"/>
+    <text x="598" y="475" fill="#6b4c34" font-family="'JetBrains Mono','SFMono-Regular',monospace" font-size="20">export codex --format html</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="976" y="318" rx="30" ry="30" width="360" height="196" fill="#fffdf9"/>
+    <text x="1010" y="360" fill="#a95b2a" font-family="'JetBrains Mono','SFMono-Regular',monospace" font-size="20" letter-spacing="2">STEP 3</text>
+    <text x="1010" y="412" fill="#1d2731" font-family="'Avenir Next','Helvetica Neue',sans-serif" font-size="42" font-weight="700">Publish archive shell</text>
+    <text x="1010" y="452" fill="#5f6b76" font-family="'Avenir Next','Helvetica Neue',sans-serif" font-size="24">Generate `.agents/Conversations/index.html` as the first visible proof layer.</text>
+    <rect x="1010" y="470" rx="16" ry="16" width="294" height="28" fill="#f1e3d7"/>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="96" y="614" rx="28" ry="28" width="392" height="190" fill="#fffaf4"/>
+    <text x="128" y="654" fill="#3f6f8b" font-family="'JetBrains Mono','SFMono-Regular',monospace" font-size="18" letter-spacing="2">SECONDARY SURFACE 1</text>
+    <text x="128" y="702" fill="#1d2731" font-family="'Avenir Next','Helvetica Neue',sans-serif" font-size="38" font-weight="700">Reports shell</text>
+    <text x="128" y="744" fill="#5f6b76" font-family="'Avenir Next','Helvetica Neue',sans-serif" font-size="24">Saved retrieval receipts stay visible, but they do not become the primary front door.</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="524" y="614" rx="28" ry="28" width="392" height="190" fill="#fffaf4"/>
+    <text x="556" y="654" fill="#3f6f8b" font-family="'JetBrains Mono','SFMono-Regular',monospace" font-size="18" letter-spacing="2">SECONDARY SURFACE 2</text>
+    <text x="556" y="702" fill="#1d2731" font-family="'Avenir Next','Helvetica Neue',sans-serif" font-size="38" font-weight="700">Integration pack</text>
+    <text x="556" y="744" fill="#5f6b76" font-family="'Avenir Next','Helvetica Neue',sans-serif" font-size="24">Repo-owned onboarding and doctor flows are companion lanes, not the flagship packet.</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="952" y="614" rx="28" ry="28" width="392" height="190" fill="#fffaf4"/>
+    <text x="984" y="654" fill="#3f6f8b" font-family="'JetBrains Mono','SFMono-Regular',monospace" font-size="18" letter-spacing="2">SECONDARY SURFACE 3</text>
+    <text x="984" y="702" fill="#1d2731" font-family="'Avenir Next','Helvetica Neue',sans-serif" font-size="38" font-weight="700">Governance MCP</text>
+    <text x="984" y="744" fill="#5f6b76" font-family="'Avenir Next','Helvetica Neue',sans-serif" font-size="24">Read-only governance tools stay visible as a lane, not a stealth replacement for CLI-first onboarding.</text>
+  </g>
+
+  <path d="M460 416 C 500 416, 514 410, 540 410" fill="none" stroke="#b25e2c" stroke-width="6" stroke-linecap="round"/>
+  <path d="M900 410 C 928 410, 948 416, 976 416" fill="none" stroke="#b25e2c" stroke-width="6" stroke-linecap="round"/>
+  <path d="M720 534 C 720 566, 720 584, 720 614" fill="none" stroke="#3f6f8b" stroke-width="6" stroke-linecap="round"/>
+  <path d="M720 534 C 560 576, 412 606, 292 614" fill="none" stroke="#3f6f8b" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
+  <path d="M720 534 C 880 576, 1028 606, 1148 614" fill="none" stroke="#3f6f8b" stroke-width="4" stroke-linecap="round" opacity="0.55"/>
+
+  <text x="104" y="858" fill="#6f7a84" font-family="'JetBrains Mono','SFMono-Regular',monospace" font-size="17">Truthful claim: local-first archive workbench. Non-claim: hosted service, remote platform, already approved.</text>
+</svg>

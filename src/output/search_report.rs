@@ -91,7 +91,7 @@ pub fn render_search_report_document(report: &SearchReportDocument) -> String {
             "    <header class=\"hero-card\">\n",
             "      <p class=\"eyebrow\">agent-exporter retrieval report</p>\n",
             "      <h1>{title}</h1>\n",
-            "      <p class=\"hero-copy\">{description}</p>\n",
+            "      <p class=\"hero-copy\">{description} 这页属于 local archive shell / reports shell 这条 secondary surface：检索动作仍然从 CLI 发起，这里保存的是可回看的 receipt，不是产品主门本身。真正的 primary front door 仍然是 CLI quickstart，archive shell proof 则是第一层可浏览证明。</p>\n",
             "      <dl class=\"meta-grid\">\n",
             "        <div><dt>Query</dt><dd><code>{query}</code></dd></div>\n",
             "        <div><dt>Generated</dt><dd><code>{generated_at}</code></dd></div>\n",
@@ -168,7 +168,7 @@ pub fn render_search_reports_index_document(
             "    <header class=\"hero-card\">\n",
             "      <p class=\"eyebrow\">agent-exporter reports shell</p>\n",
             "      <h1>{title}</h1>\n",
-            "      <p class=\"hero-copy\">这是一张 retrieval reports 的本地目录页。你可以把它理解成 search receipts 的柜台：检索执行仍然在 CLI，页面只负责组织和回看这些已保存的 report。</p>\n",
+            "      <p class=\"hero-copy\">这是一张 retrieval reports 的本地目录页。你可以把它理解成 search receipts 的柜台：检索执行仍然在 CLI，页面只负责组织和回看这些已保存的 report；它是 archive workbench 的侧门，不是主门。真正的 primary front door 仍然是 CLI quickstart，archive shell proof 则是第一层可浏览证明。</p>\n",
             "      <dl class=\"meta-grid\">\n",
             "        <div><dt>Generated</dt><dd><code>{generated_at}</code></dd></div>\n",
             "        <div><dt>Saved reports</dt><dd><code>{report_count}</code></dd></div>\n",
@@ -353,30 +353,36 @@ fn transcript_href(relative_href: &str) -> String {
 
 fn search_report_style() -> &'static str {
     r#"    :root {
-      --page-bg: linear-gradient(180deg, #f3efe7 0%, #e8e2d7 100%);
-      --panel: rgba(255, 252, 247, 0.92);
-      --panel-strong: #fffdf9;
-      --ink: #20303b;
-      --muted: #5f707d;
-      --border: #d8ccbc;
-      --accent: #8c4f1f;
-      --shadow: 0 18px 40px rgba(54, 42, 30, 0.12);
+      --page-bg:
+        radial-gradient(circle at top left, rgba(201, 107, 54, 0.10), transparent 30%),
+        radial-gradient(circle at top right, rgba(45, 92, 122, 0.15), transparent 24%),
+        linear-gradient(180deg, #f7f1e7 0%, #eee3d2 100%);
+      --panel: rgba(255, 251, 245, 0.96);
+      --panel-strong: rgba(255, 255, 255, 0.98);
+      --ink: #1d2731;
+      --muted: #5f6b76;
+      --border: rgba(104, 80, 55, 0.16);
+      --accent: #b25e2c;
+      --accent-strong: #8f4318;
+      --accent-soft: rgba(178, 94, 44, 0.12);
+      --shadow: 0 22px 48px rgba(41, 31, 20, 0.10);
       --mono: "SFMono-Regular", "JetBrains Mono", "Menlo", monospace;
-      --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Georgia, serif;
+      --sans: "Avenir Next", "Segoe UI", "Helvetica Neue", "Arial Nova", sans-serif;
+      --display: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
     }
 
     * { box-sizing: border-box; }
     body {
       margin: 0;
-      font-family: var(--serif);
+      font-family: var(--sans);
       color: var(--ink);
       background: var(--page-bg);
     }
 
     .page-shell {
-      width: min(1080px, calc(100vw - 32px));
+      width: min(1180px, calc(100vw - 32px));
       margin: 0 auto;
-      padding: 28px 0 52px;
+      padding: 28px 0 64px;
     }
 
     .hero-card,
@@ -384,31 +390,39 @@ fn search_report_style() -> &'static str {
     .empty-state {
       background: var(--panel);
       border: 1px solid var(--border);
-      border-radius: 24px;
+      border-radius: 26px;
       box-shadow: var(--shadow);
       backdrop-filter: blur(14px);
       padding: 24px;
     }
 
-    .hero-card { margin-bottom: 24px; }
+    .hero-card {
+      margin-bottom: 24px;
+      padding: 30px;
+      background:
+        linear-gradient(135deg, rgba(178, 94, 44, 0.08), rgba(45, 92, 122, 0.06)),
+        var(--panel);
+    }
 
     .eyebrow {
       margin: 0 0 10px;
       text-transform: uppercase;
       letter-spacing: 0.12em;
       font-family: var(--mono);
-      font-size: 12px;
+      font-size: 11px;
       color: var(--accent);
     }
 
     h1, h2 {
       margin: 0 0 12px;
-      line-height: 1.2;
-      font-weight: 700;
+      line-height: 1.08;
+      font-weight: 750;
+      letter-spacing: -0.02em;
+      font-family: var(--display);
     }
 
-    h1 { font-size: clamp(32px, 4vw, 46px); }
-    h2 { font-size: clamp(22px, 3vw, 28px); }
+    h1 { font-size: clamp(32px, 4.2vw, 52px); }
+    h2 { font-size: clamp(22px, 2.6vw, 30px); }
 
     .hero-copy,
     p {
@@ -426,15 +440,15 @@ fn search_report_style() -> &'static str {
     }
 
     .meta-grid div {
-      padding: 12px 14px;
+      padding: 14px 16px;
       background: var(--panel-strong);
-      border: 1px solid rgba(216, 204, 188, 0.9);
-      border-radius: 16px;
+      border: 1px solid rgba(104, 80, 55, 0.10);
+      border-radius: 18px;
     }
 
     dt {
       margin-bottom: 6px;
-      font-size: 12px;
+      font-size: 11px;
       letter-spacing: 0.08em;
       text-transform: uppercase;
       color: var(--muted);
@@ -451,16 +465,16 @@ fn search_report_style() -> &'static str {
       display: grid;
       gap: 10px;
       margin: 0 0 18px;
-      padding: 18px 20px;
-      border-radius: 18px;
-      border: 1px solid rgba(216, 204, 188, 0.95);
-      background: rgba(255, 251, 244, 0.85);
+      padding: 20px 22px;
+      border-radius: 22px;
+      border: 1px solid rgba(104, 80, 55, 0.12);
+      background: rgba(248, 239, 227, 0.84);
       box-shadow: var(--shadow);
     }
 
     .search-label {
       font-family: var(--mono);
-      font-size: 12px;
+      font-size: 11px;
       letter-spacing: 0.1em;
       text-transform: uppercase;
       color: var(--accent);
@@ -468,10 +482,10 @@ fn search_report_style() -> &'static str {
 
     .search-input {
       width: 100%;
-      padding: 12px 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(140, 79, 31, 0.25);
-      background: rgba(255, 255, 255, 0.9);
+      padding: 13px 15px;
+      border-radius: 16px;
+      border: 1px solid rgba(178, 94, 44, 0.25);
+      background: rgba(255, 255, 255, 0.96);
       color: var(--ink);
       font-family: var(--mono);
       font-size: 14px;
@@ -495,20 +509,26 @@ fn search_report_style() -> &'static str {
     }
 
     .facet-button {
-      border: 1px solid rgba(140, 79, 31, 0.25);
-      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid rgba(178, 94, 44, 0.25);
+      background: rgba(255, 255, 255, 0.92);
       border-radius: 999px;
       padding: 8px 12px;
       color: var(--ink);
       font-family: var(--mono);
       font-size: 12px;
       cursor: pointer;
+      transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+    }
+
+    .facet-button:hover {
+      transform: translateY(-1px);
+      border-color: rgba(178, 94, 44, 0.22);
     }
 
     .facet-button.is-active {
-      background: rgba(140, 79, 31, 0.12);
-      color: var(--accent);
-      border-color: rgba(140, 79, 31, 0.35);
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      border-color: rgba(178, 94, 44, 0.30);
     }
 
     .chip span,
@@ -534,9 +554,10 @@ fn search_report_style() -> &'static str {
       display: inline-flex;
       align-items: center;
       border-radius: 999px;
-      padding: 4px 10px;
-      background: rgba(140, 79, 31, 0.12);
-      color: var(--accent);
+      padding: 6px 10px;
+      background: var(--accent-soft);
+      color: var(--accent-strong);
+      border: 1px solid rgba(178, 94, 44, 0.14);
       font-family: var(--mono);
       font-size: 12px;
     }
@@ -556,16 +577,27 @@ fn search_report_style() -> &'static str {
     .open-link {
       display: inline-flex;
       margin-top: 14px;
+      min-height: 42px;
       padding: 10px 14px;
       border-radius: 999px;
-      border: 1px solid rgba(140, 79, 31, 0.25);
+      border: 1px solid rgba(178, 94, 44, 0.25);
       text-decoration: none;
-      color: var(--accent);
-      background: rgba(255, 255, 255, 0.7);
+      color: var(--accent-strong);
+      background: rgba(255, 255, 255, 0.82);
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
     }
 
     .open-link:hover {
-      background: rgba(255, 255, 255, 0.95);
+      transform: translateY(-1px);
+      background: rgba(255, 255, 255, 0.98);
+      border-color: rgba(178, 94, 44, 0.28);
+    }
+
+    a:focus-visible,
+    button:focus-visible,
+    input:focus-visible {
+      outline: 3px solid rgba(45, 92, 122, 0.36);
+      outline-offset: 3px;
     }
 
     @media (max-width: 720px) {

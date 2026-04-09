@@ -1,21 +1,96 @@
 # agent-exporter
 
-`agent-exporter` 是一个 **本地优先、CLI 优先、可扩展到多 Agent CLI** 的会话导出工具仓库。
+`agent-exporter` 是一个 **local-first archive and governance workbench for AI agent transcripts**。
 
-当前先把五件事做对：
+[Try It In 3 Steps](#first-success-path) · [Docs Landing](https://xiaojiou176-open.github.io/agent-exporter/) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof/) · [Latest Release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
 
-> **先把 Codex 的 canonical export 做对，**
-> **再用最小 Claude Code connector 证明这套架构能接第二个来源，**
-> **再用最小 JSON exporter 证明 shared transcript core 能接第二种输出，**
-> **再用最小 HTML exporter 证明同一份 transcript 也能直接变成静态可读页面，**
-> **再用最小 archive index 证明这些页面已经可以本地浏览和静态发布，**
-> **再把它升级成一个 local-first multi-agent archive shell，**
-> **再让 semantic / hybrid 检索结果也能保存成可链接的本地 retrieval reports，**
-> **再把 workspace-local transcript 导航闭环补完整，**
-> **再给 saved retrieval reports 补一张自己的本地 front door，**
-> **再让这张 front door 也支持本地 metadata search。**
+![agent-exporter proof map showing CLI quickstart, transcript export, archive shell proof, reports shell, and integration evidence as one local-first workbench](./docs/assets/archive-shell-proof.svg)
 
-但仓库从第一天开始就按“未来会接 Claude Code 和其他本地 CLI”来设计，所以不会把 Codex 的私有读取逻辑写死在整个项目里。
+## Product Kernel
+
+一句话理解：
+
+> 它先把 transcript 的导出、归档、检索、证据与治理做成一个本地优先工作台，
+> 而不是先膨胀成 hosted service 或远程平台。
+
+## Surface Model
+
+- **Primary Surface:** `CLI-first`
+- **Secondary Surface 1:** local archive shell / reports shell
+- **Secondary Surface 2:** repo-owned integration pack
+- **Secondary Surface 3:** read-only governance MCP bridge
+
+这些 surface 可以一起存在，但不能互相借光，更不能把 operator-facing secondary surface 写成当前主门。
+
+## Flagship Public Packet
+
+当前阶段先打的旗舰公开包是：
+
+> **GitHub repo + CLI quickstart + archive shell proof**
+
+这不等于别的 surface 不做。
+它们也要全部打完，但必须**分阶段过线**，不能把 secondary surface 的局部 readiness 误写成整仓已经 public-ready。
+
+## Front Door Today
+
+如果你第一次接触这个仓，推荐把入口顺序理解成：
+
+1. **先走 CLI quickstart**
+2. **再看 archive shell proof**
+3. **最后按需要转去 reports shell / integration pack / governance lane**
+
+说得更直白一点：
+
+> 产品 kernel 里当然包含 evidence 与 governance，
+> 但 Wave 1 的 front door 叙事必须仍然让 **CLI-first** 压住第一屏。
+
+## Public Entry Points
+
+- **GitHub repo front door:** current primary onboarding path with the CLI quickstart
+- **GitHub Pages landing:** a thin public docs layer that routes readers to the same product sentence and first-success path
+- **Archive shell proof page:** a tracked public explanation of what the archive shell proves, what it does not prove, and how to reproduce it locally
+- **Latest release shelf:** release/tag truth for the current public packet
+
+## First Success Path
+
+把 first success 理解成“先确认 connector，再导出一份 transcript，最后把它挂进 archive shell”。
+
+1. **确认当前 connector 路线图**
+
+   ```bash
+   cargo run -- connectors
+   ```
+
+2. **导出一份 HTML transcript 到当前 workspace**
+
+   ```bash
+   cargo run -- export codex \
+     --thread-id <thread-id> \
+     --format html \
+     --destination workspace-conversations \
+     --workspace-root /absolute/path/to/repo
+   ```
+
+3. **生成 archive shell proof**
+
+   ```bash
+   cargo run -- publish archive-index --workspace-root /absolute/path/to/repo
+   ```
+
+成功信号：
+
+- 你会得到一份 `.agents/Conversations/*.html` transcript export
+- 你会得到 `.agents/Conversations/index.html` archive shell
+- 这份 proof 是 **local-first HTML receipt**，不是 hosted demo，也不是 GitHub Pages live read-back
+
+## Public Boundary Right Now
+
+先把当前公开边界记清楚，避免把“能生成”误写成“已经对外 live”：
+
+- **public front door**：当前还是 GitHub repo + CLI quickstart，GitHub Pages 只是 companion docs surface，不是另一扇主门
+- **first visible proof we can truthfully promise today**：tracked archive shell proof page + 本地可复现的 archive shell HTML receipt
+- **secondary surfaces**：reports shell、integration pack、read-only governance MCP bridge 继续保留，但不抢主门
+- **cannot claim yet**：`submit-ready`、`already approved`、`MCP-first`
 
 ## Host Safety
 
@@ -35,58 +110,28 @@
 
 ## 当前定位
 
-你可以先把这个仓理解成一个“会话归档工具”的地基，而不是一个已经做完的产品。
+你可以先把这个仓理解成一个**本地优先的 archive / governance workbench**，而不是一个 hosted 平台。
+不过当前 front door 的讲法要继续守住一个顺序：**先 CLI，再 archive shell proof，再 secondary surfaces**。
 
-当前阶段已经完成的是：
+当前阶段已经完成的，不该再用“超长能力清单”去讲，而应该先用一张表看懂：
 
-- Rust CLI 骨架
-- `source / core / output` 分层
-- `Codex app-server source`
-- `Codex local direct-read source`
-- `Claude Code session-path connector`
-- typed archive core
-- round-based Markdown export
-- shared JSON export
-- shared HTML export
-- workspace conversations archive index
-- local archive metadata search
-- semantic retrieval
-- persistent local semantic index
-- hybrid retrieval
-- multi-agent local archive shell
-- local retrieval report artifacts
-- workspace-local transcript backlinks
-- local reports shell
-- local reports-shell metadata search
-- minimal stdio MCP bridge
-- Codex / Claude Code / OpenClaw integration pack docs/templates
-- repo-owned integration materializer
-- repo-owned integration doctor
-- drift-aware integration doctor hardening
-- platform-aware integration doctor diagnostics
-- integration pack-shape hardening
-- integration onboarding experience
-- forbidden-target onboarding guardrails
-- integration evidence pack / exportable onboarding reports
-- integration evidence shell search
-- machine-readable integration evidence
-- integration evidence timeline/diff
-- evidence gate / explain
-- baseline registry / policy packs / promotion engine/history
-- remediation bundle studio
-- read-only governance MCP surface + current-decision automation
-- local governance workbench
-- 一条真实可用的 `export codex --thread-id ...` 导出主链
-- 一条真实可用的 `export claude-code --session-path ...` 导出主链
-- 一条真实可用的 `--format markdown|json|html` 输出命令面
-- 一条真实可用的 `publish archive-index --workspace-root <repo>` 本地归档索引命令
-- 一条真实可用的 `integrate <platform> --target <dir>` 材料化主链
-- 一条真实可用的 `doctor integrations --platform <platform> --target <dir>` 验收主链
-- 第一批 ADR / 参考文档与实现对齐
+| Layer | 当前真相 | first proof / entry |
+| --- | --- | --- |
+| CLI core | `export codex`、`export claude-code`、`--format markdown|json|html` 都已 landed | CLI quickstart |
+| Archive shell proof | `publish archive-index` 会生成 transcript browser、workspace backlinks 和 archive shell | `.agents/Conversations/index.html` |
+| Reports shell | `search semantic|hybrid --save-report` 会生成 retrieval receipts 和 reports shell | `.agents/Search/Reports/index.html` |
+| Integration pack | `integrate` / `doctor integrations` / `onboard` 已是 repo-owned companion lane | `.agents/Integration/Reports/index.html` |
+| Governance lane | evidence / baseline / policy / remediation 已进入本地 workbench | archive shell Decision Desk + integration evidence reports |
+
+更直白一点：
+
+> 这仓已经不是“只有导出”的小工具，
+> 但今天 public front door 仍然只应该先卖 **CLI quickstart + archive shell proof**，而不是把每条 side lane 都摊成第一屏。
 
 当前阶段**还没有**完成的是：
 
-- 当前 Phase 34 之后的新一轮产品裁决
+- 按已经批准的 `Product Kernel` / `Surface Model`，把旗舰公开包继续收平
+- 分阶段把 secondary surfaces 各自补到独立可判卷状态
 
 ---
 
@@ -120,48 +165,24 @@
 
 ---
 
-## 当前建议路线
+## Current Buildout Order
 
-当前的主路线已经明确：
+当前最重要的 buildout 顺序，可以压缩成 5 步理解：
 
-1. **先继承 CodexMonitor 的导出 contract**
-2. **再参考官方 Codex 的 thread/source 真相层**
-3. **v1 先做 Codex app-server source**
-4. **现在已经落地：typed archive core + Codex dual source (`app-server` + `local`) + Markdown export**
-5. **现在已经落地：Claude Code minimal `--session-path` second connector proof**
-6. **现在已经落地：shared JSON export via `--format json`**
-7. **现在已经落地：shared HTML export via `--format html`**
-8. **现在已经落地：workspace conversations archive index via `publish archive-index`**
-9. **现在已经落地：local archive metadata search**
-10. **现在已经落地：semantic retrieval via `search semantic`**
-11. **现在已经落地：persistent local semantic index reuse**
-12. **现在已经落地：hybrid retrieval via `search hybrid`**
-13. **现在已经落地：multi-agent archive 平台化 via upgraded `publish archive-index` shell**
-14. **现在已经落地：local retrieval report artifacts via `search ... --save-report`**
-15. **现在已经落地：workspace-local transcript backlinks for HTML exports**
-16. **现在已经落地：local reports shell via `publish archive-index`**
-17. **现在已经落地：local reports-shell metadata search**
-18. **现在已经落地：minimal stdio MCP bridge for publish/search**
-19. **现在已经落地：repo-owned integration materializer via `integrate <platform> --target <dir>`**
-20. **现在已经落地：repo-owned integration doctor via `doctor integrations --platform <platform> --target <dir>`**
-21. **现在已经落地：integration doctor drift checks + launcher probe**
-22. **现在已经落地：platform-aware integration doctor diagnostics**
-23. **现在已经落地：integration pack-shape hardening**
-24. **现在已经落地：integration onboarding experience via `onboard <platform> --target <dir>`**
-25. **现在已经落地：forbidden-target onboarding guardrails for live host/global roots**
-26. **现在已经落地：integration evidence pack via `doctor/onboard --save-report` + `.agents/Integration/Reports/`**
-27. **现在已经落地：integration evidence shell search via `.agents/Integration/Reports/index.html`**
-28. **现在已经落地：machine-readable integration evidence via `report.json + index.json`**
-29. **现在已经落地：integration evidence timeline/diff via `agent-exporter evidence diff --left <report> --right <report>`**
-30. **现在已经落地：Local Evidence Decision Plane / Remediation Studio**
-31. **现在已经落地：Baseline Registry / Policy Packs / Decision Promotion / Decision History**
-32. **现在已经落地：Remediation Bundle Studio + Governance Workbench Polish**
-33. **现在已经落地：Read-only Governance MCP + Current-Decision Automation**
-34. **当前已进入 post-Phase-34 product decision 区，默认仍不膨胀成 hosted search / service**
+1. **先把 CLI export 主链做对**
+2. **再把 transcript 变成 archive shell proof**
+3. **再把 retrieval 结果保存成 reports receipts**
+4. **再把 integration pack 做成 repo-owned companion lane**
+5. **最后把 governance/evidence 保持为本地只读 lane，而不是第二个主门**
+
+完整 capability ledger 与阶段落地记录继续放在：
+
+- [docs/README.md](./docs/README.md)
+- [CHANGELOG.md](./CHANGELOG.md)
 
 换句话说，v1 的重点不是“支持一切”，而是：
 
-> **先把 Codex 的 canonical export 路径做对。**
+> **先把 Codex 的 canonical export 路径做对，再把 archive shell proof 讲清楚。**
 
 ---
 
@@ -403,11 +424,13 @@ codex app-server
 
 ## 后续会补什么
 
-当前 blueprint 已经落地到本轮定义的最深阶段。
+当前 blueprint 已经把 repo-local product kernel 和 side-lane hierarchy 讲清楚了。
 
-后续文档和实现若继续推进，会先进入：
+后续若继续推进，优先顺序会是：
 
-1. 新的 post-Phase-34 产品裁决
+1. public surface / metadata / proof packet 收口
+2. surface-by-surface closeout
+3. Wave 3 的 packet / lane / final closeout 验证
 
 ---
 
@@ -449,7 +472,9 @@ cargo run -- doctor integrations --platform codex --target /absolute/path/to/cod
 
 ## Integration Pack
 
-如果你要把 `agent-exporter` 接进别的 agent/workflow，目前最稳的入口是：
+如果你要把 `agent-exporter` 接进别的 agent/workflow，把它理解成**repo-owned companion lane**，不是当前 public 主门。
+
+最稳的说明入口是：
 
 - Codex: `docs/integrations/codex.md`
 - Claude Code: `docs/integrations/claude-code.md`
@@ -459,65 +484,17 @@ cargo run -- doctor integrations --platform codex --target /absolute/path/to/cod
 
 - `docs/integrations/templates/`
 
-当前真实边界：
+当前最重要的真实边界只有 4 条：
 
-- 已经准备好的：CLI-first templates / skills / command snippets / bundle skeletons / minimal stdio MCP bridge
-- 当前 repo 还已经多了一层 repo-owned 接入主链：
-  - `agent-exporter integrate codex --target <dir>`
-  - `agent-exporter integrate claude-code --target <dir>`
-  - `agent-exporter integrate openclaw --target <dir>`
-  - `agent-exporter doctor integrations --platform <platform> --target <dir>`
-- 当前 repo 现在还多了一条更顺手的 onboarding 主链：
-  - `agent-exporter onboard codex --target <dir>`
-  - `agent-exporter onboard claude-code --target <dir>`
-  - `agent-exporter onboard openclaw --target <dir>`
-- 当前 repo 现在还多了一条可保存、可复查的 integration evidence 主链：
-  - `agent-exporter doctor integrations --platform <platform> --target <dir> --save-report`
-  - `agent-exporter onboard <platform> --target <dir> --save-report`
-  - report 默认写到当前工作目录下的 `.agents/Integration/Reports`
-  - 现在还会同写 `report.html + report.json`，并维护 `index.html + index.json`
-  - `agent-exporter evidence diff --left <report> --right <report>` 现在能解释两次 evidence 的变化
-- 当前 repo 现在还多了一条判定/解释主链：
-  - `agent-exporter evidence gate --baseline <report> --candidate <report>`
-  - `agent-exporter evidence explain --report <report>`
-  - `agent-exporter doctor integrations --platform <platform> --target <dir> --explain`
-- 当前 repo 现在还多了一层只读 evidence/governance 工作台：
-  - `publish archive-index` 会把 transcript/search/evidence 三壳导航和 Decision Desk 组织进同一个本地 front door
-  - MCP bridge 现在也已经扩到 read-only evidence/governance tools，不再只覆盖 publish/search
-- 当前 bridge 现在已经覆盖 publish/search/evidence/governance 只读工具，不代表整个 CLI 全量变成 MCP
-- 当前 MCP bridge 默认依赖 repo 内的 `scripts/agent_exporter_mcp.py`
-  - first-run 会优先尝试 repo-local `target/release/agent-exporter`
-  - 没有 release binary 时，会继续尝试 repo-local `target/debug/agent-exporter`
-  - 如果本地还没提前 build，它会再退到 `cargo run --manifest-path <repo>/Cargo.toml --bin agent-exporter --`
-- 如果你要改成已安装 binary 或自定义 launcher，再显式设置 `AGENT_EXPORTER_BIN` / `AGENT_EXPORTER_ARGS`
-- OpenClaw 当前准备好的是 **bundle content / plugin skeleton**，不是 repo-native OpenClaw runtime；接法见 `docs/integrations/openclaw.md`
-- Installer 只会往显式 `--target` 下材料化，不会静默改你的 Home 目录
-- `integrate` / `onboard` 现在还会直接拒绝明显的 live host/global roots：
-  - `~/.codex`
-  - `~/.claude*`
-  - direct OpenClaw bundle/plugin roots，例如 `bundles/<name>`、`plugins/<name>`
-- Doctor 只做只读 readiness 检查，不会偷偷替你装东西
-- Doctor 现在还会额外检查：
-  - 当前 target 内容是否和当前 repo 重新材料化后的版本一致
-  - 当前 repo-local launcher 是否真的还能执行 `connectors`
-  - 如果当前 launcher 只能回退到 `cargo run`，doctor 会保守停在 `partial`，不会在只读模式下为了一句 `ready` 触发 build
-- Doctor 现在还会按平台补更具体的 shape checks：
-  - Codex：`.codex/config.toml` 是否真像一个 project-scoped config
-  - Claude Code：`.mcp.json` 是否真是一个可解析的 project-scoped MCP config
-  - OpenClaw：bundle/plugin manifests 和 `.mcp.json` 是否真像一个合法 bundle
-- Doctor 现在还会继续收紧 pack-shape 细节：
-  - Codex：`command` + 非空 `args` 数组
-  - Claude Code：`CLAUDE.md` 与 `.claude/commands/*.md` 的基本 pack 形状
-- `onboard` 会把 `integrate + doctor + next steps` 串成一条更低摩擦的 first-run path
-- integration evidence reports 是单独的本地 artifact：
-  - root: `.agents/Integration/Reports`
-  - front door: `.agents/Integration/Reports/index.html`
-  - 不会回流 `.agents/Conversations` transcript corpus
-  - 也不会混进 `.agents/Search/Reports` retrieval report 壳
-- integration evidence shell 现在也已经支持本地静态搜索和 facet：
-  - `platform`
-  - `readiness`
-  - 仍然只是静态 evidence shell，不会在浏览器里执行 doctor/onboard
+- **entry commands**：`integrate`、`doctor integrations`、`onboard`
+- **saved evidence**：`--save-report` 会把结果写到 `.agents/Integration/Reports`
+- **launcher policy**：默认优先 repo-local binary，不会静默改 Home，也不会在只读检查里偷偷 build
+- **truth boundary**：integration evidence shell 是 secondary surface，不会回流 transcript corpus，也不代表整个产品变成 `MCP-first`
+
+如果你需要更细的 host-by-host 接法、pack shape、launcher 细节或 OpenClaw 边界，直接看：
+
+- `docs/integrations/*.md`
+- `docs/integrations/templates/`
 
 ## License
 
