@@ -13,6 +13,13 @@ fn repo_root() -> PathBuf {
 }
 
 fn expected_launcher_fragment() -> String {
+    if let Ok(current_bin) = std::env::var("CARGO_BIN_EXE_agent-exporter") {
+        let current_bin_path = PathBuf::from(&current_bin);
+        if current_bin_path.is_file() {
+            return current_bin;
+        }
+    }
+
     let debug_bin = repo_root()
         .join("target")
         .join("debug")
@@ -26,6 +33,10 @@ fn expected_launcher_fragment() -> String {
 
 fn read(path: &Path) -> String {
     fs::read_to_string(path).expect("file should exist")
+}
+
+fn contains_literal_launcher_line(content: &str, needle: &str) -> bool {
+    content.lines().any(|line| line.trim() == needle)
 }
 
 fn report_readiness(path: &Path) -> String {
@@ -107,7 +118,10 @@ fn integrate_codex_materializes_target_with_resolved_paths() {
     );
     let config = read(&target.path().join(".codex").join("config.toml"));
 
-    assert!(!agents.contains("agent-exporter publish archive-index"));
+    assert!(!contains_literal_launcher_line(
+        &agents,
+        "agent-exporter publish archive-index --workspace-root .",
+    ));
     assert!(agents.contains(&expected_launcher_fragment()));
     assert!(skill.contains(&expected_launcher_fragment()));
     assert!(!config.contains(MCP_PLACEHOLDER));

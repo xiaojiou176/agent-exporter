@@ -4,51 +4,67 @@
 
 如果你第一次读这个仓，推荐先按下面顺序走，不要直接跳到某个实现文件里。
 
-## Current Phase Snapshot
+## Product Snapshot
 
-当前这套文档已经进入 **Phase 32-34 local governance workbench landed**。
+先记住这 4 句，再继续往下读：
 
-你可以先把它理解成：这套文档现在要同时解释“正门、侧门、以及第二种输出格式”，但不能把它们说成同一种真相。
+- `Product Kernel`：`agent-exporter` 是一个 **local-first archive and governance workbench for AI agent transcripts**
+- `Primary Surface`：**CLI-first**
+- `Secondary Surfaces`：local archive shell / reports shell、repo-owned integration pack、read-only governance MCP bridge
+- `Flagship Public Packet`：**GitHub repo + CLI quickstart + archive shell proof**
 
-- Codex 默认主路径仍然是 `app-server`
-- Codex `local direct-read` 已经 landed，属于第二条已落地入口
-- `Claude Code` 最小 `--session-path` connector 已 landed，证明架构能接第二个来源
-- `--format json` 已经 landed，证明 shared transcript/core/output abstraction 能接第二种结构化输出
-- `--format html` 已经 landed，证明同一份 transcript 也能输出成静态可读页面
-- `publish archive-index` 已经 landed，证明这些页面已经可以本地浏览和静态发布
-- `publish archive-index` 现在已经升级成 local multi-agent archive shell，自带本地 metadata filter、connector/completeness facets 和 retrieval lane 说明
-- `search semantic` 已经 landed，证明这个仓现在已经有真实 embedding-based retrieval 命令
-- `search semantic` 现在已经会按模型资产身份持久化并复用本地 semantic index sidecar
-- `search hybrid` 已经 landed，证明 lexical metadata signal 和 semantic retrieval 已经能在本地 CLI 里组合
-- `search semantic --save-report` / `search hybrid --save-report` 已经 landed，证明 retrieval 结果现在能保存成 local static reports
-- workspace conversations HTML transcript 现在已经会带回 archive shell 的本地导航 backlink
-- `.agents/Search/Reports/index.html` 现在已经会作为 local reports shell 组织这些 saved reports
-- local reports shell 现在也已经支持本地 report search 和 report-kind filter
-- `integrate <platform> --target <dir>` 已经 landed，说明 integration pack 不再只是模板目录
-- `doctor integrations --platform <platform> --target <dir>` 已经 landed，说明接入 readiness 现在有 repo-owned 验收入口
-- `doctor integrations` 现在还会做 target drift 检查和 launcher probe，不再只是文件存在性检查
-- 当 launcher 只剩 `cargo run` 回退时，doctor 会保守停在 `partial`，而不是在只读模式下触发 build
-- `doctor integrations` 现在还会按平台检查 Codex / Claude Code / OpenClaw 最关键的 config/bundle 形状
-- `doctor integrations` 现在还会继续收紧 Codex `command/args` 和 Claude pack 形状
-- `onboard <platform> --target <dir>` 已经 landed，说明接入流程现在不再只是一组分散命令
-- `integrate` / `onboard` 现在还会拒绝明显的 live host/global roots，例如 `~/.codex`、`~/.claude*` 和 direct OpenClaw bundle/plugin roots
-- `doctor/onboard --save-report` 已经 landed，说明接入结果现在可以保存成独立 integration evidence artifacts
-- `.agents/Integration/Reports/index.html` 现在已经会作为 integration reports front door 组织这些 evidence pages
-- integration evidence shell 现在也已经支持本地静态搜索和 facet（至少 `platform` / `readiness`）
-- integration evidence 现在还会同写 `report.json + index.json`，说明这条结果单已经有 machine-readable contract
-- `agent-exporter evidence diff --left <report> --right <report>` 已经 landed，说明 readiness/check/next-step 的变化现在可以被解释和比较
-- `agent-exporter evidence gate --baseline <report> --candidate <report>` 已经 landed，说明 evidence 现在还能被判成 `pass / warn / fail`
-- `agent-exporter evidence explain --report <report>` 与 `doctor integrations --explain` 已经 landed，说明系统现在会给出 remediation order、why-first 和 recheck guidance
-- `agent-exporter evidence baseline list|show|promote` 已经 landed，说明 integration evidence 现在有正式 baseline registry
-- `agent-exporter evidence policy list|show` 已经 landed，说明 gate 规则现在有 repo-owned policy packs
-- `agent-exporter evidence promote` / `evidence history` 已经 landed，说明“这次通过是否升格成下次标准”已经有 promotion/history 账本
-- `agent-exporter evidence remediation --report` 已经 landed，说明 explain 现在已经升级成 structured remediation bundle
-- `agent-exporter evidence current --baseline-name <name>` 已经 landed，说明本地 workflow 现在可以只读追踪 current decision
-- `publish archive-index` 现在已经会把 transcript/search/evidence 三壳导航、official baseline、active policy、promotion status、remediation bundle 和 decision history 组织成一个本地 governance workbench
-- `local` 和 `claude-code` 当前都按 **degraded** 理解，不能冒充 canonical parity
-- 当前已进入 post-Phase-34 产品裁决区，而不是直接膨胀成 hosted / 平台壳
-- local-first governance workbench 已经 landed
-  - 但它必须继续保持 non-hosted / browser non-executor / no-corpus-merge
+再补一句顺序感：
+
+> front door 先讲 CLI quickstart，archive shell proof 是第一层可见证明；
+> integration pack 和 governance lane 继续保留，但不抢第一屏。
+
+## First Success Orientation
+
+把 docs 入口也按同一个顺序理解：
+
+1. `cargo run -- connectors`
+2. `cargo run -- export codex --thread-id <thread-id> --format html --destination workspace-conversations --workspace-root /absolute/path/to/repo`
+3. `cargo run -- publish archive-index --workspace-root /absolute/path/to/repo`
+
+成功后你会看到：
+
+- `.agents/Conversations/*.html` transcript export
+- `.agents/Conversations/index.html` archive shell proof
+- 这份 proof 是 **local-only HTML receipt**，不是 hosted page
+
+## Public Docs Entry Points
+
+- Pages landing: `https://xiaojiou176-open.github.io/agent-exporter/`
+- Archive shell proof page: `https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof/`
+- Repo map: `https://xiaojiou176-open.github.io/agent-exporter/repo-map/`
+- Latest release shelf: `https://github.com/xiaojiou176-open/agent-exporter/releases/latest`
+
+## Current Surface Snapshot
+
+当前这套文档已经吸收 **Phase 32-34 的 repo-local capability**，并且产品身份已经收口。
+
+与其用一大串 landed 项目压人，不如先记住下面这张图：
+
+| Layer | 当前真相 | first proof / entry |
+| --- | --- | --- |
+| CLI core | Codex `app-server` 仍是 canonical 主路径；`local` 与 `claude-code` 已 landed | `../README.md` 的 CLI quickstart |
+| Archive shell proof | `publish archive-index` 会生成 transcript browser、workspace backlinks 和 archive shell | `.agents/Conversations/index.html` |
+| Reports shell | `search semantic|hybrid --save-report` 会生成 retrieval receipts 与 reports shell | `.agents/Search/Reports/index.html` |
+| Integration pack | `integrate` / `doctor integrations` / `onboard` 已是 repo-owned companion lane | `.agents/Integration/Reports/index.html` |
+| Governance lane | evidence / baseline / policy / remediation 已进入本地 workbench | archive shell Decision Desk + integration evidence reports |
+
+这张表想表达的其实只有一句话：
+
+> 正门已经固定是 CLI。
+> 侧门都已经被命名，但每一扇侧门都还要各自记账、各自过线，不能混成一句“都已经 ready”。
+
+## Public Boundary Right Now
+
+- Pages 是 **public companion docs surface**，但 archive shell / reports shell / integration evidence shell 仍然是 **repo-local proof**
+- `local` 和 `claude-code` 继续按 **degraded** 理解，不能冒充 canonical parity
+- integration pack 与 governance lane 可以继续长，但 docs landing page 不会把它们写成第一主角
+- archive shell proof page 是 tracked public explanation page，不是 hosted archive shell runtime
+- 如果要看完整 capability ledger，请去 `../README.md` 和 `../CHANGELOG.md`，不要把 docs landing page 当 release history
 
 ## Read Order
 

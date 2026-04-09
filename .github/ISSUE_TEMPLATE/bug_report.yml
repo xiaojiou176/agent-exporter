@@ -1,0 +1,55 @@
+name: Bug report
+description: Report a reproducible problem in agent-exporter.
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. Please include enough detail for the maintainer to reproduce it locally from the Rust CLI or from the generated archive / governance artifacts.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened?
+      description: Describe the actual behavior and why it is a problem.
+      placeholder: The export succeeded, but the archive shell omitted the saved report link...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How can we reproduce it?
+      description: Provide exact commands, paths, or sanitized inputs when possible.
+      placeholder: |
+        1. Run `cargo run -- export codex --thread-id ...`
+        2. Run `cargo run -- publish archive-index --workspace-root ...`
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+      placeholder: I expected the transcript export / archive shell / governance artifact to ...
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: What verification did you already run?
+      description: Include `cargo fmt --check`, `cargo test`, `cargo run -- connectors`, or other relevant checks.
+      placeholder: |
+        - `cargo fmt --check`
+        - `cargo test`
+        - `cargo run -- connectors`
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include OS, Rust toolchain details, and any relevant local runtime context.
+      placeholder: macOS 15, stable toolchain, local Codex/Claude transcript artifacts ...
+    validations:
+      required: true

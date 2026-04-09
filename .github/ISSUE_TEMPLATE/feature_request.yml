@@ -1,0 +1,39 @@
+name: Feature request
+description: Propose a scoped improvement for agent-exporter.
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Please describe the user need first. The most useful feature requests explain the archive, export, retrieval, or governance workflow problem before proposing an implementation.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem are you trying to solve?
+      placeholder: I need to compare governance evidence between two local integration reports because ...
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What change do you want?
+      placeholder: Add a new CLI flag, report field, or workbench behavior ...
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: What alternatives did you consider?
+      placeholder: Current workaround, competing tooling, or why the current behavior is insufficient.
+    validations:
+      required: false
+  - type: textarea
+    id: verification
+    attributes:
+      label: How would we know this is done?
+      description: Describe expected CLI behavior, docs updates, or tests.
+      placeholder: A passing command or report output would show ...
+    validations:
+      required: true

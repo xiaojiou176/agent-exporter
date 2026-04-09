@@ -156,8 +156,7 @@ pub enum OutputTarget {
 impl OutputTarget {
     pub fn resolve_output_dir(&self) -> Result<PathBuf> {
         match self {
-            Self::Downloads => dirs::download_dir()
-                .context("Failed to resolve Downloads folder from this environment."),
+            Self::Downloads => resolve_downloads_dir(),
             Self::WorkspaceConversations { workspace_root } => {
                 if !workspace_root.exists() {
                     bail!(
@@ -185,6 +184,29 @@ impl OutputTarget {
                 .filter(|value| !value.trim().is_empty()),
         }
     }
+}
+
+fn resolve_downloads_dir() -> Result<PathBuf> {
+    if let Some(path) = dirs::download_dir() {
+        fs::create_dir_all(&path).with_context(|| {
+            format!(
+                "Failed to ensure Downloads folder exists at {}.",
+                path.display()
+            )
+        })?;
+        return Ok(path);
+    }
+
+    let home =
+        dirs::home_dir().context("Failed to resolve Downloads folder from this environment.")?;
+    let fallback = home.join("Downloads");
+    fs::create_dir_all(&fallback).with_context(|| {
+        format!(
+            "Failed to ensure fallback Downloads folder exists at {}.",
+            fallback.display()
+        )
+    })?;
+    Ok(fallback)
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

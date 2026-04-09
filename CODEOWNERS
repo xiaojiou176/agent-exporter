@@ -1,0 +1,12 @@
+* @xiaojiou176-open
+
+# Core source, governance, and repository policy files stay with the canonical owner surface.
+/.github/ @xiaojiou176-open
+/src/ @xiaojiou176-open
+/tests/ @xiaojiou176-open
+/docs/ @xiaojiou176-open
+/scripts/ @xiaojiou176-open
+/policies/ @xiaojiou176-open
+/Cargo.toml @xiaojiou176-open
+/Cargo.lock @xiaojiou176-open
+/*.md @xiaojiou176-open

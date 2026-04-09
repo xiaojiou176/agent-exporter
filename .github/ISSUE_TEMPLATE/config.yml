@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question
+    url: https://github.com/xiaojiou176-open/agent-exporter/discussions
+    about: Use GitHub Discussions for setup questions, confusing export behavior, or first-run help.
+  - name: Share an idea
+    url: https://github.com/xiaojiou176-open/agent-exporter/discussions
+    about: Use GitHub Discussions for scoped feature ideas, archive workflows, or governance workbench feedback.
+  - name: Security report
+    url: https://github.com/xiaojiou176-open/agent-exporter/blob/main/SECURITY.md
+    about: Do not disclose vulnerability details in a public issue. Follow the security reporting guidance instead.

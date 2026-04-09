@@ -104,7 +104,7 @@ pub struct LauncherSpec {
 
 impl LauncherSpec {
     pub fn shell_command(&self) -> String {
-        let mut rendered = vec![quote_shell_arg(&self.command)];
+        let mut rendered = vec![quote_shell_arg_always(&self.command)];
         rendered.extend(self.args.iter().map(|arg| quote_shell_arg(arg)));
         rendered.join(" ")
     }
@@ -293,9 +293,12 @@ pub fn doctor_integration(request: &IntegrationDoctorRequest) -> Result<Integrat
         .filter_map(|path| fs::read_to_string(path).ok())
         .filter(|content| {
             content.contains(MCP_SCRIPT_PLACEHOLDER)
-                || content.contains("agent-exporter publish archive-index")
-                || content.contains("agent-exporter search semantic")
-                || content.contains("agent-exporter search hybrid")
+                || contains_generic_launcher_reference(
+                    content,
+                    "agent-exporter publish archive-index",
+                )
+                || contains_generic_launcher_reference(content, "agent-exporter search semantic")
+                || contains_generic_launcher_reference(content, "agent-exporter search hybrid")
         })
         .count();
 
@@ -517,6 +520,17 @@ fn bridge_script_path(repo_root: &Path) -> PathBuf {
 }
 
 fn resolve_launcher(repo_root: &Path) -> Result<LauncherSpec> {
+    if let Ok(current_bin) = std::env::var("CARGO_BIN_EXE_agent-exporter") {
+        let current_bin_path = PathBuf::from(&current_bin);
+        if current_bin_path.is_file() {
+            return Ok(LauncherSpec {
+                kind: "repo-local-cargo-bin-exe",
+                command: current_bin,
+                args: Vec::new(),
+            });
+        }
+    }
+
     let release_bin = repo_root
         .join("target")
         .join("release")
@@ -745,6 +759,21 @@ fn quote_shell_arg(value: &str) -> String {
     } else {
         format!("'{}'", value.replace('\'', "'\"'\"'"))
     }
+}
+
+fn quote_shell_arg_always(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
+}
+
+fn contains_generic_launcher_reference(content: &str, pattern: &str) -> bool {
+    content.match_indices(pattern).any(|(index, _)| {
+        let Some(previous) = content[..index].chars().next_back() else {
+            return true;
+        };
+
+        !matches!(previous, '/' | '\\' | '\'' | '"' | '_' | '-' | '.')
+            && !previous.is_ascii_alphanumeric()
+    })
 }
 
 enum WriteDisposition {

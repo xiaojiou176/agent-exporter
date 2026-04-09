@@ -139,12 +139,17 @@ fn codex_export_rejects_inline_eval_launchers() {
 
 #[test]
 fn codex_export_allows_repo_owned_fixture_server() {
+    let workspace_root = tempfile::tempdir().expect("temp workspace root should be created");
     let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
     command
         .arg("export")
         .arg("codex")
         .arg("--thread-id")
         .arg("complete-thread")
+        .arg("--destination")
+        .arg("workspace-conversations")
+        .arg("--workspace-root")
+        .arg(workspace_root.path())
         .arg("--app-server-command")
         .arg(std::env::var("PYTHON").unwrap_or_else(|_| "python3".to_string()))
         .arg("--app-server-arg")
