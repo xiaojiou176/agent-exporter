@@ -104,7 +104,7 @@ pub struct LauncherSpec {
 
 impl LauncherSpec {
     pub fn shell_command(&self) -> String {
-        let mut rendered = vec![quote_shell_arg(&self.command)];
+        let mut rendered = vec![quote_shell_arg_always(&self.command)];
         rendered.extend(self.args.iter().map(|arg| quote_shell_arg(arg)));
         rendered.join(" ")
     }
@@ -759,6 +759,10 @@ fn quote_shell_arg(value: &str) -> String {
     } else {
         format!("'{}'", value.replace('\'', "'\"'\"'"))
     }
+}
+
+fn quote_shell_arg_always(value: &str) -> String {
+    format!("'{}'", value.replace('\'', "'\"'\"'"))
 }
 
 fn contains_generic_launcher_reference(content: &str, pattern: &str) -> bool {
