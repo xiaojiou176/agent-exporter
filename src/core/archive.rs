@@ -197,7 +197,8 @@ fn resolve_downloads_dir() -> Result<PathBuf> {
         return Ok(path);
     }
 
-    let home = dirs::home_dir().context("Failed to resolve Downloads folder from this environment.")?;
+    let home =
+        dirs::home_dir().context("Failed to resolve Downloads folder from this environment.")?;
     let fallback = home.join("Downloads");
     fs::create_dir_all(&fallback).with_context(|| {
         format!(
