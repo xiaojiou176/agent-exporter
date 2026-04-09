@@ -293,7 +293,10 @@ pub fn doctor_integration(request: &IntegrationDoctorRequest) -> Result<Integrat
         .filter_map(|path| fs::read_to_string(path).ok())
         .filter(|content| {
             content.contains(MCP_SCRIPT_PLACEHOLDER)
-                || contains_generic_launcher_reference(content, "agent-exporter publish archive-index")
+                || contains_generic_launcher_reference(
+                    content,
+                    "agent-exporter publish archive-index",
+                )
                 || contains_generic_launcher_reference(content, "agent-exporter search semantic")
                 || contains_generic_launcher_reference(content, "agent-exporter search hybrid")
         })
@@ -753,10 +756,8 @@ fn contains_generic_launcher_reference(content: &str, pattern: &str) -> bool {
             return true;
         };
 
-        !matches!(
-            previous,
-            '/' | '\\' | '\'' | '"' | '_' | '-' | '.'
-        ) && !previous.is_ascii_alphanumeric()
+        !matches!(previous, '/' | '\\' | '\'' | '"' | '_' | '-' | '.')
+            && !previous.is_ascii_alphanumeric()
     })
 }
 
