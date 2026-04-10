@@ -62,6 +62,7 @@
 - **GitHub repo front door:** current primary onboarding path with the CLI quickstart
 - **GitHub Pages landing:** a thin public docs layer that routes readers to the same product sentence and first-success path
 - **Archive shell proof page:** a tracked public explanation of what the archive shell proves, what it does not prove, and how to reproduce it locally
+- **Host-native public skill packet:** `public-skills/agent-exporter-archive-governance-workbench/` for host reviewers who need a self-contained folder
 - **Latest release shelf:** release/tag truth for the current public packet
 
 ## First Success Path
