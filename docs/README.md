@@ -35,7 +35,7 @@
 ## Public Docs Entry Points
 
 - Pages landing: `https://xiaojiou176-open.github.io/agent-exporter/`
-- Archive shell proof page: `https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof/`
+- Archive shell proof page: `https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html`
 - Repo map: `https://xiaojiou176-open.github.io/agent-exporter/repo-map/`
 - Latest release shelf: `https://github.com/xiaojiou176-open/agent-exporter/releases/latest`
 
