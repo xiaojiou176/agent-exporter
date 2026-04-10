@@ -2,7 +2,7 @@
 
 `agent-exporter` 是一个 **local-first archive and governance workbench for AI agent transcripts**。
 
-[Try It In 3 Steps](#first-success-path) · [Docs Landing](https://xiaojiou176-open.github.io/agent-exporter/) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof/) · [Latest Release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
+[Try It In 3 Steps](#first-success-path) · [Docs Landing](https://xiaojiou176-open.github.io/agent-exporter/) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) · [Latest Release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
 
 ![agent-exporter proof map showing CLI quickstart, transcript export, archive shell proof, reports shell, and integration evidence as one local-first workbench](./docs/assets/archive-shell-proof.svg)
 
@@ -44,6 +44,19 @@
 > 产品 kernel 里当然包含 evidence 与 governance，
 > 但 Wave 1 的 front door 叙事必须仍然让 **CLI-first** 压住第一屏。
 
+## First Success At A Glance
+
+如果你只想先判断“值不值得复制第一条命令”，先看这一张卡片：
+
+| Step | You run | You get |
+| --- | --- | --- |
+| `1` | `cargo run -- connectors` | 确认这仓现在接哪些 transcript source |
+| `2` | `cargo run -- export codex ... --format html --destination workspace-conversations ...` | 一份可浏览的 HTML transcript receipt |
+| `3` | `cargo run -- publish archive-index --workspace-root ...` | `.agents/Conversations/index.html` archive shell |
+
+> 这三步像先装一台工作台的桌腿。  
+> 先站起来，再讲抽屉、灯和分类系统。
+
 ## Public Entry Points
 
 - **GitHub repo front door:** current primary onboarding path with the CLI quickstart
@@ -83,6 +96,16 @@
 - 你会得到 `.agents/Conversations/index.html` archive shell
 - 这份 proof 是 **local-first HTML receipt**，不是 hosted demo，也不是 GitHub Pages live read-back
 
+## Proof Ladder
+
+把这仓的公开证明理解成一条 3 级梯子，而不是一张大而全的总图：
+
+| Level | What it proves | Current asset |
+| --- | --- | --- |
+| `L1` | CLI 命令真能带你进门 | `First Success Path` |
+| `L2` | transcript export 会留下可浏览 receipt | `.agents/Conversations/*.html` |
+| `L3` | archive shell 会把 transcript / reports / integration evidence 串成 local-first workbench | [archive shell proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) |
+
 ## Public Boundary Right Now
 
 先把当前公开边界记清楚，避免把“能生成”误写成“已经对外 live”：
@@ -91,6 +114,15 @@
 - **first visible proof we can truthfully promise today**：tracked archive shell proof page + 本地可复现的 archive shell HTML receipt
 - **secondary surfaces**：reports shell、integration pack、read-only governance MCP bridge 继续保留，但不抢主门
 - **cannot claim yet**：`submit-ready`、`already approved`、`MCP-first`
+
+## Does / Does Not Prove
+
+| This repo can honestly prove today | This repo must not overclaim today |
+| --- | --- |
+| CLI quickstart works | hosted archive platform |
+| transcript export can become HTML receipt | multi-user remote service |
+| archive shell proof page explains the workbench truthfully | `submit-ready` / `listed-live` for non-GitHub lanes |
+| secondary surfaces already exist as repo-owned lanes | `MCP-first` public positioning |
 
 ## Host Safety
 

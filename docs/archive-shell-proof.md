@@ -12,6 +12,8 @@ description: What the archive shell proves, what it does not prove, and how to r
 
 ![agent-exporter archive shell proof diagram](./assets/archive-shell-proof.svg)
 
+![agent-exporter proof ladder from CLI to transcript receipt to archive shell](./assets/proof-ladder.svg)
+
 ## What This Proof Actually Shows
 
 - transcript export 可以写成可浏览的 HTML receipt
@@ -42,6 +44,14 @@ cargo run -- publish archive-index --workspace-root /absolute/path/to/repo
 - `.agents/Conversations/*.html`
 - `.agents/Conversations/index.html`
 - 从 transcript/browser 继续走向 reports shell 和 integration evidence 的导航入口
+
+## Proof Ladder
+
+| Level | It proves | Current public artifact |
+| --- | --- | --- |
+| `L1` | CLI 命令能把 transcript 导出来 | README quickstart |
+| `L2` | transcript 会留下可浏览 HTML receipt | `.agents/Conversations/*.html` |
+| `L3` | archive shell 会把本地 workbench 组织成可导航前厅 | `archive-shell-proof.svg` + `proof-ladder.svg` |
 
 ## Why This Matters
 

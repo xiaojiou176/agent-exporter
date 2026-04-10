@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
+  <title id="title">agent-exporter proof ladder</title>
+  <desc id="desc">A three-step proof ladder from CLI quickstart to transcript receipt to archive shell proof.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#e2e8f0"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="420" rx="28" fill="url(#bg)"/>
+  <text x="72" y="76" fill="#0f172a" font-size="42" font-family="Avenir Next, Helvetica Neue, Arial, sans-serif" font-weight="700">Proof Ladder</text>
+  <text x="72" y="114" fill="#334155" font-size="20" font-family="Avenir Next, Helvetica Neue, Arial, sans-serif">One artifact per step. First prove the command, then the receipt, then the local archive shell.</text>
+
+  <g transform="translate(72 156)">
+    <rect width="300" height="190" rx="26" fill="url(#card)" stroke="#cbd5e1"/>
+    <text x="26" y="36" fill="#0369a1" font-size="14" font-family="JetBrains Mono, Menlo, monospace">STEP 1</text>
+    <text x="26" y="74" fill="#0f172a" font-size="30" font-family="Avenir Next, Helvetica Neue, Arial, sans-serif" font-weight="700">Run the CLI</text>
+    <text x="26" y="112" fill="#334155" font-size="18" font-family="Avenir Next, Helvetica Neue, Arial, sans-serif">Copy one command, check one connector, export one transcript.</text>
+    <rect x="26" y="136" width="248" height="34" rx="17" fill="#e0f2fe"/>
+    <text x="42" y="158" fill="#0c4a6e" font-size="15" font-family="JetBrains Mono, Menlo, monospace">cargo run -- connectors</text>
+  </g>
+
+  <g transform="translate(450 156)">
+    <rect width="300" height="190" rx="26" fill="url(#card)" stroke="#cbd5e1"/>
+    <text x="26" y="36" fill="#0369a1" font-size="14" font-family="JetBrains Mono, Menlo, monospace">STEP 2</text>
+    <text x="26" y="74" fill="#0f172a" font-size="30" font-family="Avenir Next, Helvetica Neue, Arial, sans-serif" font-weight="700">Get the receipt</text>
+    <text x="26" y="112" fill="#334155" font-size="18" font-family="Avenir Next, Helvetica Neue, Arial, sans-serif">A transcript becomes a local HTML artifact you can open and inspect.</text>
+    <rect x="26" y="136" width="208" height="34" rx="17" fill="#e2e8f0"/>
+    <text x="42" y="158" fill="#0f172a" font-size="15" font-family="JetBrains Mono, Menlo, monospace">.agents/Conversations/*.html</text>
+  </g>
+
+  <g transform="translate(828 156)">
+    <rect width="300" height="190" rx="26" fill="url(#card)" stroke="#cbd5e1"/>
+    <text x="26" y="36" fill="#0369a1" font-size="14" font-family="JetBrains Mono, Menlo, monospace">STEP 3</text>
+    <text x="26" y="74" fill="#0f172a" font-size="30" font-family="Avenir Next, Helvetica Neue, Arial, sans-serif" font-weight="700">Open the shell</text>
+    <text x="26" y="112" fill="#334155" font-size="18" font-family="Avenir Next, Helvetica Neue, Arial, sans-serif">The archive shell links transcripts, reports, and integration evidence as a local workbench.</text>
+    <rect x="26" y="136" width="204" height="34" rx="17" fill="#dbeafe"/>
+    <text x="42" y="158" fill="#1d4ed8" font-size="15" font-family="JetBrains Mono, Menlo, monospace">publish archive-index</text>
+  </g>
+
+  <path d="M384 251h40" stroke="#0369a1" stroke-width="4" stroke-linecap="round"/>
+  <path d="M762 251h40" stroke="#0369a1" stroke-width="4" stroke-linecap="round"/>
+  <path d="M424 251l-10 -10m10 10l-10 10" stroke="#0369a1" stroke-width="4" stroke-linecap="round"/>
+  <path d="M802 251l-10 -10m10 10l-10 10" stroke="#0369a1" stroke-width="4" stroke-linecap="round"/>
+</svg>

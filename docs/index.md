@@ -25,6 +25,14 @@ description: Local-first archive and governance workbench for AI agent transcrip
 > Pages 负责把门口的话说清楚。
 > 真正的主门还是 GitHub repo 里的 CLI quickstart。
 
+## Run This First
+
+如果你只愿意先试一次，不要先把所有 surface 都读一遍。先跑这三步：
+
+1. `cargo run -- connectors`
+2. `cargo run -- export codex ... --format html --destination workspace-conversations ...`
+3. `cargo run -- publish archive-index --workspace-root ...`
+
 ## First Success In 3 Steps
 
 1. 查看当前 connector 路线图
@@ -55,10 +63,23 @@ cargo run -- publish archive-index --workspace-root /absolute/path/to/repo
 - `.agents/Conversations/index.html` archive shell
 - 这份 archive shell 是 **local-first HTML receipt**，不是 hosted service
 
+## You Will Get
+
+- 一份 HTML transcript receipt
+- 一个本地 archive shell 入口
+- 一条从 transcript 指向 reports shell / integration evidence 的导航链
+
+## This Does Not Mean
+
+- 不是 hosted archive platform
+- 不是 live multi-user service
+- 不是已经 `submit-ready`
+- 不是已经 `listed-live`
+
 ## Start Here
 
 - [GitHub repo front door](https://github.com/xiaojiou176-open/agent-exporter)
-- [Archive shell proof](./archive-shell-proof.md)
+- [Archive shell proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html)
 - [Repo map](./repo-map.md)
 - [Latest release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
 
