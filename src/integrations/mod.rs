@@ -4,7 +4,7 @@ use std::process::Command;
 
 use anyhow::{Context, Result, bail};
 use serde_json::Value as JsonValue;
-use toml::Value as TomlValue;
+use toml::{Table as TomlTable, Value as TomlValue};
 
 const MCP_SCRIPT_PLACEHOLDER: &str =
     "/absolute/path/to/agent-exporter/scripts/agent_exporter_mcp.py";
@@ -960,7 +960,7 @@ fn check_codex_config(target_root: &Path) -> IntegrationDoctorCheck {
         };
     };
 
-    let parsed = content.parse::<TomlValue>();
+    let parsed = content.parse::<TomlTable>();
     match parsed {
         Ok(value) => match value
             .get("mcp_servers")
