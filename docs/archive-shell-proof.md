@@ -3,6 +3,27 @@ title: Archive Shell Proof
 description: What the archive shell proves, what it does not prove, and how to reproduce it locally with agent-exporter.
 ---
 
+<style>
+.markdown-body a {
+  color: #0550ae;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+
+.markdown-body code,
+.markdown-body tt,
+.markdown-body pre {
+  color: #24292f;
+  background-color: #f6f8fa;
+}
+
+.markdown-body .highlight .nb {
+  color: #0a3069;
+}
+</style>
+
+<main id="main-content" role="main" markdown="1">
+
 # Archive Shell Proof
 
 This page has one job:
@@ -63,3 +84,5 @@ But the first thing it should prove in public is still:
 3. archive shell proof can be generated
 
 That is the first trustworthy proof layer of the current flagship public packet.
+
+</main>
