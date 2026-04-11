@@ -30,5 +30,8 @@ jobs:
       - name: Run tests
         run: cargo test
 
+      - name: Verify public surface contract
+        run: cargo test --test public_surface_contract
+
       - name: Verify connector surface
         run: cargo run -- connectors

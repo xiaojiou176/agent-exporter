@@ -8,6 +8,9 @@ The flagship public story is still:
 - CLI quickstart
 - archive shell proof
 
+The product behind this packet is still a **local-first archive and governance workbench**.
+Its primary surface remains **`CLI-first`**.
+
 This packet exists for host-native reviewers who need a **self-contained**
 folder that explains how to wire the local stdio MCP bridge and use the
 read-only archive/governance workflow without treating the repo like a hosted
@@ -51,6 +54,13 @@ This packet teaches an agent how to:
 - Repo map: https://xiaojiou176-open.github.io/agent-exporter/repo-map/
 - Releases: https://github.com/xiaojiou176-open/agent-exporter/releases
 
+## Current registry truth
+
+- `ClawHub`: `listed-live`
+  - fresh read-back: `clawhub inspect agent-exporter-archive-governance-workbench --no-input`
+- `OpenHands/extensions`: `review-pending`
+  - submission ref: `https://github.com/OpenHands/extensions/pull/162`
+
 ## MCP capability surface
 
 - archive shell:
@@ -81,8 +91,7 @@ This packet teaches an agent how to:
 ## What this packet must not claim
 
 - no hosted archive platform
-- no listed-live OpenHands/extensions entry without fresh PR/read-back
-- no listed-live ClawHub entry without host-side read-back
+- no listed-live OpenHands/extensions entry while the PR is still open
 - no full-CLI MCP parity
 - no change to the flagship `CLI-first` primary surface
 
@@ -94,4 +103,3 @@ Canonical product truth still lives in:
 - `README.md`
 - `AGENTS.md`
 - `docs/integrations/`
-

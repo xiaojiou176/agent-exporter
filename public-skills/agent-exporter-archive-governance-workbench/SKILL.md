@@ -32,6 +32,13 @@ through a host-native packet.
 - the bridge exposes read-mostly archive, retrieval, and governance tools
 - the browser pages organize proof; they do not execute retrieval or onboarding
 
+## Current registry truth
+
+- `ClawHub`: `listed-live`
+  - fresh read-back: `clawhub inspect agent-exporter-archive-governance-workbench --no-input`
+- `OpenHands/extensions`: `review-pending`
+  - submission ref: `https://github.com/OpenHands/extensions/pull/162`
+
 ## First-success flow
 
 1. Follow `references/INSTALL.md` and wire the bridge from a repo checkout.
@@ -71,4 +78,3 @@ through a host-native packet.
 - `references/CAPABILITIES.md`
 - `references/DEMO.md`
 - `references/TROUBLESHOOTING.md`
-

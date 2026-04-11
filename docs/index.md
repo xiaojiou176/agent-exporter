@@ -3,45 +3,60 @@ title: agent-exporter
 description: Local-first archive and governance workbench for AI agent transcripts, with CLI-first onboarding and archive-shell proof routing.
 ---
 
+<style>
+.markdown-body a {
+  color: #0550ae;
+  text-decoration: underline;
+  text-underline-offset: 0.16em;
+}
+
+.markdown-body .highlight .nb {
+  color: #0a3069;
+}
+</style>
+
+<main id="main-content" role="main" markdown="1">
+
 # agent-exporter
 
-`agent-exporter` 是一个 **local-first archive and governance workbench for AI agent transcripts**。
+`agent-exporter` is a **local-first archive and governance workbench for AI agent transcripts**.
 
-这张 Pages 首页不是第二扇主门。
-它只是一个更轻的公开 companion surface，帮助第一次路过的人先看懂：
+This Pages home is not a second primary door.
+It is a lighter public companion surface that helps a first-time visitor answer:
 
-1. 这仓到底是什么
-2. 第一条成功路径怎么跑
-3. archive shell proof 到底证明了什么
+1. what this repo actually is
+2. how to get the first successful result
+3. what the archive shell proof really proves
 
 ## Front Door Rule
 
 - **Primary Surface:** `CLI-first`
 - **Flagship Public Packet:** GitHub repo + CLI quickstart + archive shell proof
-- **Secondary Surfaces:** local archive shell / reports shell、repo-owned integration pack、read-only governance MCP bridge
+- **Secondary Surfaces:** local archive shell / reports shell, repo-owned integration pack, read-only governance MCP bridge
 
-换句话说：
+In plain language:
 
-> Pages 负责把门口的话说清楚。
-> 真正的主门还是 GitHub repo 里的 CLI quickstart。
+> Pages explains the door.
+> The real primary entrance is still the CLI quickstart in the GitHub repo.
 
 ## Run This First
 
-如果你只愿意先试一次，不要先把所有 surface 都读一遍。先跑这三步：
+If you only want to try the repo once, do not start by reading every surface.
+Run these three steps first:
 
 1. `cargo run -- connectors`
-2. `cargo run -- export codex ... --format html --destination workspace-conversations ...`
-3. `cargo run -- publish archive-index --workspace-root ...`
+2. `cargo run -- export codex --thread-id <thread-id> --format html --destination workspace-conversations --workspace-root /absolute/path/to/repo`
+3. `cargo run -- publish archive-index --workspace-root /absolute/path/to/repo`
 
 ## First Success In 3 Steps
 
-1. 查看当前 connector 路线图
+1. Inspect the current connector surface
 
 ```bash
 cargo run -- connectors
 ```
 
-2. 导出一份 HTML transcript 到当前 workspace
+2. Export one HTML transcript into the current workspace
 
 ```bash
 cargo run -- export codex \
@@ -51,30 +66,51 @@ cargo run -- export codex \
   --workspace-root /absolute/path/to/repo
 ```
 
-3. 生成 archive shell proof
+3. Publish the archive shell proof
 
 ```bash
 cargo run -- publish archive-index --workspace-root /absolute/path/to/repo
 ```
 
-成功信号：
+Success signals:
 
-- `.agents/Conversations/*.html` transcript export
+- `.agents/Conversations/*.html` transcript exports
 - `.agents/Conversations/index.html` archive shell
-- 这份 archive shell 是 **local-first HTML receipt**，不是 hosted service
+- a **local-first HTML receipt**, not a hosted service
 
 ## You Will Get
 
-- 一份 HTML transcript receipt
-- 一个本地 archive shell 入口
-- 一条从 transcript 指向 reports shell / integration evidence 的导航链
+- one HTML transcript receipt
+- one local archive shell entrypoint
+- one navigation chain from the transcript to reports shell and integration evidence
 
 ## This Does Not Mean
 
-- 不是 hosted archive platform
-- 不是 live multi-user service
-- 不是已经 `submit-ready`
-- 不是已经 `listed-live`
+- not a hosted archive platform
+- not a live multi-user service
+- not already `submit-ready`
+- not already `listed-live` across every secondary lane
+
+## Host-Native Packet Status
+
+The public skill packet already has lane-specific truth:
+
+- **ClawHub:** `listed-live`
+- **OpenHands/extensions:** `review-pending` via `OpenHands/extensions#162`
+
+That does **not** change the product hierarchy.
+The host-native packet remains a secondary public lane.
+
+## Release Shelf Truth
+
+Use the latest release entrypoint when you want the newest **published**
+release packet.
+
+Use the repo front door and Pages docs when you want the newest
+**repository-side truth** on `main`.
+
+Those are neighboring shelves, not the same shelf. A newer `main` can sharpen
+public wording or packet truth before the next tagged release exists.
 
 ## Start Here
 
@@ -85,7 +121,9 @@ cargo run -- publish archive-index --workspace-root /absolute/path/to/repo
 
 ## Current Public Boundary
 
-- Pages 是 **companion docs surface**，不是另一套 primary surface
-- Archive shell proof page 是 **公开解释页**，不是 live hosted archive shell
-- reports shell、integration pack、read-only governance MCP bridge 仍然是 secondary surfaces
-- 当前不能 claim：`submit-ready`、`already approved`、`MCP-first`
+- Pages is a **companion docs surface**, not another primary surface
+- the archive shell proof page is a **public explanation page**, not a live hosted archive shell
+- reports shell, integration pack, and the read-only governance MCP bridge remain secondary surfaces
+- current public language must not claim `submit-ready`, `already approved`, or `MCP-first`
+
+</main>
