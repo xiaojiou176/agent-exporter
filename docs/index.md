@@ -127,3 +127,12 @@ public wording or packet truth before the next tagged release exists.
 - current public language must not claim `submit-ready`, `already approved`, or `MCP-first`
 
 </main>
+
+<script>
+  (function () {
+    const footer = document.querySelector(".footer");
+    if (footer) {
+      footer.setAttribute("role", "contentinfo");
+    }
+  })();
+</script>
