@@ -9,6 +9,20 @@ The format is based on Keep a Changelog.
 ### Changed
 - Public docs, metadata, and release-facing surfaces continue to tighten the `CLI-first -> archive shell proof -> secondary surfaces` order without promoting any secondary surface into the current primary path.
 
+## [0.1.1] - 2026-04-10
+
+### Added
+- `public_surface_contract` coverage on the required CI path
+- explicit `Release Shelf Truth` wording across the GitHub and Pages front
+  doors
+- Pages landmark/footer fixes that clear the live axe rerun for this wave
+
+### Changed
+- normalized the public front door and host-native packet surfaces to
+  English-first wording
+- synced the public skill packet to the current ClawHub/OpenHands truth
+- aligned repo-side packet metadata with the next repository release cut
+
 ## [0.1.0] - 2026-04-09
 
 ### Added

@@ -22,7 +22,7 @@ registry_targets:
 
 boundaries:
   product_identity: Local-first archive and governance workbench packet for agent-exporter.
-  canonical_repo_version: 0.1.0
+  canonical_repo_version: 0.1.1
   listing_state_summary: ClawHub listed-live; OpenHands/extensions review-pending.
   not_claimed:
     - No listed-live OpenHands/extensions entry exists yet

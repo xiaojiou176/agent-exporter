@@ -425,7 +425,7 @@ def handle_request(message: dict[str, Any]) -> dict[str, Any] | None:
             "result": {
                 "protocolVersion": PROTOCOL_VERSION,
                 "capabilities": {"tools": {"listChanged": False}},
-                "serverInfo": {"name": "agent-exporter-mcp", "version": "0.1.0"},
+                "serverInfo": {"name": "agent-exporter-mcp", "version": "0.1.1"},
             },
         }
 
