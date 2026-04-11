@@ -179,4 +179,8 @@ fn pages_index_keeps_main_landmark_and_visibility_styles() {
         content.contains(".markdown-body .highlight .nb"),
         "docs/index.md lost the code contrast style override"
     );
+    assert!(
+        content.contains("footer.setAttribute(\"role\", \"contentinfo\");"),
+        "docs/index.md lost the footer contentinfo repair"
+    );
 }
