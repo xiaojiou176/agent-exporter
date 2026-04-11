@@ -43,6 +43,7 @@ fn public_front_door_files() -> &'static [&'static str] {
         "docs/index.md",
         "docs/archive-shell-proof.md",
         "docs/repo-map.md",
+        "docs/_layouts/default.html",
         "public-skills/README.md",
         "public-skills/agent-exporter-archive-governance-workbench/README.md",
         "public-skills/agent-exporter-archive-governance-workbench/SKILL.md",
@@ -179,8 +180,9 @@ fn pages_index_keeps_main_landmark_and_visibility_styles() {
         content.contains(".markdown-body .highlight .nb"),
         "docs/index.md lost the code contrast style override"
     );
+    let layout = read_repo_file("docs/_layouts/default.html");
     assert!(
-        content.contains("footer.setAttribute(\"role\", \"contentinfo\");"),
-        "docs/index.md lost the footer contentinfo repair"
+        layout.contains("role=\"contentinfo\""),
+        "docs/_layouts/default.html lost the footer contentinfo landmark"
     );
 }
