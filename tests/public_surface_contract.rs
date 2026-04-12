@@ -82,9 +82,12 @@ fn public_skill_packet_truth_matches_live_and_pending_lanes() {
             "openhands-extensions:",
             "status: closed-not-accepted",
             "submission_ref: https://github.com/OpenHands/extensions/pull/162",
-            "listing_state_summary: ClawHub listed-live; Goose review-pending; agent-skill.co blocked by external Vercel authorization; OpenHands/extensions closed-not-accepted.",
+            "awesome-opencode:",
+            "status: not_honest_cargo_yet",
+            "listing_state_summary: ClawHub listed-live; Goose review-pending; agent-skill.co blocked by external Vercel authorization; OpenHands/extensions closed-not-accepted; awesome-opencode not_honest_cargo_yet.",
             "No listed-live Goose or agent-skill.co entry exists yet",
             "No listed-live OpenHands/extensions entry exists; that lane was closed instead",
+            "No awesome-opencode entry exists; current packet is not honest opencode cargo yet",
         ],
         manifest_path,
     );
@@ -108,6 +111,7 @@ fn public_skill_packet_prose_keeps_live_lane_truth_in_sync() {
         "`ClawHub`: `listed-live`",
         "`Goose Skills Marketplace`: `review-pending`",
         "`OpenHands/extensions`: `closed-not-accepted`",
+        "`awesome-opencode`: `not_honest_cargo_yet`",
     ];
 
     for path in [

@@ -99,6 +99,7 @@ The public skill packet already has lane-specific truth:
 - **Goose Skills Marketplace:** `review-pending` via `block/Agent-Skills#24`
 - **agent-skill.co source repo:** `platform-not-accepted-yet` via `heilcheng/awesome-agent-skills#180`
 - **OpenHands/extensions:** `closed-not-accepted` via `OpenHands/extensions#162`
+- **awesome-opencode:** `not_honest_cargo_yet`; the current packet is a host-native skill folder for a local-first archive/governance workbench, not an honest opencode-native project/resource entry today
 
 That does **not** change the product hierarchy.
 The host-native packet remains a secondary public lane.

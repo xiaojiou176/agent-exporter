@@ -43,6 +43,8 @@ through a host-native packet.
 - `OpenHands/extensions`: `closed-not-accepted`
   - submission ref: `https://github.com/OpenHands/extensions/pull/162`
   - maintainer note: distribute a custom `marketplace.json` instead of expecting an upstream listing
+- `awesome-opencode`: `not_honest_cargo_yet`
+  - exact blocker: this packet is a host-native skill folder for a local-first archive/governance workbench, not an honest opencode-native project/resource entry today
 
 ## First-success flow
 
