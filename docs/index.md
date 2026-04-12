@@ -96,7 +96,9 @@ Success signals:
 The public skill packet already has lane-specific truth:
 
 - **ClawHub:** `listed-live`
-- **OpenHands/extensions:** `review-pending` via `OpenHands/extensions#162`
+- **Goose Skills Marketplace:** `review-pending` via `block/Agent-Skills#24`
+- **agent-skill.co source repo:** `platform-not-accepted-yet` via `heilcheng/awesome-agent-skills#180`
+- **OpenHands/extensions:** `closed-not-accepted` via `OpenHands/extensions#162`
 
 That does **not** change the product hierarchy.
 The host-native packet remains a secondary public lane.

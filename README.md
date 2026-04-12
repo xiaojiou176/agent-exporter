@@ -92,7 +92,9 @@ The public skill packet already has lane-specific truth:
 | Lane | Current truth | Fresh evidence |
 | --- | --- | --- |
 | ClawHub | `listed-live` | `clawhub inspect agent-exporter-archive-governance-workbench --no-input` returns the live skill |
-| OpenHands/extensions | `review-pending` | [OpenHands/extensions#162](https://github.com/OpenHands/extensions/pull/162) is open and unmerged |
+| Goose Skills Marketplace | `review-pending` | [block/Agent-Skills#24](https://github.com/block/agent-skills/pull/24) is open and waiting on marketplace review |
+| agent-skill.co source repo | `platform-not-accepted-yet` | [heilcheng/awesome-agent-skills#180](https://github.com/heilcheng/awesome-agent-skills/pull/180) is open while Vercel team authorization is still pending upstream |
+| OpenHands/extensions | `closed-not-accepted` | [OpenHands/extensions#162](https://github.com/OpenHands/extensions/pull/162) was closed with maintainer guidance to distribute a custom `marketplace.json` instead |
 
 This packet is still a **secondary public lane**.
 It does not replace the flagship `CLI-first` public packet.

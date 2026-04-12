@@ -29,7 +29,7 @@ shop into a different factory.
 | --- | --- | --- | --- |
 | Flagship CLI-first packet | `README.md`, `docs/README.md`, `docs/archive-shell-proof.md` | active front door | hosted platform, remote runtime, or repo-wide MCP-first identity |
 | Release shelf packet | release/tag plus release notes linked from `README.md` and `docs/README.md` | published shelf | latest `main` packet truth |
-| Host-native public skill packet | `public-skills/README.md`, `public-skills/agent-exporter-archive-governance-workbench/README.md`, `public-skills/agent-exporter-archive-governance-workbench/manifest.yaml` | secondary lane; ClawHub live, OpenHands review-pending | flagship packet replacement or generic registry acceptance |
+| Host-native public skill packet | `public-skills/README.md`, `public-skills/agent-exporter-archive-governance-workbench/README.md`, `public-skills/agent-exporter-archive-governance-workbench/manifest.yaml` | secondary lane; ClawHub live, Goose review-pending, agent-skill.co blocked upstream, OpenHands closed-not-accepted | flagship packet replacement or generic registry acceptance |
 | Integration pack | `docs/integrations/README.md`, `docs/integrations/templates/README.md` | repo-owned companion lane | host-native runtime proof |
 | Governance MCP bridge | `public-skills/agent-exporter-archive-governance-workbench/references/INSTALL.md`, `docs/integrations/README.md` | local stdio bridge only | hosted MCP endpoint or container runtime lane |
 
@@ -43,7 +43,9 @@ Keep these claims in their own buckets:
    - archive shell proof
 2. **Host-native packet**
    - ClawHub live as a packet lane
-   - OpenHands still review-pending
+   - Goose is still review-pending
+   - agent-skill.co is waiting on external Vercel authorization
+   - OpenHands is closed-not-accepted and no longer an active upstream listing lane
 3. **Integration pack**
    - repo-owned wiring templates and doctor/onboard flows
 4. **Governance bridge**

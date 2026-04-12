@@ -24,4 +24,6 @@ Current packet:
 Current lane truth:
 
 - `ClawHub`: `listed-live`
-- `OpenHands/extensions`: `review-pending`
+- `Goose Skills Marketplace`: `review-pending` via `block/Agent-Skills#24`
+- `agent-skill.co source repo`: `platform-not-accepted-yet` via `heilcheng/awesome-agent-skills#180` while Vercel team authorization is pending
+- `OpenHands/extensions`: `closed-not-accepted`; maintainer pointed to a custom `marketplace.json` distribution path instead

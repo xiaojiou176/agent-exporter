@@ -84,7 +84,9 @@ The host-native public packet already has lane-specific truth:
 | Lane | Current truth | Fresh read-back |
 | --- | --- | --- |
 | ClawHub | `listed-live` | `clawhub inspect agent-exporter-archive-governance-workbench --no-input` |
-| OpenHands/extensions | `review-pending` | `https://github.com/OpenHands/extensions/pull/162` |
+| Goose Skills Marketplace | `review-pending` | `https://github.com/block/agent-skills/pull/24` |
+| agent-skill.co source repo | `platform-not-accepted-yet` | `https://github.com/heilcheng/awesome-agent-skills/pull/180` |
+| OpenHands/extensions | `closed-not-accepted` | `https://github.com/OpenHands/extensions/pull/162` |
 
 These lane states do not change the flagship product story:
 
