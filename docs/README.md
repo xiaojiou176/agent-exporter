@@ -87,6 +87,7 @@ The host-native public packet already has lane-specific truth:
 | Goose Skills Marketplace | `review-pending` | `https://github.com/block/agent-skills/pull/24` |
 | agent-skill.co source repo | `platform-not-accepted-yet` | `https://github.com/heilcheng/awesome-agent-skills/pull/180` |
 | OpenHands/extensions | `closed-not-accepted` | `https://github.com/OpenHands/extensions/pull/162` |
+| awesome-opencode | `not_honest_cargo_yet` | current packet is a host-native skill folder for a local-first archive/governance workbench, not an honest opencode-native project/resource entry today |
 
 These lane states do not change the flagship product story:
 

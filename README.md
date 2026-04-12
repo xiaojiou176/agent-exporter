@@ -95,6 +95,7 @@ The public skill packet already has lane-specific truth:
 | Goose Skills Marketplace | `review-pending` | [block/Agent-Skills#24](https://github.com/block/agent-skills/pull/24) is open and waiting on marketplace review |
 | agent-skill.co source repo | `platform-not-accepted-yet` | [heilcheng/awesome-agent-skills#180](https://github.com/heilcheng/awesome-agent-skills/pull/180) is open while Vercel team authorization is still pending upstream |
 | OpenHands/extensions | `closed-not-accepted` | [OpenHands/extensions#162](https://github.com/OpenHands/extensions/pull/162) was closed with maintainer guidance to distribute a custom `marketplace.json` instead |
+| awesome-opencode | `not_honest_cargo_yet` | the current packet is a host-native skill folder for a local-first archive/governance workbench, not an honest opencode-native project/resource entry today |
 
 This packet is still a **secondary public lane**.
 It does not replace the flagship `CLI-first` public packet.
