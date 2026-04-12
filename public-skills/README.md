@@ -12,6 +12,11 @@ They do not replace the flagship public packet:
 The product itself remains a **local-first archive and governance workbench**.
 Its primary surface is still **`CLI-first`**.
 
+If you need the repo-wide packet map, open
+[`docs/distribution-packet-ledger.md`](../docs/distribution-packet-ledger.md)
+first. That page keeps the flagship public packet separate from these
+host-native side lanes.
+
 Current packet:
 
 - `agent-exporter-archive-governance-workbench/`

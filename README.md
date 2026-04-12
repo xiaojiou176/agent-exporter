@@ -2,7 +2,7 @@
 
 `agent-exporter` is a **local-first archive and governance workbench for AI agent transcripts**.
 
-[Try It In 3 Steps](#first-success-path) · [Docs Landing](https://xiaojiou176-open.github.io/agent-exporter/) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) · [Latest Release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
+[Try It In 3 Steps](#first-success-path) · [Distribution Packet Ledger](./docs/distribution-packet-ledger.md) · [Docs Landing](https://xiaojiou176-open.github.io/agent-exporter/) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) · [Latest Release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
 
 ![agent-exporter proof map showing CLI quickstart, transcript export, archive shell proof, reports shell, and integration evidence as one local-first workbench](./docs/assets/archive-shell-proof.svg)
 
