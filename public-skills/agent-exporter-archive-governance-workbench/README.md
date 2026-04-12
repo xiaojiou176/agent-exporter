@@ -58,8 +58,14 @@ This packet teaches an agent how to:
 
 - `ClawHub`: `listed-live`
   - fresh read-back: `clawhub inspect agent-exporter-archive-governance-workbench --no-input`
-- `OpenHands/extensions`: `review-pending`
+- `Goose Skills Marketplace`: `review-pending`
+  - submission ref: `https://github.com/block/agent-skills/pull/24`
+- `agent-skill.co source repo`: `platform-not-accepted-yet`
+  - submission ref: `https://github.com/heilcheng/awesome-agent-skills/pull/180`
+  - external blocker: Vercel team authorization is still pending upstream
+- `OpenHands/extensions`: `closed-not-accepted`
   - submission ref: `https://github.com/OpenHands/extensions/pull/162`
+  - maintainer note: distribute a custom `marketplace.json` instead of expecting an upstream listing
 
 ## MCP capability surface
 
@@ -91,7 +97,8 @@ This packet teaches an agent how to:
 ## What this packet must not claim
 
 - no hosted archive platform
-- no listed-live OpenHands/extensions entry while the PR is still open
+- no listed-live Goose or agent-skill.co entry without fresh read-back
+- no listed-live OpenHands/extensions entry; that lane was closed rather than accepted
 - no full-CLI MCP parity
 - no change to the flagship `CLI-first` primary surface
 

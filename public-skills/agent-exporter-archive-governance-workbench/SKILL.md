@@ -36,8 +36,13 @@ through a host-native packet.
 
 - `ClawHub`: `listed-live`
   - fresh read-back: `clawhub inspect agent-exporter-archive-governance-workbench --no-input`
-- `OpenHands/extensions`: `review-pending`
+- `Goose Skills Marketplace`: `review-pending`
+  - submission ref: `https://github.com/block/agent-skills/pull/24`
+- `agent-skill.co source repo`: `platform-not-accepted-yet`
+  - submission ref: `https://github.com/heilcheng/awesome-agent-skills/pull/180`
+- `OpenHands/extensions`: `closed-not-accepted`
   - submission ref: `https://github.com/OpenHands/extensions/pull/162`
+  - maintainer note: distribute a custom `marketplace.json` instead of expecting an upstream listing
 
 ## First-success flow
 

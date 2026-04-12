@@ -73,11 +73,18 @@ fn public_skill_packet_truth_matches_live_and_pending_lanes() {
             "clawhub:",
             "status: listed-live",
             "read_back: clawhub inspect agent-exporter-archive-governance-workbench --no-input",
-            "openhands-extensions:",
+            "goose-skills-marketplace:",
             "status: review-pending",
+            "submission_ref: https://github.com/block/agent-skills/pull/24",
+            "agent-skill-index:",
+            "status: platform-not-accepted-yet",
+            "submission_ref: https://github.com/heilcheng/awesome-agent-skills/pull/180",
+            "openhands-extensions:",
+            "status: closed-not-accepted",
             "submission_ref: https://github.com/OpenHands/extensions/pull/162",
-            "listing_state_summary: ClawHub listed-live; OpenHands/extensions review-pending.",
-            "No listed-live OpenHands/extensions entry exists yet",
+            "listing_state_summary: ClawHub listed-live; Goose review-pending; agent-skill.co blocked by external Vercel authorization; OpenHands/extensions closed-not-accepted.",
+            "No listed-live Goose or agent-skill.co entry exists yet",
+            "No listed-live OpenHands/extensions entry exists; that lane was closed instead",
         ],
         manifest_path,
     );
@@ -99,7 +106,8 @@ fn public_skill_packet_truth_matches_live_and_pending_lanes() {
 fn public_skill_packet_prose_keeps_live_lane_truth_in_sync() {
     let expected = [
         "`ClawHub`: `listed-live`",
-        "`OpenHands/extensions`: `review-pending`",
+        "`Goose Skills Marketplace`: `review-pending`",
+        "`OpenHands/extensions`: `closed-not-accepted`",
     ];
 
     for path in [
