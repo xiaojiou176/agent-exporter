@@ -2,6 +2,10 @@
 
 这一层不是产品新功能，而是给开发者的“接线包”。
 
+如果你现在想先搞清楚 repo 总体“主货箱”和“侧边箱”怎么分，
+先看 [`../distribution-packet-ledger.md`](../distribution-packet-ledger.md)。
+那一页负责讲 repo-wide packet truth；这一页只负责 integration 这条接线 lane。
+
 你可以先把它理解成：
 
 > `agent-exporter` 现在已经是一个稳定的本地 CLI / artifact graph，
