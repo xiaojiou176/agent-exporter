@@ -6,6 +6,17 @@
 
 ![agent-exporter proof map showing CLI quickstart, transcript export, archive shell proof, reports shell, and integration evidence as one local-first workbench](./docs/assets/archive-shell-proof.svg)
 
+## Front Door Map
+
+If you only remember four things, remember these:
+
+| Question | Short answer |
+| --- | --- |
+| What is this? | a **local-first archive and governance workbench** for AI agent transcripts |
+| What should I do first? | start with the **CLI quickstart** |
+| What is the first visible proof? | one HTML transcript receipt plus the archive shell proof |
+| What should I avoid assuming? | this is **not** a hosted archive platform or `MCP-first` public product |
+
 ## Product Kernel
 
 The simplest way to understand this repo is:
@@ -19,6 +30,7 @@ The simplest way to understand this repo is:
 - **Secondary Surface 1:** local archive shell / reports shell
 - **Secondary Surface 2:** repo-owned integration pack
 - **Secondary Surface 3:** read-only governance MCP bridge
+- **Secondary Surface 4:** root-level MCP descriptor for registry/read-back lanes (`server.json`)
 
 These surfaces can coexist, but they cannot borrow authority from each other.
 Secondary operator-facing surfaces must not replace the current primary front door.
@@ -44,6 +56,16 @@ In plain English:
 
 > The product kernel already includes evidence and governance,
 > but the public front door still needs **CLI-first** to own the first screen.
+
+## Who This Repo Is For
+
+Use this repo if your real question sounds like one of these:
+
+- "Can I export one AI agent transcript into a local artifact I can read and keep?"
+- "Can I turn multiple transcript artifacts into a local archive shell instead of a hosted service?"
+- "Can I keep retrieval, integration evidence, and governance attached to the same local workbench?"
+
+If your first instinct is "I need a cloud archive platform," this repo is deliberately not that product.
 
 ## At A Glance
 
@@ -93,13 +115,73 @@ If you only want to answer "is this worth trying once?", use this card first:
 > Think of these three steps like assembling the frame of a workbench.
 > Get it standing first, then worry about drawers and accessories.
 
+## Choose The Right Next Door
+
+After first success, do not open every lane at once.
+Use this route map instead:
+
+| If your next question is... | Open this | Why |
+| --- | --- | --- |
+| "What exactly does the proof page prove?" | [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) | it is the first public proof layer after the CLI path |
+| "Where do the repo lanes actually live?" | [`docs/README.md`](./docs/README.md) | it keeps the product map and proof hierarchy in one place |
+| "What does the MCP bridge packet include?" | [`llms-install.md`](./llms-install.md) + [`server.json`](./server.json) | these are the honest bridge packet surfaces |
+| "What is the current packet/listing status?" | [`docs/distribution-packet-ledger.md`](./docs/distribution-packet-ledger.md) | packet status belongs in the second ring, not the first screen |
+
 ## Public Entry Points
 
 - **GitHub repo front door:** the current primary onboarding path with the CLI quickstart
+- **Host install note:** [`llms-install.md`](./llms-install.md) for the shortest local stdio MCP bridge setup
 - **GitHub Pages landing:** a lightweight public docs layer that repeats the same product sentence and first-success path
 - **Archive shell proof page:** a tracked public explanation of what the archive shell proves, what it does not prove, and how to reproduce it locally
 - **Host-native public skill packet:** `public-skills/agent-exporter-archive-governance-workbench/` for host reviewers who need a self-contained folder
+- **Canonical MCP descriptor:** `server.json` for registry/read-back lanes around the local stdio bridge
 - **Latest release shelf:** release/tag truth for the current public packet
+
+## Secondary MCP Bridge Packet
+
+Think of this packet like a reviewer envelope.
+You open it when a registry or host intake lane asks for the bridge assets specifically, not when a first-time user is still trying to understand the product.
+
+The MCP bridge packet is a **second-ring reviewer packet**, not a replacement
+front door.
+
+Use it when a registry, host reviewer, or packet intake lane asks:
+
+> Where is the honest install note, the canonical descriptor, and the square
+> review art for the local stdio bridge?
+
+| Packet slice | Current repo file | Why it exists |
+| --- | --- | --- |
+| Install note | [`llms-install.md`](./llms-install.md) | shortest truthful attach path for the local stdio bridge |
+| Descriptor | [`server.json`](./server.json) | canonical metadata for registry/read-back review lanes |
+| Logo asset | [`docs/assets/marketplace/agent-exporter-cline-logo-400.png`](./docs/assets/marketplace/agent-exporter-cline-logo-400.png) | square logo for host/reviewer queues |
+| Proof tile | [`docs/assets/marketplace/archive-shell-proof.svg.png`](./docs/assets/marketplace/archive-shell-proof.svg.png) | square proof image that points back to the archive shell |
+
+What this packet proves:
+
+- the local stdio MCP bridge is repo-owned and documented
+- reviewers can find one canonical descriptor and one install note without
+  guessing
+- the bridge still points back to the same archive/governance workbench
+
+What this packet does **not** prove:
+
+- Official MCP Registry publication
+- Smithery publication
+- a hosted runtime
+- a public package registry lane beyond the repo-owned bridge packet
+
+<details>
+<summary><strong>Why this packet stays in the second ring</strong></summary>
+
+The install note, descriptor, and square art are real and useful, but they answer a narrower question:
+"Can a reviewer or registry intake lane inspect the local stdio bridge honestly?"
+
+They do **not** answer the broader first-screen product question:
+"What is this repo, and how do I get one successful result?"
+
+That broader question still belongs to the CLI quickstart and archive shell proof.
+</details>
 
 ## Release Shelf Truth
 
