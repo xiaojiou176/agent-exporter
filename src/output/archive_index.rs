@@ -197,14 +197,14 @@ pub fn render_archive_index_document(
             "        <p class=\"eyebrow\">Lane B</p>\n",
             "        <h2>Semantic retrieval</h2>\n",
             "        <p>如果你要按语义找“内容相近”的 transcript，继续用 CLI 的 semantic / hybrid retrieval。search reports 仍然是独立抽屉，但从这里可以顺着跳过去，不会迷路。</p>\n",
-            "        <pre><code>agent-exporter search semantic --workspace-root &lt;repo-root&gt; --query \"login issues\" --save-report</code></pre>\n",
-            "        <pre><code>agent-exporter search hybrid --workspace-root &lt;repo-root&gt; --query \"thread-1\" --save-report</code></pre>\n",
+            "        <pre tabindex=\"0\" aria-label=\"semantic retrieval command example\"><code>agent-exporter search semantic --workspace-root &lt;repo-root&gt; --query \"login issues\" --save-report</code></pre>\n",
+            "        <pre tabindex=\"0\" aria-label=\"hybrid retrieval command example\"><code>agent-exporter search hybrid --workspace-root &lt;repo-root&gt; --query \"thread-1\" --save-report</code></pre>\n",
             "      </article>\n",
             "      <article class=\"lane-card\">\n",
             "        <p class=\"eyebrow\">Lane C</p>\n",
             "        <h2>Governance lane</h2>\n",
             "        <p>Decision Desk 很重要，但它不是整张桌子的主语。它负责 official baseline、policy、promotion、history 和 remediation；当你处理“接线是否健康”时，再从这里切过去。</p>\n",
-            "        <pre><code>agent-exporter evidence current --baseline-name &lt;name&gt;</code></pre>\n",
+            "        <pre tabindex=\"0\" aria-label=\"governance lane command example\"><code>agent-exporter evidence current --baseline-name &lt;name&gt;</code></pre>\n",
             "      </article>\n",
             "    </section>\n",
             "    <section class=\"section-card section-intro report-intro\" id=\"saved-reports\">\n",
@@ -751,28 +751,35 @@ fn render_summary_section(title: &str, items: Vec<(String, usize)>) -> String {
 
 fn archive_index_style() -> &'static str {
     r#"    :root {
-      --page-bg:
-        radial-gradient(circle at top left, rgba(201, 107, 54, 0.12), transparent 32%),
-        radial-gradient(circle at top right, rgba(45, 92, 122, 0.16), transparent 26%),
-        linear-gradient(180deg, #f7f1e7 0%, #eee3d2 100%);
-      --panel: rgba(255, 251, 245, 0.96);
-      --panel-strong: rgba(255, 255, 255, 0.98);
-      --panel-muted: rgba(246, 236, 223, 0.78);
-      --ink: #1b2530;
-      --muted: #5d6a74;
-      --border: rgba(104, 80, 55, 0.16);
-      --accent: #b25e2c;
-      --accent-strong: #8f4318;
-      --accent-soft: rgba(178, 94, 44, 0.12);
-      --blue-soft: rgba(45, 92, 122, 0.14);
-      --success: #1f7a58;
-      --warning: #9b5f0d;
-      --danger: #9a2a2a;
-      --shadow: 0 22px 48px rgba(41, 31, 20, 0.10);
-      --shadow-strong: 0 34px 90px rgba(41, 31, 20, 0.16);
-      --mono: "SFMono-Regular", "JetBrains Mono", "Menlo", monospace;
-      --sans: "Avenir Next", "Segoe UI", "Helvetica Neue", "Arial Nova", sans-serif;
-      --display: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
+      color-scheme: light;
+      --bg:
+        radial-gradient(circle at 12% 16%, rgba(37, 99, 235, 0.12), transparent 0 28%),
+        radial-gradient(circle at 88% 10%, rgba(14, 165, 233, 0.10), transparent 0 24%),
+        linear-gradient(180deg, #f8fbff 0%, #eef3fb 52%, #e8eef8 100%);
+      --surface: rgba(255, 255, 255, 0.88);
+      --surface-strong: rgba(255, 255, 255, 0.96);
+      --surface-muted: rgba(248, 250, 252, 0.82);
+      --ink: #0f172a;
+      --ink-soft: #334155;
+      --muted: #64748b;
+      --line: rgba(15, 23, 42, 0.08);
+      --line-strong: rgba(37, 99, 235, 0.18);
+      --accent: #2563eb;
+      --accent-strong: #1d4ed8;
+      --accent-soft: rgba(37, 99, 235, 0.10);
+      --success: #0f766e;
+      --warning: #b45309;
+      --danger: #b91c1c;
+      --shadow-border: 0 0 0 1px rgba(15, 23, 42, 0.06);
+      --shadow-panel:
+        0 24px 60px rgba(15, 23, 42, 0.07),
+        0 0 0 1px rgba(255, 255, 255, 0.72) inset;
+      --shadow-hero:
+        0 28px 80px rgba(15, 23, 42, 0.10),
+        0 0 0 1px rgba(255, 255, 255, 0.80) inset;
+      --mono: "JetBrains Mono", "SFMono-Regular", "Menlo", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "IBM Plex Sans", "Segoe UI", sans-serif;
+      --display: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     * { box-sizing: border-box; }
@@ -781,13 +788,29 @@ fn archive_index_style() -> &'static str {
       margin: 0;
       font-family: var(--sans);
       color: var(--ink);
-      background: var(--page-bg);
+      background: var(--bg);
+      background-attachment: fixed;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+      background-size: 52px 52px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.60), transparent 82%);
+      opacity: 0.26;
     }
 
     .page-shell {
       width: min(1240px, calc(100vw - 32px));
       margin: 0 auto;
       padding: 28px 0 72px;
+      position: relative;
+      z-index: 1;
     }
 
     .hero-card,
@@ -798,11 +821,27 @@ fn archive_index_style() -> &'static str {
     .decision-header,
     .decision-changes,
     .section-card {
-      background: var(--panel);
-      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--line);
       border-radius: 28px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(16px);
+      box-shadow: var(--shadow-panel);
+      backdrop-filter: blur(14px);
+    }
+
+    .hero-card::before,
+    .lane-card::before,
+    .summary-card::before,
+    .entry-card::before,
+    .decision-header::before,
+    .decision-changes::before,
+    .section-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.65), transparent 28%);
     }
 
     .hero-card,
@@ -816,8 +855,13 @@ fn archive_index_style() -> &'static str {
 
     .hero-card {
       margin-bottom: 22px;
-      padding: 30px;
-      box-shadow: var(--shadow-strong);
+      padding: 32px;
+      border-radius: 32px;
+      background:
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 34%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.84)),
+        var(--surface);
+      box-shadow: var(--shadow-hero);
     }
 
     .section-card {
@@ -827,15 +871,26 @@ fn archive_index_style() -> &'static str {
     .summary-grid,
     .lane-grid,
     .report-grid,
-    .decision-grid {
+    .decision-grid,
+    .card-grid,
+    .transcript-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 18px;
       margin-bottom: 22px;
     }
 
+    .summary-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+
+    .lane-grid,
+    .report-grid,
+    .decision-grid {
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    }
+
     .transcript-grid {
-      margin-bottom: 22px;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     }
 
     .decision-desk {
@@ -846,14 +901,15 @@ fn archive_index_style() -> &'static str {
     .decision-changes {
       padding: 24px;
       margin-bottom: 18px;
-      border-radius: 24px;
-      box-shadow: var(--shadow);
+      border-radius: 26px;
     }
 
     .decision-header {
       background:
-        linear-gradient(135deg, rgba(178, 94, 44, 0.08), rgba(45, 92, 122, 0.06)),
-        var(--panel);
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 36%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.90), rgba(248, 250, 252, 0.82)),
+        var(--surface);
+      box-shadow: var(--shadow-hero);
     }
 
     .decision-card,
@@ -872,20 +928,21 @@ fn archive_index_style() -> &'static str {
 
     h1, h2 {
       margin: 0 0 12px;
-      line-height: 1.06;
-      font-weight: 750;
-      letter-spacing: -0.02em;
+      line-height: 1.02;
+      font-weight: 700;
+      letter-spacing: -0.03em;
       font-family: var(--display);
+      color: var(--ink);
     }
 
-    h1 { font-size: clamp(34px, 4.7vw, 62px); }
-    h2 { font-size: clamp(24px, 2.8vw, 34px); }
+    h1 { font-size: clamp(34px, 4.8vw, 62px); }
+    h2 { font-size: clamp(24px, 2.7vw, 34px); }
 
     .hero-copy,
     p {
       margin: 0;
-      line-height: 1.68;
-      color: var(--muted);
+      line-height: 1.72;
+      color: var(--ink-soft);
       word-break: break-word;
     }
 
@@ -903,9 +960,9 @@ fn archive_index_style() -> &'static str {
 
     .meta-grid div {
       padding: 14px 16px;
-      background: var(--panel-strong);
-      border: 1px solid rgba(104, 80, 55, 0.10);
+      background: rgba(255, 255, 255, 0.76);
       border-radius: 18px;
+      box-shadow: var(--shadow-border);
     }
 
     dt {
@@ -922,6 +979,7 @@ fn archive_index_style() -> &'static str {
       font-size: 15px;
       color: var(--ink);
       font-weight: 600;
+      line-height: 1.5;
     }
 
     .hero-actions,
@@ -951,7 +1009,7 @@ fn archive_index_style() -> &'static str {
       padding: 6px 11px;
       background: var(--accent-soft);
       color: var(--accent-strong);
-      border: 1px solid rgba(178, 94, 44, 0.14);
+      border: 1px solid var(--line-strong);
       font-family: var(--mono);
       font-size: 12px;
     }
@@ -962,9 +1020,9 @@ fn archive_index_style() -> &'static str {
     }
 
     .verdict-chip {
-      background: rgba(45, 92, 122, 0.12);
-      color: #234f68;
-      border-color: rgba(45, 92, 122, 0.15);
+      background: rgba(15, 118, 110, 0.10);
+      color: var(--success);
+      border-color: rgba(15, 118, 110, 0.20);
     }
 
     .mono-inline,
@@ -972,6 +1030,13 @@ fn archive_index_style() -> &'static str {
     .open-link,
     pre {
       font-family: var(--mono);
+    }
+
+    code {
+      padding: 0.16em 0.42em;
+      border-radius: 999px;
+      color: var(--ink);
+      background: rgba(15, 23, 42, 0.05);
     }
 
     .mono-inline {
@@ -987,27 +1052,31 @@ fn archive_index_style() -> &'static str {
       min-height: 42px;
       padding: 10px 14px;
       border-radius: 999px;
-      border: 1px solid rgba(178, 94, 44, 0.22);
+      border: 1px solid var(--line);
       text-decoration: none;
-      color: var(--accent-strong);
-      background: rgba(255, 255, 255, 0.78);
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.76);
+      box-shadow: var(--shadow-border);
       transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
     }
 
     .open-link:hover {
       transform: translateY(-1px);
       background: rgba(255, 255, 255, 0.96);
-      border-color: rgba(178, 94, 44, 0.38);
+      border-color: var(--line-strong);
     }
 
     .primary-link {
-      background: linear-gradient(135deg, #b25e2c, #8f4318);
-      color: #fffaf2;
+      color: #ffffff;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
       border-color: transparent;
+      box-shadow:
+        0 18px 36px rgba(37, 99, 235, 0.24),
+        0 0 0 1px rgba(255, 255, 255, 0.18) inset;
     }
 
     .primary-link:hover {
-      background: linear-gradient(135deg, #bd6b39, #9a4d20);
+      background: linear-gradient(135deg, #1d4ed8, #1e40af);
     }
 
     .search-bar {
@@ -1015,10 +1084,10 @@ fn archive_index_style() -> &'static str {
       gap: 12px;
       margin: 0 0 20px;
       padding: 20px 22px;
-      border-radius: 22px;
-      border: 1px solid rgba(104, 80, 55, 0.12);
-      background: var(--panel-muted);
-      box-shadow: var(--shadow);
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: var(--surface-muted);
+      box-shadow: var(--shadow-panel);
     }
 
     .search-label {
@@ -1033,7 +1102,7 @@ fn archive_index_style() -> &'static str {
       width: 100%;
       padding: 14px 16px;
       border-radius: 16px;
-      border: 1px solid rgba(104, 80, 55, 0.14);
+      border: 1px solid var(--line);
       background: rgba(255, 255, 255, 0.96);
       color: var(--ink);
       font-family: var(--mono);
@@ -1060,8 +1129,8 @@ fn archive_index_style() -> &'static str {
     }
 
     .facet-button {
-      border: 1px solid rgba(104, 80, 55, 0.14);
-      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.86);
       border-radius: 999px;
       padding: 9px 13px;
       color: var(--ink);
@@ -1073,30 +1142,13 @@ fn archive_index_style() -> &'static str {
 
     .facet-button:hover {
       transform: translateY(-1px);
-      border-color: rgba(178, 94, 44, 0.24);
+      border-color: var(--line-strong);
     }
 
     .facet-button.is-active {
       background: var(--accent-soft);
       color: var(--accent-strong);
-      border-color: rgba(178, 94, 44, 0.28);
-    }
-
-    .entry-card,
-    .summary-card,
-    .lane-card {
-      position: relative;
-      overflow: hidden;
-    }
-
-    .entry-card::before,
-    .summary-card::before,
-    .lane-card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), transparent 28%);
-      pointer-events: none;
+      border-color: var(--line-strong);
     }
 
     .entry-card h2,
@@ -1123,7 +1175,7 @@ fn archive_index_style() -> &'static str {
     .step-list {
       margin: 0;
       padding-left: 20px;
-      color: var(--muted);
+      color: var(--ink-soft);
     }
 
     .step-list li,
@@ -1139,15 +1191,25 @@ fn archive_index_style() -> &'static str {
       margin: 14px 0 0;
       padding: 16px;
       overflow-x: auto;
-      border-radius: 18px;
-      background: #19232d;
-      color: #f9f3ea;
+      border-radius: 20px;
+      background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
+      color: #e2e8f0;
       border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow:
+        0 18px 40px rgba(15, 23, 42, 0.16),
+        0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+    }
+
+    pre code {
+      padding: 0;
+      color: inherit;
+      background: transparent;
     }
 
     .empty-state {
       padding: 28px;
-      background: rgba(255, 253, 248, 0.98);
+      background: rgba(255, 255, 255, 0.92);
+      text-align: center;
     }
 
     .empty-result {
@@ -1158,13 +1220,17 @@ fn archive_index_style() -> &'static str {
     a:focus-visible,
     button:focus-visible,
     input:focus-visible {
-      outline: 3px solid rgba(45, 92, 122, 0.36);
-      outline-offset: 3px;
+      outline: 3px solid rgba(37, 99, 235, 0.28);
+      outline-offset: 4px;
     }
 
     @media (max-width: 860px) {
       .page-shell {
         width: min(100vw - 20px, 1240px);
+      }
+
+      .hero-card {
+        padding: 22px;
       }
 
       .hero-card,
@@ -1176,6 +1242,10 @@ fn archive_index_style() -> &'static str {
       .decision-header,
       .decision-changes {
         border-radius: 22px;
+      }
+
+      .transcript-grid {
+        grid-template-columns: 1fr;
       }
     }
 

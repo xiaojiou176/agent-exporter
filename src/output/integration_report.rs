@@ -506,22 +506,30 @@ fn integration_report_style() -> &'static str {
   :root {
     color-scheme: light;
     --bg:
-      radial-gradient(circle at top left, rgba(201, 107, 54, 0.10), transparent 30%),
-      radial-gradient(circle at top right, rgba(45, 92, 122, 0.14), transparent 26%),
-      linear-gradient(180deg, #f7f1e7 0%, #eee3d2 100%);
-    --ink: #1d2731;
-    --muted: #5f6b76;
-    --card: rgba(255, 251, 245, 0.96);
-    --line: rgba(104, 80, 55, 0.16);
-    --accent: #b25e2c;
-    --accent-strong: #8f4318;
-    --accent-soft: rgba(178, 94, 44, 0.12);
-    --panel-strong: rgba(255, 255, 255, 0.98);
-    --shadow: 0 22px 48px rgba(41, 31, 20, 0.10);
-    --shadow-strong: 0 34px 90px rgba(41, 31, 20, 0.16);
-    --mono: "SFMono-Regular", "JetBrains Mono", "Menlo", monospace;
-    --sans: "Avenir Next", "Segoe UI", "Helvetica Neue", "Arial Nova", sans-serif;
-    --display: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
+      radial-gradient(circle at 12% 16%, rgba(37, 99, 235, 0.12), transparent 0 28%),
+      radial-gradient(circle at 88% 10%, rgba(14, 165, 233, 0.10), transparent 0 24%),
+      linear-gradient(180deg, #f8fbff 0%, #eef3fb 52%, #e8eef8 100%);
+    --surface: rgba(255, 255, 255, 0.88);
+    --surface-strong: rgba(255, 255, 255, 0.96);
+    --surface-muted: rgba(248, 250, 252, 0.82);
+    --ink: #0f172a;
+    --ink-soft: #334155;
+    --muted: #64748b;
+    --line: rgba(15, 23, 42, 0.08);
+    --line-strong: rgba(37, 99, 235, 0.18);
+    --accent: #2563eb;
+    --accent-strong: #1d4ed8;
+    --accent-soft: rgba(37, 99, 235, 0.10);
+    --shadow-border: 0 0 0 1px rgba(15, 23, 42, 0.06);
+    --shadow-panel:
+      0 24px 60px rgba(15, 23, 42, 0.07),
+      0 0 0 1px rgba(255, 255, 255, 0.72) inset;
+    --shadow-hero:
+      0 28px 80px rgba(15, 23, 42, 0.10),
+      0 0 0 1px rgba(255, 255, 255, 0.80) inset;
+    --mono: "JetBrains Mono", "SFMono-Regular", "Menlo", monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "IBM Plex Sans", "Segoe UI", sans-serif;
+    --display: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
   * { box-sizing: border-box; }
   html { scroll-behavior: smooth; }
@@ -530,18 +538,42 @@ fn integration_report_style() -> &'static str {
     font-family: var(--sans);
     background: var(--bg);
     color: var(--ink);
+    background-attachment: fixed;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+    background-size: 52px 52px;
+    mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.60), transparent 82%);
+    opacity: 0.26;
   }
   .page-shell {
     max-width: 1160px;
     margin: 0 auto;
     padding: 28px 20px 64px;
+    position: relative;
+    z-index: 1;
   }
   .hero-card, .section-card, .entry-card {
-    background: var(--card);
+    position: relative;
+    overflow: hidden;
+    background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 28px;
-    box-shadow: var(--shadow);
-    backdrop-filter: blur(16px);
+    box-shadow: var(--shadow-panel);
+    backdrop-filter: blur(14px);
+  }
+  .hero-card::before, .section-card::before, .entry-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.65), transparent 28%);
   }
   .hero-card, .section-card {
     padding: 24px;
@@ -549,10 +581,12 @@ fn integration_report_style() -> &'static str {
   }
   .hero-card {
     padding: 30px;
-    box-shadow: var(--shadow-strong);
+    border-radius: 32px;
+    box-shadow: var(--shadow-hero);
     background:
-      linear-gradient(135deg, rgba(178, 94, 44, 0.08), rgba(45, 92, 122, 0.06)),
-      var(--card);
+      radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 34%),
+      linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.84)),
+      var(--surface);
   }
   .eyebrow {
     margin: 0 0 8px;
@@ -564,20 +598,21 @@ fn integration_report_style() -> &'static str {
   }
   h1, h2 {
     margin: 0 0 12px;
-    line-height: 1.06;
-    letter-spacing: -0.02em;
+    line-height: 1.04;
+    letter-spacing: -0.03em;
     font-family: var(--display);
+    color: var(--ink);
   }
   h1 { font-size: clamp(32px, 4.2vw, 52px); }
   h2 { font-size: clamp(22px, 2.6vw, 30px); }
   .hero-copy, .summary-card, .check-detail, .search-status, .empty-inline, .empty-state p, .empty-result {
-    color: var(--muted);
-    line-height: 1.6;
+    color: var(--ink-soft);
+    line-height: 1.72;
   }
   .summary-card {
     padding: 16px 18px;
     background: var(--accent-soft);
-    border: 1px solid rgba(178, 94, 44, 0.12);
+    border: 1px solid var(--line-strong);
     border-radius: 18px;
     color: var(--ink);
     margin: 12px 0 16px;
@@ -590,9 +625,9 @@ fn integration_report_style() -> &'static str {
   }
   .meta-grid div {
     padding: 14px 16px;
-    background: var(--panel-strong);
-    border: 1px solid rgba(104, 80, 55, 0.10);
+    background: rgba(255, 255, 255, 0.76);
     border-radius: 18px;
+    box-shadow: var(--shadow-border);
   }
   .meta-grid dt {
     font-size: 11px;
@@ -621,13 +656,14 @@ fn integration_report_style() -> &'static str {
     text-decoration: none;
     border: 1px solid var(--line);
     color: var(--ink);
-    background: rgba(255, 255, 255, 0.82);
+    background: rgba(255, 255, 255, 0.76);
+    box-shadow: var(--shadow-border);
     transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
   }
   .open-link:hover {
     transform: translateY(-1px);
-    background: rgba(255, 255, 255, 0.98);
-    border-color: rgba(178, 94, 44, 0.28);
+    background: rgba(255, 255, 255, 0.96);
+    border-color: var(--line-strong);
   }
   .chip {
     display: inline-flex;
@@ -637,7 +673,7 @@ fn integration_report_style() -> &'static str {
     border-radius: 999px;
     background: var(--accent-soft);
     color: var(--accent-strong);
-    border: 1px solid rgba(178, 94, 44, 0.14);
+    border: 1px solid var(--line-strong);
     font-family: var(--mono);
     font-size: 12px;
   }
@@ -648,19 +684,12 @@ fn integration_report_style() -> &'static str {
   .check-grid {
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
-  .card-grid {
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  }
-  .two-col {
+  .card-grid, .two-col {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   }
   .check-card, .entry-card {
     padding: 18px;
-  }
-  .check-card, .entry-card {
-    background:
-      linear-gradient(180deg, rgba(255, 255, 255, 0.36), transparent 30%),
-      rgba(255, 253, 248, 0.96);
+    background: rgba(255, 255, 255, 0.84);
     border-radius: 22px;
   }
   .mono-list, .step-list {
@@ -670,10 +699,10 @@ fn integration_report_style() -> &'static str {
   .search-bar {
     padding: 20px 24px;
     margin-bottom: 24px;
-    background: rgba(248, 239, 227, 0.84);
+    background: var(--surface-muted);
     border: 1px solid var(--line);
     border-radius: 24px;
-    box-shadow: var(--shadow);
+    box-shadow: var(--shadow-panel);
   }
   .search-label, .facet-label {
     display: block;
@@ -706,7 +735,7 @@ fn integration_report_style() -> &'static str {
   }
   .facet-button {
     border: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.86);
     border-radius: 999px;
     padding: 8px 12px;
     cursor: pointer;
@@ -715,11 +744,11 @@ fn integration_report_style() -> &'static str {
   }
   .facet-button:hover {
     transform: translateY(-1px);
-    border-color: rgba(178, 94, 44, 0.22);
+    border-color: var(--line-strong);
   }
   .facet-button.active {
     background: var(--accent-soft);
-    border-color: rgba(178, 94, 44, 0.30);
+    border-color: var(--line-strong);
     color: var(--accent-strong);
   }
   .empty-state, .empty-result {
@@ -729,13 +758,14 @@ fn integration_report_style() -> &'static str {
   a:focus-visible,
   button:focus-visible,
   input:focus-visible {
-    outline: 3px solid rgba(45, 92, 122, 0.36);
-    outline-offset: 3px;
+    outline: 3px solid rgba(37, 99, 235, 0.28);
+    outline-offset: 4px;
   }
   [hidden] { display: none !important; }
   @media (max-width: 700px) {
     .page-shell { padding-inline: 14px; }
     .hero-card, .section-card, .search-bar, .entry-card { border-radius: 20px; }
+    .card-grid, .two-col { grid-template-columns: 1fr; }
   }
 "#
 }

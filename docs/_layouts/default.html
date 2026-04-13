@@ -5,16 +5,44 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     {% seo %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="{{ '/assets/css/style.css?v=' | append: site.github.build_revision | relative_url }}">
+    <link rel="stylesheet" href="{{ '/assets/css/agent-exporter.css?v=' | append: site.github.build_revision | relative_url }}">
     {% include head-custom.html %}
   </head>
-  <body>
-    <div class="container-lg px-3 my-5 markdown-body">
-      {{ content }}
+  {% assign current_url = page.url | default: '/' %}
+  <body class="ae-docs-body">
+    <a class="ae-skip-link" href="#content-start">Skip to content</a>
+    <header class="ae-site-header">
+      <div class="ae-site-header-inner">
+        <a class="ae-brand" href="{{ '/' | relative_url }}">
+          <span class="ae-brand-kicker">agent-exporter</span>
+          <span class="ae-brand-title">CLI-first archive workbench</span>
+        </a>
+        <div class="ae-nav-cluster">
+          <span class="ae-status-pill">local-first</span>
+          <nav class="ae-nav" aria-label="Docs navigation">
+            <a class="ae-nav-link{% if current_url == '/' or current_url == '/index.html' %} is-active{% endif %}" href="{{ '/' | relative_url }}">Home</a>
+            <a class="ae-nav-link{% if current_url == '/archive-shell-proof.html' or current_url == '/archive-shell-proof/' %} is-active{% endif %}" href="{{ '/archive-shell-proof.html' | relative_url }}">Archive Proof</a>
+            <a class="ae-nav-link{% if current_url == '/repo-map.html' or current_url == '/repo-map/' %} is-active{% endif %}" href="{{ '/repo-map.html' | relative_url }}">Repo Map</a>
+            <a class="ae-nav-link{% if current_url == '/README.html' or current_url == '/README/' %} is-active{% endif %}" href="{{ '/README.html' | relative_url }}">Docs Index</a>
+            <a class="ae-nav-link" href="{{ site.github.repository_url }}">GitHub</a>
+          </nav>
+        </div>
+      </div>
+    </header>
+    <div id="content-start" class="ae-layout">
+      <article class="markdown-body ae-content">
+        {{ content }}
+      </article>
 
-      <footer class="footer border-top border-gray-light mt-5 pt-3 text-right text-gray" role="contentinfo">
-        This site is open source.
-        <a href="{{ site.github.repository_url }}/edit/main/docs/{{ page.path }}">Improve this page</a>.
+      <footer class="footer ae-footer" role="contentinfo">
+        <p class="ae-footer-copy">
+          Companion docs surface for a local-first archive workbench.
+          <a href="{{ site.github.repository_url }}/edit/main/docs/{{ page.path }}">Improve this page</a>.
+        </p>
       </footer>
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/anchor-js/4.1.0/anchor.min.js" integrity="sha256-lZaRhKri35AyJSypXXs4o6OPFTbTmUoltBbDCbdzegg=" crossorigin="anonymous"></script>

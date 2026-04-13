@@ -3,86 +3,171 @@ title: Archive Shell Proof
 description: What the archive shell proves, what it does not prove, and how to reproduce it locally with agent-exporter.
 ---
 
-<style>
-.markdown-body a {
-  color: #0550ae;
-  text-decoration: underline;
-  text-underline-offset: 0.16em;
-}
-
-.markdown-body code,
-.markdown-body tt,
-.markdown-body pre {
-  color: #24292f;
-  background-color: #f6f8fa;
-}
-
-.markdown-body .highlight .nb {
-  color: #0a3069;
-}
-</style>
-
 <main id="main-content" role="main" markdown="1">
 
-# Archive Shell Proof
+<section class="ae-hero">
+  <div class="ae-hero-main">
+    <p class="ae-kicker">proof, not platform theatre</p>
+    <h1>Use this page to understand what the archive shell really proves before you assign it more authority than it has earned.</h1>
+    <p class="ae-lead">
+      The archive shell proof is the first public explanation layer after the CLI front door.
+      It shows that transcript export, report routing, and governance evidence can already be organized into one
+      <strong>local-first</strong> reading surface.
+      It does <strong>not</strong> turn the repo into a hosted product or a live remote service.
+    </p>
+    <div class="ae-actions">
+      <a class="ae-button ae-button-primary" href="https://github.com/xiaojiou176-open/agent-exporter">Back to GitHub front door</a>
+      <a class="ae-button" href="./repo-map.html">Open repo map</a>
+      <a class="ae-button" href="./">Return to docs home</a>
+    </div>
+  </div>
+  <aside class="ae-hero-side ae-panel">
+    <p class="ae-kicker">what this page is for</p>
+    <dl class="ae-glance-list">
+      <div>
+        <dt>Audience</dt>
+        <dd>a first-time reviewer trying to separate proof from overclaim</dd>
+      </div>
+      <div>
+        <dt>Main question</dt>
+        <dd>What does the archive shell already prove today?</dd>
+      </div>
+      <div>
+        <dt>Boundary</dt>
+        <dd>local workbench proof, not a hosted runtime</dd>
+      </div>
+    </dl>
+  </aside>
+</section>
 
-This page has one job:
+<section class="ae-section">
+  <div class="ae-section-head">
+    <p class="ae-kicker">visual proof assets</p>
+    <h2>Two diagrams, two jobs.</h2>
+    <p class="ae-lead">
+      The first diagram shows the workbench shape.
+      The second shows the proof ladder from CLI to transcript receipt to archive shell.
+      Read them like a map legend, not like a product hype montage.
+    </p>
+  </div>
+  <div class="ae-media-grid">
+    <figure class="ae-media-card">
+      <img src="./assets/archive-shell-proof.svg" alt="agent-exporter archive shell proof diagram">
+      <figcaption class="ae-caption">Archive shell proof map: how transcripts, retrieval receipts, and governance evidence sit on the same local desk.</figcaption>
+    </figure>
+    <figure class="ae-media-card">
+      <img src="./assets/proof-ladder.svg" alt="agent-exporter proof ladder from CLI to transcript receipt to archive shell">
+      <figcaption class="ae-caption">Proof ladder: the order in which confidence should increase.</figcaption>
+    </figure>
+  </div>
+</section>
 
-> help a public visitor understand what the `archive shell proof` is,
-> without turning it into a hosted platform claim or a fake live runtime.
+<section class="ae-section">
+  <div class="ae-split">
+    <article class="ae-split-card">
+      <p class="ae-kicker">what this proof actually shows</p>
+      <h2>Real local workbench proof.</h2>
+      <ul class="ae-proof-list">
+        <li>transcript export can become a browsable HTML receipt</li>
+        <li>`publish archive-index` can organize transcripts, reports shell, and integration evidence into one local-first archive shell</li>
+        <li>the archive shell is already <strong>workbench proof</strong>: it can route a reader through local artifacts without pretending to be a hosted platform</li>
+      </ul>
+    </article>
+    <article class="ae-split-card">
+      <p class="ae-kicker">what this proof does not show</p>
+      <h2>Do not promote proof into product theatre.</h2>
+      <ul class="ae-proof-list">
+        <li>this is not a hosted product demo</li>
+        <li>this is not a GitHub Pages live archive shell</li>
+        <li>this is not a remote multi-user platform</li>
+        <li>this does not automatically mean `submit-ready`, `listed-live`, or `already approved`</li>
+      </ul>
+    </article>
+  </div>
+</section>
 
-![agent-exporter archive shell proof diagram](./assets/archive-shell-proof.svg)
-
-![agent-exporter proof ladder from CLI to transcript receipt to archive shell](./assets/proof-ladder.svg)
-
-## What This Proof Actually Shows
-
-- transcript export can become a browsable HTML receipt
-- `publish archive-index` can organize transcripts, reports shell, and integration evidence into one local-first archive shell
-- the archive shell is **workbench proof**, meaning the repo can already organize transcript artifacts into a local reading-and-routing surface
-
-## What This Proof Does Not Show
-
-- this is not a hosted product demo
-- this is not a GitHub Pages live archive shell
-- this is not a remote multi-user platform
-- this does not automatically mean `submit-ready`, `listed-live`, or `already approved`
-
-## How To Reproduce It Locally
-
-```bash
-cargo run -- connectors
-cargo run -- export codex \
-  --thread-id <thread-id> \
+<section class="ae-section">
+  <div class="ae-section-head">
+    <p class="ae-kicker">how to reproduce it locally</p>
+    <h2>Three commands, one honest result.</h2>
+    <p class="ae-lead">
+      Treat this like checking a lab result for yourself.
+      Do not trust the diagram alone; run the path and inspect the artifacts it leaves behind.
+    </p>
+  </div>
+  <div class="ae-step-grid">
+    <article class="ae-step">
+      <span class="ae-step-number">01</span>
+      <h3>Confirm source availability</h3>
+      <div class="ae-command">
+        <pre><code>cargo run -- connectors</code></pre>
+      </div>
+      <p class="ae-command-caption">You confirm which transcript sources are actually available before you export anything.</p>
+    </article>
+    <article class="ae-step">
+      <span class="ae-step-number">02</span>
+      <h3>Export one HTML transcript</h3>
+      <div class="ae-command">
+        <pre><code>cargo run -- export codex \
+  --thread-id &lt;thread-id&gt; \
   --format html \
   --destination workspace-conversations \
-  --workspace-root /absolute/path/to/repo
-cargo run -- publish archive-index --workspace-root /absolute/path/to/repo
-```
+  --workspace-root /absolute/path/to/repo</code></pre>
+      </div>
+      <p class="ae-command-caption">This leaves behind a concrete HTML receipt in `.agents/Conversations/`.</p>
+    </article>
+    <article class="ae-step">
+      <span class="ae-step-number">03</span>
+      <h3>Publish the archive shell</h3>
+      <div class="ae-command">
+        <pre><code>cargo run -- publish archive-index --workspace-root /absolute/path/to/repo</code></pre>
+      </div>
+      <p class="ae-command-caption">Now the transcript, reports shell, and integration evidence can be browsed as one local navigation surface.</p>
+    </article>
+  </div>
+  <p class="ae-note">
+    After a successful local run you should see `.agents/Conversations/*.html`, `.agents/Conversations/index.html`,
+    and navigation paths from the transcript browser into reports shell and integration evidence.
+  </p>
+</section>
 
-After a successful local run, you should see:
+<section class="ae-section">
+  <div class="ae-section-head">
+    <p class="ae-kicker">proof ladder</p>
+    <h2>Confidence should climb in order.</h2>
+  </div>
+  <div class="ae-proof-grid">
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">L1</p>
+      <h3>CLI front door</h3>
+      <p>The CLI can export a transcript through the truthful front door path.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">L2</p>
+      <h3>Transcript receipt</h3>
+      <p>The export leaves a browsable HTML receipt rather than a hidden one-off file.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">L3</p>
+      <h3>Archive shell</h3>
+      <p>The archive shell organizes transcript, reports, and evidence into one navigable local surface.</p>
+    </article>
+  </div>
+</section>
 
-- `.agents/Conversations/*.html`
-- `.agents/Conversations/index.html`
-- navigation paths from the transcript browser into reports shell and integration evidence
-
-## Proof Ladder
-
-| Level | It proves | Current public artifact |
-| --- | --- | --- |
-| `L1` | the CLI can export a transcript through the front door path | README quickstart |
-| `L2` | transcript export leaves a browsable HTML receipt | `.agents/Conversations/*.html` |
-| `L3` | the archive shell organizes the local workbench into one navigable surface | `archive-shell-proof.svg` + `proof-ladder.svg` |
-
-## Why This Matters
-
-`agent-exporter` is no longer a tiny "export only" utility.
-But the first thing it should prove in public is still:
-
-1. the CLI quickstart works
-2. transcript export works
-3. archive shell proof can be generated
-
-That is the first trustworthy proof layer of the current flagship public packet.
+<section class="ae-section">
+  <div class="ae-note-grid">
+    <article class="ae-note-card">
+      <p class="ae-kicker">when to open this page</p>
+      <h3>You need a proof explanation, not a product tour.</h3>
+      <p>Open this page when someone needs to understand the current proof boundary before evaluating reports shell, integration evidence, or governance lanes.</p>
+    </article>
+    <article class="ae-note-card">
+      <p class="ae-kicker">why this matters</p>
+      <h3>Truthful product positioning depends on ordering.</h3>
+      <p>`agent-exporter` is already more than an export utility, but its first public proof still has to start with CLI quickstart, transcript export, and archive shell generation.</p>
+    </article>
+  </div>
+</section>
 
 </main>

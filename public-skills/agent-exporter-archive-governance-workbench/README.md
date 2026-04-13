@@ -2,6 +2,17 @@
 
 This folder is a host-native public skill packet for `agent-exporter`.
 
+## What This Packet Is For
+
+Use this folder when the question is specifically about the host-native packet:
+
+- how to wire the local stdio MCP bridge
+- how to prove the bridge on a safe first-success path
+- what the current host-side listing truth actually is
+
+If the question is still "What is the product?" or "How do I get one first successful result?",
+the answer still lives in the flagship packet, not here.
+
 The flagship public story is still:
 
 - GitHub repo front door
@@ -10,6 +21,15 @@ The flagship public story is still:
 
 The product behind this packet is still a **local-first archive and governance workbench**.
 Its primary surface remains **`CLI-first`**.
+
+## Use Order
+
+Keep the reading order honest:
+
+1. GitHub repo front door
+2. CLI quickstart
+3. archive shell proof
+4. only then this host-native packet
 
 This packet exists for host-native reviewers who need a **self-contained**
 folder that explains how to wire the local stdio MCP bridge and use the
@@ -47,6 +67,16 @@ This packet teaches an agent how to:
 3. run the safe attach/proof flow in `references/DEMO.md`
 4. inspect the proof links before claiming host-side listing or acceptance
 
+## Packet Map
+
+| If you need to know... | Open this |
+| --- | --- |
+| how to use the packet at all | `SKILL.md` |
+| how to wire the bridge | `references/INSTALL.md` |
+| how to prove it safely | `references/DEMO.md` |
+| what the bridge can do | `references/CAPABILITIES.md` |
+| what to do when it breaks | `references/TROUBLESHOOTING.md` |
+
 ## Proof links
 
 - Landing: https://xiaojiou176-open.github.io/agent-exporter/
@@ -66,7 +96,7 @@ This packet teaches an agent how to:
 - `OpenHands/extensions`: `closed-not-accepted`
   - submission ref: `https://github.com/OpenHands/extensions/pull/162`
   - maintainer note: distribute a custom `marketplace.json` instead of expecting an upstream listing
-- `awesome-opencode`: `not_honest_cargo_yet`
+- `awesome-opencode`: `exact_blocker_with_fresh_evidence`
   - exact blocker: this packet is a host-native skill folder for a local-first archive/governance workbench, not an honest opencode-native project/resource entry today
 
 ## MCP capability surface
@@ -104,6 +134,13 @@ This packet teaches an agent how to:
 - no awesome-opencode project/resource claim; current cargo is still not honest for that lane
 - no full-CLI MCP parity
 - no change to the flagship `CLI-first` primary surface
+
+## In Plain English
+
+This packet is a **review envelope**, not a new homepage.
+
+It helps a host-native reviewer inspect the bridge honestly.
+It should never be allowed to silently replace the repo's main product story.
 
 ## Source of truth
 

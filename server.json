@@ -1,0 +1,29 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.xiaojiou176-open/agent-exporter-mcp",
+  "title": "agent-exporter MCP bridge",
+  "description": "Local stdio MCP bridge for archive publishing, retrieval, and governance evidence.",
+  "icons": [
+    {
+      "src": "https://xiaojiou176-open.github.io/agent-exporter/assets/marketplace/agent-exporter-cline-logo-400.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "400x400"
+      ]
+    },
+    {
+      "src": "https://xiaojiou176-open.github.io/agent-exporter/assets/marketplace/archive-shell-proof.svg.png",
+      "mimeType": "image/png",
+      "sizes": [
+        "400x400"
+      ]
+    }
+  ],
+  "websiteUrl": "https://xiaojiou176-open.github.io/agent-exporter/",
+  "repository": {
+    "id": "1202391519",
+    "url": "https://github.com/xiaojiou176-open/agent-exporter",
+    "source": "github"
+  },
+  "version": "0.1.1"
+}

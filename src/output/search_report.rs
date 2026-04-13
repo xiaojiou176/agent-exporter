@@ -353,55 +353,96 @@ fn transcript_href(relative_href: &str) -> String {
 
 fn search_report_style() -> &'static str {
     r#"    :root {
-      --page-bg:
-        radial-gradient(circle at top left, rgba(201, 107, 54, 0.10), transparent 30%),
-        radial-gradient(circle at top right, rgba(45, 92, 122, 0.15), transparent 24%),
-        linear-gradient(180deg, #f7f1e7 0%, #eee3d2 100%);
-      --panel: rgba(255, 251, 245, 0.96);
-      --panel-strong: rgba(255, 255, 255, 0.98);
-      --ink: #1d2731;
-      --muted: #5f6b76;
-      --border: rgba(104, 80, 55, 0.16);
-      --accent: #b25e2c;
-      --accent-strong: #8f4318;
-      --accent-soft: rgba(178, 94, 44, 0.12);
-      --shadow: 0 22px 48px rgba(41, 31, 20, 0.10);
-      --mono: "SFMono-Regular", "JetBrains Mono", "Menlo", monospace;
-      --sans: "Avenir Next", "Segoe UI", "Helvetica Neue", "Arial Nova", sans-serif;
-      --display: "Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif;
+      color-scheme: light;
+      --bg:
+        radial-gradient(circle at 12% 16%, rgba(37, 99, 235, 0.12), transparent 0 28%),
+        radial-gradient(circle at 88% 10%, rgba(14, 165, 233, 0.10), transparent 0 24%),
+        linear-gradient(180deg, #f8fbff 0%, #eef3fb 52%, #e8eef8 100%);
+      --surface: rgba(255, 255, 255, 0.88);
+      --surface-strong: rgba(255, 255, 255, 0.96);
+      --surface-muted: rgba(248, 250, 252, 0.82);
+      --ink: #0f172a;
+      --ink-soft: #334155;
+      --muted: #64748b;
+      --line: rgba(15, 23, 42, 0.08);
+      --line-strong: rgba(37, 99, 235, 0.18);
+      --accent: #2563eb;
+      --accent-strong: #1d4ed8;
+      --accent-soft: rgba(37, 99, 235, 0.10);
+      --shadow-border: 0 0 0 1px rgba(15, 23, 42, 0.06);
+      --shadow-panel:
+        0 24px 60px rgba(15, 23, 42, 0.07),
+        0 0 0 1px rgba(255, 255, 255, 0.72) inset;
+      --shadow-hero:
+        0 28px 80px rgba(15, 23, 42, 0.10),
+        0 0 0 1px rgba(255, 255, 255, 0.80) inset;
+      --mono: "JetBrains Mono", "SFMono-Regular", "Menlo", monospace;
+      --sans: -apple-system, BlinkMacSystemFont, "IBM Plex Sans", "Segoe UI", sans-serif;
+      --display: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
       font-family: var(--sans);
       color: var(--ink);
-      background: var(--page-bg);
+      background: var(--bg);
+      background-attachment: fixed;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+      background-size: 52px 52px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.60), transparent 82%);
+      opacity: 0.26;
     }
 
     .page-shell {
       width: min(1180px, calc(100vw - 32px));
       margin: 0 auto;
       padding: 28px 0 64px;
+      position: relative;
+      z-index: 1;
     }
 
     .hero-card,
     .entry-card,
     .empty-state {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: 26px;
-      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      box-shadow: var(--shadow-panel);
       backdrop-filter: blur(14px);
       padding: 24px;
+    }
+
+    .hero-card::before,
+    .entry-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.65), transparent 28%);
     }
 
     .hero-card {
       margin-bottom: 24px;
       padding: 30px;
+      border-radius: 32px;
       background:
-        linear-gradient(135deg, rgba(178, 94, 44, 0.08), rgba(45, 92, 122, 0.06)),
-        var(--panel);
+        radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 34%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.84)),
+        var(--surface);
+      box-shadow: var(--shadow-hero);
     }
 
     .eyebrow {
@@ -415,10 +456,11 @@ fn search_report_style() -> &'static str {
 
     h1, h2 {
       margin: 0 0 12px;
-      line-height: 1.08;
-      font-weight: 750;
-      letter-spacing: -0.02em;
+      line-height: 1.04;
+      font-weight: 700;
+      letter-spacing: -0.03em;
       font-family: var(--display);
+      color: var(--ink);
     }
 
     h1 { font-size: clamp(32px, 4.2vw, 52px); }
@@ -427,8 +469,8 @@ fn search_report_style() -> &'static str {
     .hero-copy,
     p {
       margin: 0;
-      line-height: 1.7;
-      color: var(--muted);
+      line-height: 1.72;
+      color: var(--ink-soft);
       word-break: break-word;
     }
 
@@ -441,9 +483,9 @@ fn search_report_style() -> &'static str {
 
     .meta-grid div {
       padding: 14px 16px;
-      background: var(--panel-strong);
-      border: 1px solid rgba(104, 80, 55, 0.10);
+      background: rgba(255, 255, 255, 0.76);
       border-radius: 18px;
+      box-shadow: var(--shadow-border);
     }
 
     dt {
@@ -455,9 +497,12 @@ fn search_report_style() -> &'static str {
       font-family: var(--mono);
     }
 
-    dd { margin: 0; }
+    dd { margin: 0; line-height: 1.5; }
 
     .link-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
       margin-top: 18px;
     }
 
@@ -466,10 +511,10 @@ fn search_report_style() -> &'static str {
       gap: 10px;
       margin: 0 0 18px;
       padding: 20px 22px;
-      border-radius: 22px;
-      border: 1px solid rgba(104, 80, 55, 0.12);
-      background: rgba(248, 239, 227, 0.84);
-      box-shadow: var(--shadow);
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: var(--surface-muted);
+      box-shadow: var(--shadow-panel);
     }
 
     .search-label {
@@ -484,7 +529,7 @@ fn search_report_style() -> &'static str {
       width: 100%;
       padding: 13px 15px;
       border-radius: 16px;
-      border: 1px solid rgba(178, 94, 44, 0.25);
+      border: 1px solid var(--line);
       background: rgba(255, 255, 255, 0.96);
       color: var(--ink);
       font-family: var(--mono);
@@ -495,6 +540,7 @@ fn search_report_style() -> &'static str {
     .empty-result {
       color: var(--muted);
       font-size: 14px;
+      line-height: 1.65;
     }
 
     .facet-grid {
@@ -509,8 +555,8 @@ fn search_report_style() -> &'static str {
     }
 
     .facet-button {
-      border: 1px solid rgba(178, 94, 44, 0.25);
-      background: rgba(255, 255, 255, 0.92);
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.86);
       border-radius: 999px;
       padding: 8px 12px;
       color: var(--ink);
@@ -522,13 +568,13 @@ fn search_report_style() -> &'static str {
 
     .facet-button:hover {
       transform: translateY(-1px);
-      border-color: rgba(178, 94, 44, 0.22);
+      border-color: var(--line-strong);
     }
 
     .facet-button.is-active {
       background: var(--accent-soft);
       color: var(--accent-strong);
-      border-color: rgba(178, 94, 44, 0.30);
+      border-color: var(--line-strong);
     }
 
     .chip span,
@@ -557,7 +603,7 @@ fn search_report_style() -> &'static str {
       padding: 6px 10px;
       background: var(--accent-soft);
       color: var(--accent-strong);
-      border: 1px solid rgba(178, 94, 44, 0.14);
+      border: 1px solid var(--line-strong);
       font-family: var(--mono);
       font-size: 12px;
     }
@@ -566,6 +612,13 @@ fn search_report_style() -> &'static str {
     code,
     .open-link {
       font-family: var(--mono);
+    }
+
+    code {
+      padding: 0.16em 0.42em;
+      border-radius: 999px;
+      color: var(--ink);
+      background: rgba(15, 23, 42, 0.05);
     }
 
     .mono-inline,
@@ -580,24 +633,25 @@ fn search_report_style() -> &'static str {
       min-height: 42px;
       padding: 10px 14px;
       border-radius: 999px;
-      border: 1px solid rgba(178, 94, 44, 0.25);
+      border: 1px solid var(--line);
       text-decoration: none;
-      color: var(--accent-strong);
-      background: rgba(255, 255, 255, 0.82);
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.76);
+      box-shadow: var(--shadow-border);
       transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
     }
 
     .open-link:hover {
       transform: translateY(-1px);
-      background: rgba(255, 255, 255, 0.98);
-      border-color: rgba(178, 94, 44, 0.28);
+      background: rgba(255, 255, 255, 0.96);
+      border-color: var(--line-strong);
     }
 
     a:focus-visible,
     button:focus-visible,
     input:focus-visible {
-      outline: 3px solid rgba(45, 92, 122, 0.36);
-      outline-offset: 3px;
+      outline: 3px solid rgba(37, 99, 235, 0.28);
+      outline-offset: 4px;
     }
 
     @media (max-width: 720px) {
@@ -611,6 +665,10 @@ fn search_report_style() -> &'static str {
       .empty-state {
         border-radius: 20px;
         padding: 18px;
+      }
+
+      .card-grid {
+        grid-template-columns: 1fr;
       }
     }"#
 }

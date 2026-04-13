@@ -16,6 +16,16 @@ Use this skill when an agent needs to attach the local `agent-exporter` bridge
 from a repo checkout and operate the archive/retrieval/governance workflow
 through a host-native packet.
 
+## When This Skill Is The Right Tool
+
+Use this packet when the task sounds like:
+
+- "wire the local bridge from a repo checkout"
+- "prove the bridge on a safe first-success path"
+- "read archive / retrieval / governance lanes through a host packet"
+
+Do **not** use this packet as a substitute for the flagship product story.
+
 ## What this skill teaches
 
 - how to attach the local stdio MCP bridge
@@ -43,7 +53,7 @@ through a host-native packet.
 - `OpenHands/extensions`: `closed-not-accepted`
   - submission ref: `https://github.com/OpenHands/extensions/pull/162`
   - maintainer note: distribute a custom `marketplace.json` instead of expecting an upstream listing
-- `awesome-opencode`: `not_honest_cargo_yet`
+- `awesome-opencode`: `exact_blocker_with_fresh_evidence`
   - exact blocker: this packet is a host-native skill folder for a local-first archive/governance workbench, not an honest opencode-native project/resource entry today
 
 ## First-success flow
@@ -54,6 +64,15 @@ through a host-native packet.
 3. If you have a workspace with transcript HTML receipts, call
    `publish_archive_index` on that workspace.
 4. Only after the bridge works, move to retrieval or evidence comparison.
+
+## Route Map
+
+| If you need to... | Open / use this next |
+| --- | --- |
+| wire the bridge | `references/INSTALL.md` |
+| verify the bridge safely | `references/DEMO.md` |
+| see capability scope | `references/CAPABILITIES.md` |
+| troubleshoot attach or host issues | `references/TROUBLESHOOTING.md` |
 
 ## Preferred evidence order
 

@@ -30,14 +30,14 @@ registry_targets:
     submission_ref: https://github.com/OpenHands/extensions/pull/162
     blocker: Maintainer closed the lane and pointed contributors to a custom marketplace.json distribution alternative instead of an upstream listing.
   awesome-opencode:
-    status: not_honest_cargo_yet
+    status: exact_blocker_with_fresh_evidence
     package_shape: none
     blocker: The current packet is a host-native skill folder for a local-first archive/governance workbench, not an honest opencode-native project/resource entry today.
 
 boundaries:
   product_identity: Local-first archive and governance workbench packet for agent-exporter.
   canonical_repo_version: 0.1.1
-  listing_state_summary: ClawHub listed-live; Goose review-pending; agent-skill.co blocked by external Vercel authorization; OpenHands/extensions closed-not-accepted; awesome-opencode not_honest_cargo_yet.
+  listing_state_summary: ClawHub listed-live; Goose review-pending; agent-skill.co blocked by external Vercel authorization; OpenHands/extensions closed-not-accepted; awesome-opencode exact_blocker_with_fresh_evidence.
   not_claimed:
     - No listed-live Goose or agent-skill.co entry exists yet
     - No listed-live OpenHands/extensions entry exists; that lane was closed instead
