@@ -39,6 +39,18 @@ In plain language:
 > Pages explains the door.
 > The real primary entrance is still the CLI quickstart in the GitHub repo.
 
+## Zero-Context First Look
+
+If you do not have a real thread id yet, start with these two commands first:
+
+```bash
+cargo run -- scaffold
+cargo run -- connectors
+```
+
+That path proves the local workbench shape and current source support before
+you try to export a real transcript.
+
 ## Run This First
 
 If you only want to try the repo once, do not start by reading every surface.
@@ -91,19 +103,6 @@ Success signals:
 - not already `submit-ready`
 - not already `listed-live` across every secondary lane
 
-## Host-Native Packet Status
-
-The public skill packet already has lane-specific truth:
-
-- **ClawHub:** `listed-live`
-- **Goose Skills Marketplace:** `review-pending` via `block/Agent-Skills#24`
-- **agent-skill.co source repo:** `platform-not-accepted-yet` via `heilcheng/awesome-agent-skills#180`
-- **OpenHands/extensions:** `closed-not-accepted` via `OpenHands/extensions#162`
-- **awesome-opencode:** `not_honest_cargo_yet`; the current packet is a host-native skill folder for a local-first archive/governance workbench, not an honest opencode-native project/resource entry today
-
-That does **not** change the product hierarchy.
-The host-native packet remains a secondary public lane.
-
 ## Release Shelf Truth
 
 Use the latest release entrypoint when you want the newest **published**
@@ -121,12 +120,14 @@ public wording or packet truth before the next tagged release exists.
 - [Archive shell proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html)
 - [Repo map](./repo-map.md)
 - [Latest release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
+- [Secondary packet / listing ledger](https://github.com/xiaojiou176-open/agent-exporter/blob/main/docs/distribution-packet-ledger.md)
 
 ## Current Public Boundary
 
 - Pages is a **companion docs surface**, not another primary surface
 - the archive shell proof page is a **public explanation page**, not a live hosted archive shell
 - reports shell, integration pack, and the read-only governance MCP bridge remain secondary surfaces
+- packet and listing truth belong in the second-ring ledger, not the first screen
 - current public language must not claim `submit-ready`, `already approved`, or `MCP-first`
 
 </main>
