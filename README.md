@@ -2,7 +2,7 @@
 
 `agent-exporter` is a **local-first archive and governance workbench for AI agent transcripts**.
 
-[Try It In 3 Steps](#first-success-path) · [Distribution Packet Ledger](./docs/distribution-packet-ledger.md) · [Docs Landing](https://xiaojiou176-open.github.io/agent-exporter/) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) · [Latest Release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
+[Try It In 3 Steps](#first-success-path) · [Zero-Context First Look](#zero-context-first-look) · [Docs Landing](https://xiaojiou176-open.github.io/agent-exporter/) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) · [Latest Release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
 
 ![agent-exporter proof map showing CLI quickstart, transcript export, archive shell proof, reports shell, and integration evidence as one local-first workbench](./docs/assets/archive-shell-proof.svg)
 
@@ -45,6 +45,41 @@ In plain English:
 > The product kernel already includes evidence and governance,
 > but the public front door still needs **CLI-first** to own the first screen.
 
+## At A Glance
+
+If you want the shortest truthful filter before reading deeper, use this table:
+
+| What you need to know | Current answer |
+| --- | --- |
+| Primary surface | `CLI-first` |
+| Zero-context start | `scaffold` -> `connectors` |
+| First success | `connectors` -> `export codex --format html` -> `publish archive-index` |
+| First visible proof | a local HTML transcript receipt plus the tracked archive-shell proof page |
+| What it must never be reduced to | a hosted archive platform, generic remote transcript service, or `MCP-first` public product |
+
+## Zero-Context First Look
+
+If you do not have a real thread id yet, start here instead of guessing what
+the repo expects:
+
+1. **Read the local workbench shape**
+
+   ```bash
+   cargo run -- scaffold
+   ```
+
+2. **See which transcript sources already exist**
+
+   ```bash
+   cargo run -- connectors
+   ```
+
+This is the zero-context sample path. It proves the command surface and current
+source model before you point the repo at a real transcript.
+
+When you are ready to produce a real receipt, move to the first-success path
+below.
+
 ## First Success At A Glance
 
 If you only want to answer "is this worth trying once?", use this card first:
@@ -85,21 +120,6 @@ Those shelves should stay coherent, but they are not the same shelf. A newer
 `main` can sharpen docs, packet truth, or governance wording before the next
 tagged release is cut.
 
-## Host-Native Packet Lane Status
-
-The public skill packet already has lane-specific truth:
-
-| Lane | Current truth | Fresh evidence |
-| --- | --- | --- |
-| ClawHub | `listed-live` | `clawhub inspect agent-exporter-archive-governance-workbench --no-input` returns the live skill |
-| Goose Skills Marketplace | `review-pending` | [block/Agent-Skills#24](https://github.com/block/agent-skills/pull/24) is open and waiting on marketplace review |
-| agent-skill.co source repo | `platform-not-accepted-yet` | [heilcheng/awesome-agent-skills#180](https://github.com/heilcheng/awesome-agent-skills/pull/180) is open while Vercel team authorization is still pending upstream |
-| OpenHands/extensions | `closed-not-accepted` | [OpenHands/extensions#162](https://github.com/OpenHands/extensions/pull/162) was closed with maintainer guidance to distribute a custom `marketplace.json` instead |
-| awesome-opencode | `not_honest_cargo_yet` | the current packet is a host-native skill folder for a local-first archive/governance workbench, not an honest opencode-native project/resource entry today |
-
-This packet is still a **secondary public lane**.
-It does not replace the flagship `CLI-first` public packet.
-
 ## First Success Path
 
 Treat first success as: confirm the connector surface, export one transcript, and then publish it into the archive shell.
@@ -131,6 +151,18 @@ Success signals:
 - a `.agents/Conversations/*.html` transcript export
 - a `.agents/Conversations/index.html` archive shell
 - a **local-first HTML receipt**, not a hosted demo and not a GitHub Pages live runtime
+
+## Open The Right Next Door
+
+Once those three steps work, open the next surface that matches your next
+question instead of treating every lane as the same thing:
+
+| If you want to... | Open this next | Why |
+| --- | --- | --- |
+| understand what the archive shell proves | [archive shell proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) | this is the first public proof layer after the CLI path |
+| inspect the docs map and current lane hierarchy | [`docs/README.md`](./docs/README.md) | it keeps the product map and proof hierarchy in one place |
+| inspect packet and listing truth after the product story is clear | [`docs/distribution-packet-ledger.md`](./docs/distribution-packet-ledger.md) | packet status is a second-ring truth surface, not the first success path |
+| inspect the host-native skill packet | [`public-skills/README.md`](./public-skills/README.md) | this is the secondary host-review lane, not the flagship front door |
 
 ## Proof Ladder
 

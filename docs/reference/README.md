@@ -1,8 +1,21 @@
-# Reference Reading List
+# Maintainer Reference Hub
 
-这里放的是实现 `agent-exporter` 时必须参考的上游资料、当前 contract、以及外部开源仓矩阵。
+This folder is the maintainer-only reference layer for `agent-exporter`.
 
-这不是“以后再补”的目录，而是当前已经生效的参考入口。
+It is not part of the public first-run route.
+The English-first public route stops at:
+
+1. `README.md`
+2. `docs/index.md`
+3. `docs/archive-shell-proof.md`
+4. `docs/distribution-packet-ledger.md`
+
+The materials below are still active and important, but they belong to
+implementation contracts, upstream archaeology, and maintainer judgment rather
+than the public front door.
+
+Mixed-language notes are allowed here on purpose because this folder is a
+maintainer reference shelf, not a public product landing page.
 
 ## Current Reality
 

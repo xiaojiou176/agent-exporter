@@ -23,23 +23,25 @@ One more ordering rule matters:
 
 Use the docs entry in the same order:
 
+1. `cargo run -- scaffold`
 1. `cargo run -- connectors`
 2. `cargo run -- export codex --thread-id <thread-id> --format html --destination workspace-conversations --workspace-root /absolute/path/to/repo`
 3. `cargo run -- publish archive-index --workspace-root /absolute/path/to/repo`
 
 After that succeeds, you should see:
 
+- the scaffolded workbench shape and expected local surfaces
 - `.agents/Conversations/*.html` transcript exports
 - `.agents/Conversations/index.html` archive shell proof
 - a **local-only HTML receipt**, not a hosted page
 
 ## Public Docs Entry Points
 
-- Distribution packet ledger: `./distribution-packet-ledger.md`
 - Pages landing: `https://xiaojiou176-open.github.io/agent-exporter/`
 - Archive shell proof page: `https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html`
 - Repo map: `https://xiaojiou176-open.github.io/agent-exporter/repo-map/`
 - Latest release shelf: `https://github.com/xiaojiou176-open/agent-exporter/releases/latest`
+- Secondary packet / listing ledger: `./distribution-packet-ledger.md`
 
 ## Release Shelf Truth
 
@@ -77,39 +79,37 @@ What this table really says:
 > The primary door is fixed as CLI.
 > Secondary doors are named and real, but each one still has to pass its own review line.
 
-## Public Host Packet Snapshot
+## Secondary Lane Truth
 
-The host-native public packet already has lane-specific truth:
+Host-native packet and listing truth still matters, but it is a second-ring
+surface. Keep it behind the CLI-first front door.
 
-| Lane | Current truth | Fresh read-back |
-| --- | --- | --- |
-| ClawHub | `listed-live` | `clawhub inspect agent-exporter-archive-governance-workbench --no-input` |
-| Goose Skills Marketplace | `review-pending` | `https://github.com/block/agent-skills/pull/24` |
-| agent-skill.co source repo | `platform-not-accepted-yet` | `https://github.com/heilcheng/awesome-agent-skills/pull/180` |
-| OpenHands/extensions | `closed-not-accepted` | `https://github.com/OpenHands/extensions/pull/162` |
-| awesome-opencode | `not_honest_cargo_yet` | current packet is a host-native skill folder for a local-first archive/governance workbench, not an honest opencode-native project/resource entry today |
+Use these files when you actually need lane truth instead of product identity:
 
-These lane states do not change the flagship product story:
+- `./distribution-packet-ledger.md`
+- `../public-skills/README.md`
 
-- Pages is still a **public companion docs surface**
-- archive shell / reports shell / integration evidence shell remain **repo-local proof**
-- `local` and `claude-code` still count as **degraded**, not canonical parity
-- the docs landing page should not turn integration or governance into the main character
-- the archive shell proof page is a tracked public explanation page, not a hosted runtime
-- for the full capability ledger, use `../README.md` and `../CHANGELOG.md` instead of treating the landing page like release history
+Those pages hold the current `listed-live`, `review-pending`,
+`platform-not-accepted-yet`, `closed-not-accepted`, and
+`not_honest_cargo_yet` states without turning packet status into the first
+screen.
 
-## Read Order
+## Public Read Order
+
+If you are evaluating the product from the outside, keep the route this short:
 
 1. `../README.md`
-2. `../AGENTS.md`
-3. `../CLAUDE.md`
-4. `./adr/ADR-0001-source-layering.md`
-5. `./adr/ADR-0002-codex-first-delivery.md`
-6. `./reference/host-safety-contract.md`
-7. `./reference/codexmonitor-export-contract.md`
-8. `./reference/codex-upstream-reading-list.md`
-9. `./reference/external-repo-reading-list.md`
-10. `./reference/codex-thread-archive-blueprint.md`
+2. `./index.md`
+3. `./archive-shell-proof.md`
+4. `./distribution-packet-ledger.md`
+5. `../public-skills/README.md` only if you actually need the host-native packet lane
+
+That order keeps the first screen on:
+
+- what the product is
+- how the first success works
+- what the archive shell really proves
+- where second-ring lane truth lives
 
 ## Documentation Layers
 
@@ -135,16 +135,23 @@ Current files:
 - `codex-thread-archive-blueprint.md`
 - `integrations/*`
 
-## The 4 Most Important Docs Right Now
+## Maintainer-Only Internal References
 
-If you only read four files, start here:
+The files below are still important, but they are **not** part of the public
+front door. Read them when you are doing maintainer work, implementation
+archaeology, or upstream contract review:
 
-1. `reference/host-safety-contract.md`
-2. `reference/codexmonitor-export-contract.md`
-3. `reference/codex-upstream-reading-list.md`
-4. `reference/codex-thread-archive-blueprint.md`
+1. `../AGENTS.md`
+2. `../CLAUDE.md`
+3. `./adr/ADR-0001-source-layering.md`
+4. `./adr/ADR-0002-codex-first-delivery.md`
+5. `./reference/host-safety-contract.md`
+6. `./reference/codexmonitor-export-contract.md`
+7. `./reference/codex-upstream-reading-list.md`
+8. `./reference/external-repo-reading-list.md`
+9. `./reference/codex-thread-archive-blueprint.md`
 
-Those four answer:
+Those files answer maintainer questions such as:
 
 - where the host-system boundary stops
 - what the default Codex `app-server` primary path contract really is
