@@ -36,8 +36,8 @@ Do **not** use this packet as a substitute for the flagship product story.
 
 ## Product truth
 
-- `agent-exporter` is a local-first archive and governance workbench
-- the current primary surface is still `CLI-first`
+- `agent-exporter` is an archive and governance workbench
+- the current primary surface is still the quickstart path
 - this public skill packet is a secondary public lane
 - the bridge exposes read-mostly archive, retrieval, and governance tools
 - the browser pages organize proof; they do not execute retrieval or onboarding
@@ -54,7 +54,7 @@ Do **not** use this packet as a substitute for the flagship product story.
   - submission ref: `https://github.com/OpenHands/extensions/pull/162`
   - maintainer note: distribute a custom `marketplace.json` instead of expecting an upstream listing
 - `awesome-opencode`: `exact_blocker_with_fresh_evidence`
-  - exact blocker: this packet is a host-native skill folder for a local-first archive/governance workbench, not an honest opencode-native project/resource entry today
+  - exact blocker: this packet is a host-native skill folder for an archive/governance workbench, not an honest opencode-native project/resource entry today
 
 ## First-success flow
 

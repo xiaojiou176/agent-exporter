@@ -12,7 +12,7 @@
 
 `agent-exporter` 当前的最小目标不是“万能会话平台”，而是：
 
-> **一个 Rust CLI-first 的 transcript/archive exporter，**
+> **一个 Rust CLI-led 的 transcript/archive exporter，**
 > **先做稳 Codex，再证明第二个 connector 也能接进来。**
 
 它当前已经做完 Codex dual-source，并且落下了一个最小 `Claude Code` second connector proof。
@@ -40,7 +40,7 @@
 
 > 注：
 > 仓库早期的“当前不做 GUI / Web UI”在 Phase 30 已被用户显式覆盖为：
-> **允许做 local-first GUI / Web UI decision desk**。
+> **允许做 repo-local GUI / Web UI decision desk**。
 > 但这不改变上面的非目标边界：
 > 仍然不做 hosted / browser executor / cloud backend。
 
@@ -201,7 +201,7 @@
 
 原因：
 
-- 现在已经能把 archive index、metadata filter、semantic retrieval、hybrid retrieval 组织进同一个 local-first archive shell
+- 现在已经能把 archive index、metadata filter、semantic retrieval、hybrid retrieval 组织进同一个 repo-local archive shell
 - 但仍然没有把仓库拖进 hosted / remote search platform
 
 ---

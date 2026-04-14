@@ -1,10 +1,10 @@
 # agent-exporter
 
-`agent-exporter` is a **local-first archive and governance workbench for AI agent transcripts**.
+`agent-exporter` is an **archive and governance workbench for AI agent transcripts**.
 
 [Try It In 3 Steps](#first-success-path) · [Zero-Context First Look](#zero-context-first-look) · [Docs Landing](https://xiaojiou176-open.github.io/agent-exporter/) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) · [Latest Release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
 
-![agent-exporter proof map showing CLI quickstart, transcript export, archive shell proof, reports shell, and integration evidence as one local-first workbench](./docs/assets/archive-shell-proof.svg)
+![agent-exporter proof map showing CLI quickstart, transcript export, archive shell proof, reports shell, and integration evidence as one inspectable workbench](./docs/assets/archive-shell-proof.svg)
 
 ## Front Door Map
 
@@ -12,21 +12,21 @@ If you only remember four things, remember these:
 
 | Question | Short answer |
 | --- | --- |
-| What is this? | a **local-first archive and governance workbench** for AI agent transcripts |
-| What should I do first? | start with the **CLI quickstart** |
+| What is this? | an **archive and governance workbench** for AI agent transcripts |
+| What should I do first? | start with the **quickstart path** |
 | What is the first visible proof? | one HTML transcript receipt plus the archive shell proof |
-| What should I avoid assuming? | this is **not** a hosted archive platform or `MCP-first` public product |
+| What shape should I expect? | an inspectable archive workbench, not a hosted archive platform or generic MCP product |
 
 ## Product Kernel
 
 The simplest way to understand this repo is:
 
-> It turns transcript export, archiving, retrieval, evidence, and governance into a local-first workbench first,
+> It turns transcript export, archiving, retrieval, evidence, and governance into an inspectable archive workbench first,
 > instead of pretending to be a hosted service or remote platform.
 
 ## Surface Model
 
-- **Primary Surface:** `CLI-first`
+- **Primary entrypoint:** `CLI quickstart`
 - **Secondary Surface 1:** local archive shell / reports shell
 - **Secondary Surface 2:** repo-owned integration pack
 - **Secondary Surface 3:** read-only governance MCP bridge
@@ -55,7 +55,7 @@ If this is your first visit, use the repo in this order:
 In plain English:
 
 > The product kernel already includes evidence and governance,
-> but the public front door still needs **CLI-first** to own the first screen.
+> but the public front door still needs the **quickstart path** to own the first screen.
 
 ## Who This Repo Is For
 
@@ -73,11 +73,11 @@ If you want the shortest truthful filter before reading deeper, use this table:
 
 | What you need to know | Current answer |
 | --- | --- |
-| Primary surface | `CLI-first` |
+| Primary entrypoint | `CLI quickstart` |
 | Zero-context start | `scaffold` -> `connectors` |
 | First success | `connectors` -> `export codex --format html` -> `publish archive-index` |
 | First visible proof | a local HTML transcript receipt plus the tracked archive-shell proof page |
-| What it must never be reduced to | a hosted archive platform, generic remote transcript service, or `MCP-first` public product |
+| What it must never be reduced to | a hosted archive platform, a generic remote transcript service, or a generic MCP product |
 
 ## Zero-Context First Look
 
@@ -232,7 +232,7 @@ Success signals:
 
 - a `.agents/Conversations/*.html` transcript export
 - a `.agents/Conversations/index.html` archive shell
-- a **local-first HTML receipt**, not a hosted demo and not a GitHub Pages live runtime
+- an **inspectable HTML receipt**, not a hosted demo and not a GitHub Pages live runtime
 
 ## Open The Right Next Door
 
@@ -255,7 +255,7 @@ Treat it as a 3-step ladder:
 | --- | --- | --- |
 | `L1` | the CLI can get you through the front door | `First Success Path` |
 | `L2` | transcript export leaves behind a browsable receipt | `.agents/Conversations/*.html` |
-| `L3` | the archive shell organizes transcript, reports, and integration evidence into one local-first workbench | [archive shell proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) |
+| `L3` | the archive shell organizes transcript, reports, and integration evidence into one inspectable workbench | [archive shell proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) |
 
 ## Public Boundary Right Now
 
@@ -264,7 +264,7 @@ Keep the current public boundary clear so "can generate" does not silently becom
 - **public front door:** GitHub repo + CLI quickstart remains the primary entry; GitHub Pages is a companion docs surface, not a second primary door
 - **first truthful visible proof:** the tracked archive shell proof page plus a locally reproducible archive shell HTML receipt
 - **secondary surfaces:** reports shell, integration pack, and the read-only governance MCP bridge remain secondary surfaces and do not take over the headline
-- **cannot claim yet:** `submit-ready`, `already approved`, `MCP-first`
+- **cannot claim yet:** `submit-ready`, `already approved`, or any broader public integration claim
 
 ## Does / Does Not Prove
 
@@ -273,7 +273,7 @@ Keep the current public boundary clear so "can generate" does not silently becom
 | the CLI quickstart works | a hosted archive platform |
 | transcript export can become an HTML receipt | a multi-user remote service |
 | the archive shell proof page explains the workbench truthfully | `submit-ready` or `listed-live` claims for unrelated non-GitHub lanes |
-| secondary surfaces exist as repo-owned lanes | `MCP-first` public positioning |
+| secondary surfaces exist as repo-owned lanes | a generic coding-agent-first public positioning |
 
 ## Host Safety
 
@@ -293,7 +293,7 @@ See [docs/reference/host-safety-contract.md](./docs/reference/host-safety-contra
 
 ## Current Positioning
 
-You can think of `agent-exporter` as a **local-first archive and governance workbench**, not a hosted platform.
+You can think of `agent-exporter` as an **archive and governance workbench**, not a hosted platform.
 The front door still has to preserve one order: **CLI first, archive shell proof second, secondary surfaces after that**.
 
 The current stage is easier to understand through this table than through a giant landed-feature paragraph:
@@ -336,7 +336,7 @@ What is still unfinished at this stage:
 
 ### Explicitly allowed right now
 
-- a local-first GUI / web Decision Desk
+- a user-controlled GUI / web Decision Desk
   - local static or local service only
   - useful for reading, comparing, deciding, and routing next steps
   - no hosted layer
@@ -450,7 +450,7 @@ The repo also supports:
   - real embedding-based retrieval over a local archive corpus
   - local model assets by default
   - explicit failure when model assets are missing instead of fake keyword fallback
-  - persistent local sidecar indexes reused across later queries with the same assets
+  - persistent repo-owned indexes reused across later queries with the same assets
 
 ### Hybrid retrieval contract
 
@@ -657,7 +657,7 @@ The most important integration truths right now:
 - **entry commands:** `integrate`, `doctor integrations`, `onboard`
 - **saved evidence:** `--save-report` writes to `.agents/Integration/Reports`
 - **launcher policy:** repo-local binary first; no silent host-home rewrite; no hidden build in read-only checks
-- **truth boundary:** the integration evidence shell is a secondary surface and does not turn the product into `MCP-first`
+- **truth boundary:** the integration evidence shell is a secondary surface and does not turn the product into a generic coding-agent product
 
 If you need host-by-host install shapes, pack details, launcher rules, or OpenClaw boundaries, go straight to:
 

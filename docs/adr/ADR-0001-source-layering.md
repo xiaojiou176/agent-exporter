@@ -38,10 +38,10 @@ CLI 只负责参数解析和 orchestration，不直接承担某个来源的私�
 
 ## Current Scope
 
-- `CLI-first` remains the primary surface
+- `CLI` remains the primary surface
 - `codex app-server`: current canonical front door
 - `codex local direct-read` and `claude-code session-path`: landed archival / second-connector inputs on the same layered core
-- local archive shell, local search/index, and the local decision/governance desk have landed as secondary local-first surfaces; they do not replace the CLI-first front door
+- local archive shell, local search/index, and the local decision/governance desk have landed as secondary repo-local surfaces; they do not replace the CLI front door
 
 ## Non-Goals
 

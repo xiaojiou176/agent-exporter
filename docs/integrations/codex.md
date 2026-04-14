@@ -3,7 +3,7 @@
 ## 适用场景
 
 如果你的团队主要在 Codex 里工作，当前最稳的接入方式不是等一个未来的 MCP server，
-而是先把 `agent-exporter` 作为一个 **CLI-first repo utility** 接进项目协作协议。
+而是先把 `agent-exporter` 作为一个 **CLI-led repo utility** 接进项目协作协议。
 
 ## 当前最稳接法
 
@@ -91,4 +91,4 @@ agent-exporter search hybrid --workspace-root <repo> --query "thread-1" --save-r
 - 这条接法今天是 **真实可用** 的
 - 当前 repo 已经内建一个最小 stdio MCP bridge：`scripts/agent_exporter_mcp.py`
 - 当前 bridge 暴露的是 publish/search/evidence/governance 只读工具面，不是全量 CLI
-- CLI-first 仍然是最稳 front door；MCP 是对 publish/search/evidence/governance 的轻量接线，不是第二套产品面
+- CLI front door 仍然最稳；MCP 是对 publish/search/evidence/governance 的轻量接线，不是第二套产品面

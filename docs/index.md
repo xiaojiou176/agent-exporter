@@ -1,6 +1,6 @@
 ---
 title: agent-exporter
-description: Local-first archive and governance workbench for AI agent transcripts, with CLI-first onboarding and archive-shell proof routing.
+description: Archive and governance workbench for AI agent transcripts, with a quickstart path and archive-shell proof routing.
 ---
 
 <style>
@@ -19,10 +19,10 @@ description: Local-first archive and governance workbench for AI agent transcrip
 
 <section class="ae-hero">
   <div class="ae-hero-main">
-    <p class="ae-kicker">local-first archive and governance workbench</p>
+    <p class="ae-kicker">archive and governance workbench</p>
     <h1>Put transcript export, archive proof, and governance on one desk without pretending to be a hosted platform.</h1>
     <p class="ae-lead">
-      `agent-exporter` is a <strong>local-first archive and governance workbench for AI agent transcripts</strong>.
+      `agent-exporter` is an <strong>archive and governance workbench for AI agent transcripts</strong>.
       The CLI is still the real front door because the first honest thing this product should do is generate local proof.
       This Pages home exists to lower orientation cost: understand the desk, run the shortest path, then open the right lane.
     </p>
@@ -33,15 +33,15 @@ description: Local-first archive and governance workbench for AI agent transcrip
     </div>
     <p class="ae-caption">
       Pages is a <strong>companion docs surface</strong>.
-      The primary surface remains <strong>`CLI-first`</strong>.
+      The primary surface remains the <strong>quickstart path</strong>.
     </p>
   </div>
   <aside class="ae-hero-side ae-panel">
     <p class="ae-kicker">at a glance</p>
     <dl class="ae-glance-list">
       <div>
-        <dt>Primary surface</dt>
-        <dd>`CLI-first`</dd>
+        <dt>Primary entrypoint</dt>
+        <dd>quickstart path</dd>
       </div>
       <div>
         <dt>First proof</dt>
@@ -120,7 +120,7 @@ cargo run -- connectors</code></pre>
   --destination workspace-conversations \
   --workspace-root /absolute/path/to/repo</code></pre>
       </div>
-      <p class="ae-command-caption">The result is a local-first HTML receipt inside `.agents/Conversations/`.</p>
+      <p class="ae-command-caption">The result is an inspectable HTML receipt inside `.agents/Conversations/`.</p>
     </article>
     <article class="ae-step">
       <span class="ae-step-number">03</span>
