@@ -12,7 +12,7 @@ description: What the archive shell proves, what it does not prove, and how to r
     <p class="ae-lead">
       The archive shell proof is the first public explanation layer after the CLI front door.
       It shows that transcript export, report routing, and governance evidence can already be organized into one
-      <strong>local-first</strong> reading surface.
+      <strong>inspectable</strong> reading surface.
       It does <strong>not</strong> turn the repo into a hosted product or a live remote service.
     </p>
     <div class="ae-actions">
@@ -69,7 +69,7 @@ description: What the archive shell proves, what it does not prove, and how to r
       <h2>Real local workbench proof.</h2>
       <ul class="ae-proof-list">
         <li>transcript export can become a browsable HTML receipt</li>
-        <li>`publish archive-index` can organize transcripts, reports shell, and integration evidence into one local-first archive shell</li>
+        <li>`publish archive-index` can organize transcripts, reports shell, and integration evidence into one inspectable archive shell</li>
         <li>the archive shell is already <strong>workbench proof</strong>: it can route a reader through local artifacts without pretending to be a hosted platform</li>
       </ul>
     </article>

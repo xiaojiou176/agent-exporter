@@ -21,8 +21,8 @@ They do not replace the flagship public packet:
 - CLI quickstart
 - archive shell proof
 
-The product itself remains a **local-first archive and governance workbench**.
-Its primary surface is still **`CLI-first`**.
+The product itself remains an **archive and governance workbench**.
+Its primary surface is still the **quickstart path**.
 
 ## Use This Lane Only After The Front Door
 
@@ -58,7 +58,7 @@ Current lane truth:
 - `Goose Skills Marketplace`: `review-pending` via `block/Agent-Skills#24`
 - `agent-skill.co source repo`: `platform-not-accepted-yet` via `heilcheng/awesome-agent-skills#180` while Vercel team authorization is pending
 - `OpenHands/extensions`: `closed-not-accepted`; maintainer pointed to a custom `marketplace.json` distribution path instead
-- `awesome-opencode`: `exact_blocker_with_fresh_evidence`; the current packet is a host-native skill folder for a local-first archive/governance workbench, not an honest opencode-native project/resource entry today
+- `awesome-opencode`: `exact_blocker_with_fresh_evidence`; the current packet is a host-native skill folder for an archive/governance workbench, not an honest opencode-native project/resource entry today
 
 ## What This Lane Must Not Overclaim
 

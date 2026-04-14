@@ -27,7 +27,7 @@ shop into a different factory.
 
 | Packet slice | Exact repo paths | Current status | What it does not prove |
 | --- | --- | --- | --- |
-| Flagship CLI-first packet | `README.md`, `docs/README.md`, `docs/archive-shell-proof.md` | active front door | hosted platform, remote runtime, or repo-wide MCP-first identity |
+| Flagship CLI packet | `README.md`, `docs/README.md`, `docs/archive-shell-proof.md` | active front door | hosted platform, remote runtime, or repo-wide MCP product identity |
 | Release shelf packet | release/tag plus release notes linked from `README.md` and `docs/README.md` | published shelf | latest `main` packet truth |
 | Host-native public skill packet | `public-skills/README.md`, `public-skills/agent-exporter-archive-governance-workbench/README.md`, `public-skills/agent-exporter-archive-governance-workbench/manifest.yaml` | secondary lane; ClawHub live, Goose review-pending, agent-skill.co blocked upstream, OpenHands closed-not-accepted, awesome-opencode not_honest_cargo_yet | flagship packet replacement, generic registry acceptance, or an opencode-native project/resource claim this repo does not honestly fit today |
 | Integration pack | `docs/integrations/README.md`, `docs/integrations/templates/README.md` | repo-owned companion lane | host-native runtime proof |
@@ -37,7 +37,7 @@ shop into a different factory.
 
 Keep these claims in their own buckets:
 
-1. **CLI-first flagship**
+1. **CLI flagship**
    - connector readback
    - transcript export receipt
    - archive shell proof
@@ -56,13 +56,13 @@ None of those four facts turn the repo into:
 
 - a hosted archive platform
 - a container/runtime repo
-- a generic MCP-first product
+- a generic MCP product
 
 ## Heavy-lane order that fits the repo
 
 If a later wave wants to push distribution harder, the honest order is:
 
-1. keep the flagship CLI-first packet stable
+1. keep the flagship CLI packet stable
 2. keep archive shell proof as the first visible proof layer
 3. keep host-native packet receipts scoped to that packet
 4. keep integration and governance as companion lanes
@@ -74,5 +74,5 @@ Do **not** flatten current packet shape into:
 
 - `submit-ready` for unrelated registries
 - `listed-live` beyond the actual host-native packet lanes
-- `MCP-first` product positioning
+- `MCP`-led product positioning
 - runtime/container expectations for `agent-exporter`

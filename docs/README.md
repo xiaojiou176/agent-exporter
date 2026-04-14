@@ -31,7 +31,7 @@
       </div>
       <div>
         <dt>Ground rule</dt>
-        <dd>CLI first, archive proof second, side lanes after that</dd>
+        <dd>quickstart path first, archive proof second, side lanes after that</dd>
       </div>
     </dl>
   </aside>
@@ -60,12 +60,12 @@
   <div class="ae-surface-grid">
     <article class="ae-surface-card">
       <p class="ae-mini-label">Product kernel</p>
-      <h3>Local-first archive and governance workbench</h3>
-      <p>`agent-exporter` is a <strong>local-first archive and governance workbench</strong> that stays grounded in local artifacts and local proof rather than a hosted platform story.</p>
+      <h3>Archive and governance workbench</h3>
+      <p>`agent-exporter` is an <strong>archive and governance workbench</strong> that stays grounded in inspectable artifacts and proof rather than a hosted platform story.</p>
     </article>
     <article class="ae-surface-card">
       <p class="ae-mini-label">Primary surface</p>
-      <h3>`CLI-first`</h3>
+      <h3>Quickstart path</h3>
       <p>The operational door is still the CLI quickstart, not a browser runtime.</p>
     </article>
     <article class="ae-surface-card">

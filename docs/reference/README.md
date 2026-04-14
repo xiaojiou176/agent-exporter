@@ -31,7 +31,7 @@ maintainer reference shelf, not a public product landing page.
 - local metadata search 已经 landed，不再是 future plan
 - `search semantic` 已经 landed，不再是 future plan
 - persistent local semantic index 已经 landed，不再是 future plan
-- persistent semantic index sidecar 只会在相同模型资产身份下复用
+- persistent semantic index helper 只会在相同模型资产身份下复用
 - `search hybrid` 已经 landed，不再是 future plan
 - retrieval reports under `.agents/Search/Reports` 已经 landed，不再是 future plan
 - workspace-only transcript backlinks 已经 landed，不再是 future plan
@@ -55,7 +55,7 @@ maintainer reference shelf, not a public product landing page.
 - decision promotion/history via `agent-exporter evidence promote` / `evidence history` 已经 landed，不再是 future plan
 - remediation bundle studio via `agent-exporter evidence remediation` 已经 landed，不再是 future plan
 - read-only governance MCP surface + current-decision automation 已经 landed，不再是 future plan
-- local-first governance workbench 已经 landed，不再是 future plan
+- repo-local governance workbench 已经 landed，不再是 future plan
 - hosted / browser executor / cloud backend 仍然不是当前允许方向
 - `local` 只代表 **archival truth**
 - `claude-code` 当前也只代表 **degraded local import truth**

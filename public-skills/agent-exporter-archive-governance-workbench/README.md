@@ -19,8 +19,8 @@ The flagship public story is still:
 - CLI quickstart
 - archive shell proof
 
-The product behind this packet is still a **local-first archive and governance workbench**.
-Its primary surface remains **`CLI-first`**.
+The product behind this packet is still an **archive and governance workbench**.
+Its primary surface remains the **quickstart path**.
 
 ## Use Order
 
@@ -97,7 +97,7 @@ This packet teaches an agent how to:
   - submission ref: `https://github.com/OpenHands/extensions/pull/162`
   - maintainer note: distribute a custom `marketplace.json` instead of expecting an upstream listing
 - `awesome-opencode`: `exact_blocker_with_fresh_evidence`
-  - exact blocker: this packet is a host-native skill folder for a local-first archive/governance workbench, not an honest opencode-native project/resource entry today
+  - exact blocker: this packet is a host-native skill folder for an archive/governance workbench, not an honest opencode-native project/resource entry today
 
 ## MCP capability surface
 
@@ -133,7 +133,7 @@ This packet teaches an agent how to:
 - no listed-live OpenHands/extensions entry; that lane was closed rather than accepted
 - no awesome-opencode project/resource claim; current cargo is still not honest for that lane
 - no full-CLI MCP parity
-- no change to the flagship `CLI-first` primary surface
+- no change to the flagship quickstart-first primary surface
 
 ## In Plain English
 

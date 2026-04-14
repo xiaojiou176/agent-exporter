@@ -137,7 +137,7 @@ fn public_skill_packet_prose_keeps_live_lane_truth_in_sync() {
 }
 
 #[test]
-fn front_door_docs_keep_cli_first_and_local_first_truth() {
+fn front_door_docs_keep_quickstart_path_and_archive_workbench_truth() {
     for path in [
         "README.md",
         "docs/README.md",
@@ -148,12 +148,12 @@ fn front_door_docs_keep_cli_first_and_local_first_truth() {
     ] {
         let content = read_repo_file(path);
         assert!(
-            content.contains("CLI-first"),
-            "CLI-first primary truth disappeared from {path}"
+            content.contains("quickstart path"),
+            "quickstart-path primary truth disappeared from {path}"
         );
         assert!(
-            content.contains("local-first"),
-            "local-first product identity disappeared from {path}"
+            content.contains("archive and governance workbench"),
+            "archive-workbench product truth disappeared from {path}"
         );
     }
 }

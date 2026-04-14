@@ -147,7 +147,7 @@ OpenClaw 这一层当前**没有**声称的是：
 1. **先交付真实可用的接线方式**
    - 不把“未来可能做的 MCP server”写成今天已经存在
 
-2. **继续保持 local-first**
+2. **继续保持 repo-local**
    - 模板默认调用本地 `agent-exporter` CLI
 
 3. **让 artifact graph 可复用**
@@ -258,4 +258,4 @@ Phase 32-34 之后，这条主链又多了三层工作台能力：
 > 给本地 workflow 一个只读 current-decision 入口，
 > 并把这些治理信息抛光成可长期日用的本地工作台。
 
-这仍然是 local-first、static/local-served 的 decision plane，不会让浏览器或 MCP 代跑 doctor/onboard/install。
+这仍然是 repo-local、static/local-served 的 decision plane，不会让浏览器或 MCP 代跑 doctor/onboard/install。
