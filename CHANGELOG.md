@@ -6,8 +6,13 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+### Added
+- `security_contract` coverage for `.gitignore` completeness and tracked-text secret leakage
+- explicit `clippy -D warnings` on the required CI path
+
 ### Changed
 - Public docs, metadata, and release-facing surfaces continue to tighten the `CLI-first -> archive shell proof -> secondary surfaces` order without promoting any secondary surface into the current primary path.
+- contributor/security docs now describe the stricter local safety gates and required ignore contract for local agent tooling paths
 
 ## [0.1.1] - 2026-04-10
 

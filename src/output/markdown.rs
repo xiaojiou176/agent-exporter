@@ -155,11 +155,10 @@ fn render_rounds(transcript: &ArchiveTranscript) -> Vec<RenderedRound> {
             continue;
         }
 
-        if !emitted_synthetic_opening {
-            if let Some(opening) = synthetic_opening_user_message.as_ref() {
-                user_sections.insert(0, opening.clone());
-                emitted_synthetic_opening = true;
-            }
+        if !emitted_synthetic_opening && let Some(opening) = synthetic_opening_user_message.as_ref()
+        {
+            user_sections.insert(0, opening.clone());
+            emitted_synthetic_opening = true;
         }
 
         let mut parts = vec![
@@ -189,13 +188,13 @@ fn render_rounds(transcript: &ArchiveTranscript) -> Vec<RenderedRound> {
         });
     }
 
-    if rendered.is_empty() {
-        if let Some(opening) = synthetic_opening_user_message {
-            rendered.push(RenderedRound {
-                round_number: 1,
-                content: ["# 第1轮".to_string(), "## 用户".to_string(), opening].join("\n\n"),
-            });
-        }
+    if rendered.is_empty()
+        && let Some(opening) = synthetic_opening_user_message
+    {
+        rendered.push(RenderedRound {
+            round_number: 1,
+            content: ["# 第1轮".to_string(), "## 用户".to_string(), opening].join("\n\n"),
+        });
     }
 
     rendered

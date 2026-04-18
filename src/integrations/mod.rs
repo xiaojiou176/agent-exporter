@@ -617,13 +617,13 @@ fn validate_materialize_target(platform: IntegrationPlatform, target_root: &Path
             );
         }
 
-        if let Some(first_after_home) = first_component_after(&normalized, &home_root) {
-            if first_after_home.starts_with(".claude") {
-                bail!(
-                    "integration target `{}` is forbidden: choose a staging pack directory instead of a live Claude home root such as `~/.claude*`",
-                    target_root.display()
-                );
-            }
+        if let Some(first_after_home) = first_component_after(&normalized, &home_root)
+            && first_after_home.starts_with(".claude")
+        {
+            bail!(
+                "integration target `{}` is forbidden: choose a staging pack directory instead of a live Claude home root such as `~/.claude*`",
+                target_root.display()
+            );
         }
     }
 
