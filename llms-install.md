@@ -1,7 +1,7 @@
-# agent-exporter MCP Install
+# agent-exporter Local Stdio Host Packet Install
 
 This page is the shortest truthful install path for host reviewers who want the
-local stdio MCP bridge instead of the CLI-first front door.
+local stdio host packet instead of the CLI-first front door.
 
 ## What this is
 
@@ -15,6 +15,13 @@ It is **not**:
 - a hosted archive platform
 - a remote transcript service
 - a replacement for the CLI-first primary product surface
+
+## Current Main Vs Published Shelf
+
+This file tracks the **repo-side current host packet on `main`**.
+
+If you need the newest **frozen published packet**, use the latest GitHub
+release shelf instead of assuming this page and the latest tag are identical.
 
 ## Packet contents
 

@@ -1,10 +1,10 @@
 # agent-exporter Archive Governance Workbench Public Skill
 
-This folder is a host-native public skill packet for `agent-exporter`.
+This folder is the host-native public skill packet for `agent-exporter`.
 
 ## What This Packet Is For
 
-Use this folder when the question is specifically about the host-native packet:
+Use this folder when the question is specifically about the local stdio host packet:
 
 - how to wire the local stdio MCP bridge
 - how to prove the bridge on a safe first-success path

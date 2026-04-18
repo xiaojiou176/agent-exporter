@@ -4,7 +4,7 @@ This directory holds public-facing skill packets for `agent-exporter`.
 
 ## What This Lane Is
 
-Think of this directory as a **host-review lane**, not a second homepage.
+Think of this directory as the **local stdio host packet lane**, not a second homepage.
 
 It exists for people or platforms asking:
 
