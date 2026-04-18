@@ -23,8 +23,10 @@
 ## 提交前最小检查
 
 ```bash
-cargo fmt
+cargo fmt --check
+cargo clippy --all-targets --all-features -- -D warnings
 cargo test
+cargo test --test security_contract
 cargo run -- connectors
 cargo run -- scaffold
 cargo run -- export codex --thread-id <thread-id>
@@ -39,6 +41,11 @@ cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thre
 cargo run -- search semantic --workspace-root /absolute/path/to/repo --query "how do I fix login issues" --save-report
 cargo run -- search hybrid --workspace-root /absolute/path/to/repo --query "thread-1" --save-report
 ```
+
+额外说明：
+
+- `.gitignore` 必须继续覆盖 `.agents/`、`.codex/`、`.claude/`、`.cursor/`、`.venv/`、`.runtime-cache/`、`.env`
+- `tests/security_contract.rs` 负责守住这组 ignore contract，以及“tracked text files 里不能出现 live secret material”
 
 ---
 

@@ -2,6 +2,8 @@
 .agent/
 .codex/
 .claude/
+.cursor/
+.venv/
 .serena/
 logs/
 cache/

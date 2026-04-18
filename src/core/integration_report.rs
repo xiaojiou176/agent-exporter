@@ -262,6 +262,31 @@ pub struct ResolvedIntegrationEvidencePolicy {
     pub policy: IntegrationEvidencePolicyPack,
 }
 
+pub struct BaselineRecordInput<'a> {
+    pub workspace_root: &'a Path,
+    pub baseline_name: &'a str,
+    pub source_report_path: &'a Path,
+    pub report: &'a IntegrationReportJsonDocument,
+    pub promoted_at: &'a str,
+    pub promoted_from_verdict: &'a str,
+    pub policy: &'a IntegrationEvidenceGatePolicy,
+    pub note: Option<String>,
+}
+
+pub struct DecisionRecordInput<'a> {
+    pub workspace_root: &'a Path,
+    pub baseline_name: &'a str,
+    pub baseline_record: Option<&'a IntegrationBaselineRecord>,
+    pub candidate_report_path: &'a Path,
+    pub candidate: &'a IntegrationReportJsonDocument,
+    pub policy: &'a ResolvedIntegrationEvidencePolicy,
+    pub verdict: &'a str,
+    pub promoted: bool,
+    pub decided_at: &'a str,
+    pub summary: &'a str,
+    pub note: Option<String>,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct IntegrationEvidenceGateOutcome {
     pub verdict: IntegrationEvidenceGateVerdict,
@@ -1137,16 +1162,17 @@ pub fn assess_promotion_eligibility(
     }
 }
 
-pub fn build_baseline_record(
-    workspace_root: &Path,
-    baseline_name: &str,
-    source_report_path: &Path,
-    report: &IntegrationReportJsonDocument,
-    promoted_at: &str,
-    promoted_from_verdict: &str,
-    policy: &IntegrationEvidenceGatePolicy,
-    note: Option<String>,
-) -> IntegrationBaselineRecord {
+pub fn build_baseline_record(input: BaselineRecordInput<'_>) -> IntegrationBaselineRecord {
+    let BaselineRecordInput {
+        workspace_root,
+        baseline_name,
+        source_report_path,
+        report,
+        promoted_at,
+        promoted_from_verdict,
+        policy,
+        note,
+    } = input;
     let reports_dir = resolve_integration_reports_dir(workspace_root);
     let report_json_path = reports_dir.join(&report.artifact_links.json_report);
     let report_html_path = reports_dir.join(&report.artifact_links.html_report);
@@ -1172,19 +1198,20 @@ pub fn build_baseline_record(
     }
 }
 
-pub fn build_decision_record(
-    workspace_root: &Path,
-    baseline_name: &str,
-    baseline_record: Option<&IntegrationBaselineRecord>,
-    candidate_report_path: &Path,
-    candidate: &IntegrationReportJsonDocument,
-    policy: &ResolvedIntegrationEvidencePolicy,
-    verdict: &str,
-    promoted: bool,
-    decided_at: &str,
-    summary: &str,
-    note: Option<String>,
-) -> IntegrationDecisionRecord {
+pub fn build_decision_record(input: DecisionRecordInput<'_>) -> IntegrationDecisionRecord {
+    let DecisionRecordInput {
+        workspace_root,
+        baseline_name,
+        baseline_record,
+        candidate_report_path,
+        candidate,
+        policy,
+        verdict,
+        promoted,
+        decided_at,
+        summary,
+        note,
+    } = input;
     let reports_dir = resolve_integration_reports_dir(workspace_root);
     let candidate_json_path = reports_dir.join(&candidate.artifact_links.json_report);
 
@@ -1278,9 +1305,9 @@ pub fn latest_integration_decision_for_candidate<'a>(
         .find(|record| record.candidate_report_json_path == candidate_report_json_path)
 }
 
-fn combined_check_map<'a>(
-    report: &'a IntegrationReportJsonDocument,
-) -> BTreeMap<String, &'a IntegrationReportCheckRecord> {
+fn combined_check_map(
+    report: &IntegrationReportJsonDocument,
+) -> BTreeMap<String, &IntegrationReportCheckRecord> {
     let mut checks = BTreeMap::new();
     for check in report.pack_shape_checks.iter().chain(report.checks.iter()) {
         checks.insert(check.label.clone(), check);

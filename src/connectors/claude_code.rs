@@ -88,10 +88,10 @@ fn load_entries(session_path: &Path) -> Result<Vec<Value>> {
         bail!("Claude session file is empty: {}", session_path.display());
     }
 
-    if let Ok(json_value) = serde_json::from_str::<Value>(&content) {
-        if let Some(entries) = json_value.get("loglines").and_then(Value::as_array) {
-            return Ok(entries.clone());
-        }
+    if let Ok(json_value) = serde_json::from_str::<Value>(&content)
+        && let Some(entries) = json_value.get("loglines").and_then(Value::as_array)
+    {
+        return Ok(entries.clone());
     }
 
     let mut entries = Vec::new();
@@ -460,10 +460,10 @@ impl ClaudeReplay {
     }
 
     fn finish_current_round(&mut self) {
-        if let Some(round) = self.current_round.take() {
-            if !round.items.is_empty() {
-                self.rounds.push(round);
-            }
+        if let Some(round) = self.current_round.take()
+            && !round.items.is_empty()
+        {
+            self.rounds.push(round);
         }
     }
 

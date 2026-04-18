@@ -218,11 +218,10 @@ fn render_rounds(transcript: &ArchiveTranscript) -> Vec<RenderedRound> {
             continue;
         }
 
-        if !emitted_synthetic_opening {
-            if let Some(opening) = synthetic_opening_user_message.as_ref() {
-                user_sections.insert(0, render_text_content(opening));
-                emitted_synthetic_opening = true;
-            }
+        if !emitted_synthetic_opening && let Some(opening) = synthetic_opening_user_message.as_ref()
+        {
+            user_sections.insert(0, render_text_content(opening));
+            emitted_synthetic_opening = true;
         }
 
         let mut sections = vec![format!(
@@ -271,19 +270,19 @@ fn render_rounds(transcript: &ArchiveTranscript) -> Vec<RenderedRound> {
         });
     }
 
-    if rendered.is_empty() {
-        if let Some(opening) = synthetic_opening_user_message {
-            rendered.push(RenderedRound {
-                round_number: 1,
-                content: [
-                    "<article class=\"round-card\">".to_string(),
-                    "<header class=\"round-header\"><div><p class=\"round-kicker\">Round</p><h2>第1轮</h2></div></header>".to_string(),
-                    render_role_section("用户", "user", &[render_text_content(&opening)]),
-                    "</article>".to_string(),
-                ]
-                .join("\n"),
-            });
-        }
+    if rendered.is_empty()
+        && let Some(opening) = synthetic_opening_user_message
+    {
+        rendered.push(RenderedRound {
+            round_number: 1,
+            content: [
+                "<article class=\"round-card\">".to_string(),
+                "<header class=\"round-header\"><div><p class=\"round-kicker\">Round</p><h2>第1轮</h2></div></header>".to_string(),
+                render_role_section("用户", "user", &[render_text_content(&opening)]),
+                "</article>".to_string(),
+            ]
+            .join("\n"),
+        });
     }
 
     rendered

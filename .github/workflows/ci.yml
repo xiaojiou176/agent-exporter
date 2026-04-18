@@ -21,14 +21,20 @@ jobs:
 
       - name: Install stable Rust toolchain
         run: |
-          rustup toolchain install stable --profile minimal --component rustfmt
+          rustup toolchain install stable --profile minimal --component rustfmt --component clippy
           rustup default stable
 
       - name: Check formatting
         run: cargo fmt --check
 
+      - name: Run clippy
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
       - name: Run tests
         run: cargo test
+
+      - name: Verify security contract
+        run: cargo test --test security_contract
 
       - name: Verify public surface contract
         run: cargo test --test public_surface_contract

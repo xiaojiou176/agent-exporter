@@ -155,7 +155,7 @@ impl SemanticEmbedder for FastEmbedSemanticEmbedder {
             .lock()
             .map_err(|_| anyhow!("semantic embedder lock poisoned"))?;
         let mut embeddings = model
-            .embed(texts.to_vec(), None)
+            .embed(texts, None)
             .map_err(|error| anyhow!("embedding failed: {error}"))?;
         for embedding in embeddings.iter_mut() {
             normalize_in_place(embedding);
@@ -317,12 +317,12 @@ fn prepare_persistent_index<E: SemanticEmbedder>(
     let mut pending_texts = Vec::new();
 
     for (index, document) in documents.iter().enumerate() {
-        if let Some(existing) = persisted_map.get(&document.entry.relative_href) {
-            if existing.text == document.text {
-                indexed_documents[index].embedding = Some(existing.embedding.clone());
-                reused_documents += 1;
-                continue;
-            }
+        if let Some(existing) = persisted_map.get(&document.entry.relative_href)
+            && existing.text == document.text
+        {
+            indexed_documents[index].embedding = Some(existing.embedding.clone());
+            reused_documents += 1;
+            continue;
         }
         pending_slots.push(index);
         pending_texts.push(document.text.as_str());

@@ -10,16 +10,17 @@ use crate::core::archive::{
 };
 use crate::core::archive_index;
 use crate::core::integration_report::{
-    IntegrationBaselineRecord, IntegrationDecisionRecord, IntegrationEvidenceDiff,
-    IntegrationEvidenceGateOutcome, IntegrationEvidenceGatePolicy, IntegrationEvidencePolicyPack,
-    IntegrationEvidenceRemediationBundle, IntegrationReportCheckRecord,
-    IntegrationReportJsonDocument, append_integration_decision_record,
-    assess_promotion_eligibility, build_baseline_record, build_integration_evidence_explain,
-    build_integration_evidence_remediation_bundle, canonical_report_json_path,
-    collect_integration_report_entries, collect_integration_report_json_documents,
-    collect_repo_owned_integration_policy_packs, diff_integration_reports,
-    effective_gate_policy_for_platform, find_integration_baseline_for_identity,
-    find_integration_baseline_record, gate_integration_reports, integration_target_identity,
+    BaselineRecordInput, IntegrationBaselineRecord, IntegrationDecisionRecord,
+    IntegrationEvidenceDiff, IntegrationEvidenceGateOutcome, IntegrationEvidenceGatePolicy,
+    IntegrationEvidencePolicyPack, IntegrationEvidenceRemediationBundle,
+    IntegrationReportCheckRecord, IntegrationReportJsonDocument,
+    append_integration_decision_record, assess_promotion_eligibility, build_baseline_record,
+    build_integration_evidence_explain, build_integration_evidence_remediation_bundle,
+    canonical_report_json_path, collect_integration_report_entries,
+    collect_integration_report_json_documents, collect_repo_owned_integration_policy_packs,
+    diff_integration_reports, effective_gate_policy_for_platform,
+    find_integration_baseline_for_identity, find_integration_baseline_record,
+    gate_integration_reports, integration_target_identity,
     latest_integration_decision_for_candidate, read_integration_baseline_registry_document,
     read_integration_decision_history_document, read_integration_report_json_document,
     repo_owned_integration_policy_dir, resolve_integration_baseline_registry_path,
@@ -1227,26 +1228,30 @@ fn resolve_baseline_report_reference(
     Ok((PathBuf::from(&record.report_json_path), Some(record)))
 }
 
-fn build_baseline_registry_record(
-    workspace_root: &std::path::Path,
-    name: &str,
-    report: &IntegrationReportJsonDocument,
-    report_json_path: &std::path::Path,
-    policy: &IntegrationEvidencePolicyPack,
-    promoted_at: &str,
-    promoted_from_verdict: &str,
+struct BaselineRegistryRecordArgs<'a> {
+    workspace_root: &'a std::path::Path,
+    name: &'a str,
+    report: &'a IntegrationReportJsonDocument,
+    report_json_path: &'a std::path::Path,
+    policy: &'a IntegrationEvidencePolicyPack,
+    promoted_at: &'a str,
+    promoted_from_verdict: &'a str,
     note: Option<String>,
+}
+
+fn build_baseline_registry_record(
+    args: BaselineRegistryRecordArgs<'_>,
 ) -> IntegrationBaselineRecord {
-    build_baseline_record(
-        workspace_root,
-        name,
-        report_json_path,
-        report,
-        promoted_at,
-        promoted_from_verdict,
-        &policy.gate,
-        note,
-    )
+    build_baseline_record(BaselineRecordInput {
+        workspace_root: args.workspace_root,
+        baseline_name: args.name,
+        source_report_path: args.report_json_path,
+        report: args.report,
+        promoted_at: args.promoted_at,
+        promoted_from_verdict: args.promoted_from_verdict,
+        policy: &args.policy.gate,
+        note: args.note,
+    })
 }
 
 fn integration_reports_title(workspace_root: &std::path::Path) -> String {
@@ -1345,9 +1350,7 @@ fn build_decision_desk_summary(
         evidence_report_count: reports.len(),
         evidence_shell_href: "../Integration/Reports/index.html".to_string(),
         baseline_name: baseline_record.map(|record| record.name.clone()),
-        baseline: baseline
-            .as_ref()
-            .map(|report| decision_desk_snapshot_from_report(report)),
+        baseline: baseline.as_ref().map(decision_desk_snapshot_from_report),
         candidate: Some(decision_desk_snapshot_from_report(candidate)),
         active_policy: archive_index_output::DecisionDeskPolicySummary {
             name: policy_pack.name.clone(),
@@ -1624,16 +1627,16 @@ fn evidence_baseline_promote(args: EvidenceBaselinePromoteArgs) -> Result<()> {
 
     let mut registry = read_integration_baseline_registry_document(&workspace_root)?;
     registry.generated_at = promoted_at.clone();
-    let record = build_baseline_registry_record(
-        &workspace_root,
-        &args.name,
-        &report,
-        &report_path,
-        &policy_pack,
-        &promoted_at,
-        &args.verdict,
-        args.note.clone(),
-    );
+    let record = build_baseline_registry_record(BaselineRegistryRecordArgs {
+        workspace_root: &workspace_root,
+        name: &args.name,
+        report: &report,
+        report_json_path: &report_path,
+        policy: &policy_pack,
+        promoted_at: &promoted_at,
+        promoted_from_verdict: &args.verdict,
+        note: args.note.clone(),
+    });
     upsert_integration_baseline_record(&mut registry, record.clone());
     write_integration_baseline_registry_document(&workspace_root, &registry)?;
 
@@ -1795,16 +1798,16 @@ fn evidence_promote(args: EvidencePromoteArgs) -> Result<()> {
         registry.generated_at = decided_at.clone();
         upsert_integration_baseline_record(
             &mut registry,
-            build_baseline_registry_record(
-                &workspace_root,
-                &baseline_record.name,
-                &candidate,
-                &candidate_path,
-                &policy_pack,
-                &decided_at,
-                outcome.verdict.as_str(),
-                args.note.clone(),
-            ),
+            build_baseline_registry_record(BaselineRegistryRecordArgs {
+                workspace_root: &workspace_root,
+                name: &baseline_record.name,
+                report: &candidate,
+                report_json_path: &candidate_path,
+                policy: &policy_pack,
+                promoted_at: &decided_at,
+                promoted_from_verdict: outcome.verdict.as_str(),
+                note: args.note.clone(),
+            }),
         );
         write_integration_baseline_registry_document(&workspace_root, &registry)?;
     }
