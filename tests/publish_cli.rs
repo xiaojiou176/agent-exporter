@@ -266,9 +266,9 @@ fn publish_archive_index_generates_static_index_for_html_transcripts() {
     assert!(content.contains("degraded"));
     assert!(content.contains("archive-search"));
     assert!(content.contains("data-search-text"));
-    assert!(content.contains("agent-exporter local archive shell"));
+    assert!(content.contains("Browse transcript evidence first."));
     assert!(content.contains("Open reports shell"));
-    assert!(content.contains("search hybrid --workspace-root &lt;repo-root&gt;"));
+    assert!(content.contains("Open retrieval lane"));
     assert!(content.contains("data-filter-group=\"connector\""));
     assert!(content.contains(".html"));
     assert!(!content.contains(".json"));
@@ -328,7 +328,10 @@ fn publish_archive_index_links_saved_search_reports() {
 
     let reports_index = fs::read_to_string(search_reports_dir(workspace.path()).join("index.html"))
         .expect("reports index");
-    assert!(reports_index.contains("agent-exporter reports shell"));
+    assert!(
+        reports_index
+            .contains("Revisit saved retrieval work without leaving the archive workbench.")
+    );
     assert!(reports_index.contains("Open archive shell"));
     assert!(reports_index.contains("search-report-semantic-demo.html"));
     assert!(reports_index.contains("report-search"));
@@ -415,17 +418,14 @@ fn publish_archive_index_renders_decision_desk_from_integration_evidence() {
 
     let content = fs::read_to_string(conversations_dir(workspace.path()).join("index.html"))
         .expect("archive index");
-    assert!(content.contains("Local Governance Workbench"));
+    assert!(content.contains("Governance snapshot"));
     assert!(content.contains("Official baseline"));
     assert!(content.contains("Candidate"));
     assert!(content.contains("Remediation bundle"));
-    assert!(content.contains("Changed checks"));
     assert!(content.contains("Official baseline / active policy / promotion"));
     assert!(content.contains("baseline name:"));
     assert!(content.contains("active policy:"));
     assert!(content.contains("promotion status:"));
-    assert!(content.contains("Decision history"));
-    assert!(content.contains("Recent governance ledger"));
     assert!(content.contains("Open integration reports"));
 
     let integration_index =
@@ -464,9 +464,9 @@ fn publish_archive_index_shows_insufficient_when_reports_are_not_comparable() {
 
     let content = fs::read_to_string(conversations_dir(workspace.path()).join("index.html"))
         .expect("archive index");
-    assert!(content.contains("Local Governance Workbench"));
+    assert!(content.contains("Governance snapshot"));
     assert!(content.contains("insufficient"));
-    assert!(content.contains("Insufficient comparison input"));
+    assert!(content.contains("No artifact selected"));
     assert!(content.contains("No artifact selected"));
 }
 
@@ -535,11 +535,11 @@ fn publish_archive_index_renders_phase31_governance_fields() {
 
     let content = fs::read_to_string(conversations_dir(workspace.path()).join("index.html"))
         .expect("archive index html");
+    assert!(content.contains("Governance snapshot"));
     assert!(content.contains("Official baseline"));
     assert!(content.contains("baseline name: <code>codex-main</code>"));
     assert!(content.contains("active policy: <code>codex</code> <code>1.0.0</code>"));
     assert!(content.contains("promotion status: <code>"));
-    assert!(content.contains("Recent governance ledger"));
     assert!(content.contains("codex-main"));
 }
 
@@ -582,10 +582,10 @@ fn publish_archive_index_renders_governance_details_for_phase31() {
 
     let content = fs::read_to_string(conversations_dir(workspace.path()).join("index.html"))
         .expect("archive index");
+    assert!(content.contains("Governance snapshot"));
     assert!(content.contains("Official baseline"));
     assert!(content.contains("baseline name: <code>codex-main</code>"));
     assert!(content.contains("active policy: <code>codex</code> <code>1.0.0</code>"));
     assert!(content.contains("promotion status: <code>"));
-    assert!(content.contains("Decision history"));
     assert!(content.contains("codex-main"));
 }

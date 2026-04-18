@@ -139,40 +139,31 @@ pub fn render_archive_index_document(
             "<body>\n",
             "  <main class=\"page-shell\">\n",
             "    <header class=\"hero-card\">\n",
-            "      <p class=\"eyebrow\">agent-exporter local archive shell proof</p>\n",
-            "      <h1>{title}</h1>\n",
-            "      <p class=\"hero-copy\">产品总正门仍然是 CLI quickstart；如果你已经来到这里，就把这页理解成 archive shell proof 和 transcript/browser 侧厅。这里的主航道仍然是 transcript/archive 浏览与搜索，search reports 和 integration evidence 是并列工作线，Decision Desk 则是右手边的治理 lane，而不是整个产品的唯一主角。这里仍然是 local-first 的静态前厅，不会替你调用远程服务，也不会在浏览器里执行 doctor/onboard。</p>\n",
+            "      <p class=\"eyebrow\">archive workbench</p>\n",
+            "      <p class=\"hero-kicker\">{title}</p>\n",
+            "      <h1>Browse transcript evidence first.</h1>\n",
+            "      <p class=\"hero-copy\">这页首先要解决的，不是治理、不是什么 shell inventory，而是“我有哪些 transcript、我该先从哪一条开始”。你可以把它理解成 archive shell proof 和 transcript/browser 正门；search reports、integration evidence 和 governance 仍然在同一张桌子上，但都应该在你先看过 transcript 之后再打开。</p>\n",
             "      <dl class=\"meta-grid\">\n",
             "        <div><dt>生成时间</dt><dd><code>{generated_at}</code></dd></div>\n",
             "        <div><dt>Transcript exports</dt><dd><code>{entry_count}</code></dd></div>\n",
             "        <div><dt>Connectors</dt><dd><code>{connector_count}</code></dd></div>\n",
-            "        <div><dt>Saved search reports</dt><dd><code>{report_count}</code></dd></div>\n",
-            "        <div><dt>Integration evidence</dt><dd><code>{integration_report_count}</code></dd></div>\n",
             "        <div><dt>Primary front door</dt><dd><code>CLI quickstart</code></dd></div>\n",
-            "        <div><dt>Archive lanes</dt><dd><code>browse / search / governance</code></dd></div>\n",
             "        <div><dt>Workbench style</dt><dd><code>local-first / static / no executor</code></dd></div>\n",
             "      </dl>\n",
             "      <div class=\"hero-actions\">\n",
             "        <a class=\"open-link primary-link\" href=\"#archive-browser\">Start with transcripts</a>\n",
-            "        <a class=\"open-link\" href=\"#tool-lanes\">See side lanes</a>\n",
-            "        <a class=\"open-link\" href=\"#saved-reports\">Open saved reports</a>\n",
+            "        <a class=\"open-link\" href=\"#tool-lanes\">See next doors</a>\n",
+            "        <a class=\"open-link\" href=\"#governance-lane\">Open governance snapshot</a>\n",
             "      </div>\n",
             "      <div class=\"link-row compact-row\">\n",
             "        <a class=\"open-link\" href=\"../Search/Reports/index.html\">Open reports shell</a>\n",
             "        <a class=\"open-link\" href=\"../Integration/Reports/index.html\">Open integration reports</a>\n",
             "      </div>\n",
             "    </header>\n",
-            "    <section class=\"summary-grid\" aria-label=\"workspace summaries\">\n",
-            "{connector_summary}\n",
-            "{completeness_summary}\n",
-            "{source_summary}\n",
-            "{report_summary}\n",
-            "{integration_summary}\n",
-            "    </section>\n",
             "    <section class=\"section-card section-intro\" id=\"archive-browser\">\n",
             "      <p class=\"eyebrow\">Archive browser</p>\n",
             "      <h2>先从对话记录开始，而不是先看治理票据</h2>\n",
-            "      <p class=\"hero-copy\">这里是这张侧厅里的主航道。先筛 transcript、打开对话、理解 archive 本身，再决定要不要跳去 search reports 或 governance lane。换句话说：先看内容，再看诊断，再看制度。</p>\n",
+            "      <p class=\"hero-copy\">这里是这张 workbench 的主航道。先筛 transcript、打开对话、理解 archive 本身，再决定要不要跳去 search reports 或 integration evidence。换句话说：先看内容，再看 receipts，最后再进治理。</p>\n",
             "    </section>\n",
             "    <section class=\"search-bar\" aria-label=\"archive search\">\n",
             "      <label class=\"search-label\" for=\"archive-search\">Transcript search</label>\n",
@@ -189,22 +180,21 @@ pub fn render_archive_index_document(
             "    <p id=\"archive-empty-result\" class=\"empty-result\" hidden>No transcripts matched the current search.</p>\n",
             "    <section class=\"lane-grid\" id=\"tool-lanes\" aria-label=\"tool lanes\">\n",
             "      <article class=\"lane-card\">\n",
-            "        <p class=\"eyebrow\">Lane A</p>\n",
-            "        <h2>Browse transcripts</h2>\n",
-            "        <p>先把 transcript 当主角。用前面的搜索框和 facets 快速定位 conversation export，再决定要不要跳去更深的 report 或 governance 工具。</p>\n",
+            "        <p class=\"eyebrow\">Next door</p>\n",
+            "        <h2>Search reports</h2>\n",
+            "        <p>当你已经知道要找什么，但想回看 semantic 或 hybrid retrieval 的 receipt 时，再进入这条 lane。它负责保存检索结果，不负责替代 transcript browser。</p>\n",
+            "        <p><a class=\"open-link\" href=\"../Search/Reports/index.html\">Open retrieval lane</a></p>\n",
             "      </article>\n",
             "      <article class=\"lane-card\">\n",
-            "        <p class=\"eyebrow\">Lane B</p>\n",
-            "        <h2>Semantic retrieval</h2>\n",
-            "        <p>如果你要按语义找“内容相近”的 transcript，继续用 CLI 的 semantic / hybrid retrieval。search reports 仍然是独立抽屉，但从这里可以顺着跳过去，不会迷路。</p>\n",
-            "        <pre tabindex=\"0\" aria-label=\"semantic retrieval command example\"><code>agent-exporter search semantic --workspace-root &lt;repo-root&gt; --query \"login issues\" --save-report</code></pre>\n",
-            "        <pre tabindex=\"0\" aria-label=\"hybrid retrieval command example\"><code>agent-exporter search hybrid --workspace-root &lt;repo-root&gt; --query \"thread-1\" --save-report</code></pre>\n",
+            "        <p class=\"eyebrow\">Next door</p>\n",
+            "        <h2>Integration evidence</h2>\n",
+            "        <p>当你要确认 attach / onboard / doctor 结果时，再进入 integration evidence。它是一条 receipts shelf，不会重新执行诊断，也不会反过来盖过 transcript 主航道。</p>\n",
+            "        <p><a class=\"open-link\" href=\"../Integration/Reports/index.html\">Open integration lane</a></p>\n",
             "      </article>\n",
             "      <article class=\"lane-card\">\n",
-            "        <p class=\"eyebrow\">Lane C</p>\n",
-            "        <h2>Governance lane</h2>\n",
-            "        <p>Decision Desk 很重要，但它不是整张桌子的主语。它负责 official baseline、policy、promotion、history 和 remediation；当你处理“接线是否健康”时，再从这里切过去。</p>\n",
-            "        <pre tabindex=\"0\" aria-label=\"governance lane command example\"><code>agent-exporter evidence current --baseline-name &lt;name&gt;</code></pre>\n",
+            "        <p class=\"eyebrow\">What this page proves</p>\n",
+            "        <h2>This shell proves local browsing, not hosted orchestration.</h2>\n",
+            "        <p>你现在看到的是 local-first 的静态前厅。它会把 transcript、retrieval receipts 和 governance receipts 组织成可浏览 workbench，但不会在浏览器里替你执行 doctor、onboard 或 gate。</p>\n",
             "      </article>\n",
             "    </section>\n",
             "    <section class=\"section-card section-intro report-intro\" id=\"saved-reports\">\n",
@@ -214,6 +204,13 @@ pub fn render_archive_index_document(
             "    </section>\n",
             "    <section class=\"report-grid\" aria-label=\"retrieval reports\">\n",
             "{report_cards}\n",
+            "    </section>\n",
+            "    <section class=\"summary-grid\" aria-label=\"archive inventory summaries\">\n",
+            "{connector_summary}\n",
+            "{completeness_summary}\n",
+            "{source_summary}\n",
+            "{report_summary}\n",
+            "{integration_summary}\n",
             "    </section>\n",
             "<div id=\"governance-lane\">{decision_section}</div>\n",
             "  </main>\n",
@@ -225,8 +222,6 @@ pub fn render_archive_index_document(
         generated_at = escape_html(generated_at),
         entry_count = entries.len(),
         connector_count = distinct_connectors,
-        report_count = reports.len(),
-        integration_report_count = integration_reports.len(),
         entry_suffix = if entries.len() == 1 { "" } else { "s" },
         decision_section = decision_section,
         connector_facets = connector_facets,
@@ -425,16 +420,13 @@ fn render_decision_desk(summary: Option<&DecisionDeskSummary>) -> String {
     let candidate_card = render_decision_snapshot("Candidate", summary.candidate.as_ref());
     let governance_card = render_decision_governance(summary);
     let remediation = render_decision_remediation(summary);
-    let changed_checks = render_decision_changes(summary);
-    let history = render_decision_history(summary);
-
     format!(
         concat!(
             "<section class=\"decision-desk\" aria-label=\"decision desk\">\n",
             "  <header class=\"decision-header\">\n",
-            "    <p class=\"eyebrow\">Local Governance Workbench</p>\n",
-            "    <h2>Official standard / candidate / action bundle</h2>\n",
-            "    <p class=\"hero-copy\">这张工作台只读当前 workspace 下已经保存好的 integration evidence、baseline registry、policy packs 和 decision history。它负责告诉你现在的 official standard、candidate verdict、promotion status 和 remediation bundle，但在层级上仍然是 transcript/archive 主航道旁边的一条治理 lane，不会在浏览器里执行 doctor、onboard 或 gate。</p>\n",
+            "    <p class=\"eyebrow\">Governance snapshot</p>\n",
+            "    <h2>See governance only after you already know the content and receipts.</h2>\n",
+            "    <p class=\"hero-copy\">这块只给 archive 首页一张压缩版治理快照：official baseline、candidate verdict、promotion status 和 remediation count。完整比较、历史和详细接线票据应该去 integration evidence lane，而不是继续在首页扩成第二个主舞台。</p>\n",
             "    <div class=\"verdict-strip\">\n",
             "      <span class=\"chip verdict-chip\">{verdict}</span>\n",
             "      <span class=\"chip\">{regression}</span>\n",
@@ -449,17 +441,6 @@ fn render_decision_desk(summary: Option<&DecisionDeskSummary>) -> String {
             "{governance_card}\n",
             "{remediation}\n",
             "  </div>\n",
-            "{changed_checks}\n",
-            "{history}\n",
-            "  <section class=\"summary-card decision-nav\">\n",
-            "    <p class=\"eyebrow\">Cross-shell navigation</p>\n",
-            "    <h2>Stay in one front door, keep three corpora</h2>\n",
-            "    <div class=\"link-row\">\n",
-            "      <a class=\"open-link\" href=\"index.html\">Open transcript shell</a>\n",
-            "      <a class=\"open-link\" href=\"../Search/Reports/index.html\">Open search reports shell</a>\n",
-            "      <a class=\"open-link\" href=\"../Integration/Reports/index.html\">Open integration reports shell</a>\n",
-            "    </div>\n",
-            "  </section>\n",
             "</section>\n"
         ),
         verdict = escape_html(verdict_label),
@@ -471,8 +452,6 @@ fn render_decision_desk(summary: Option<&DecisionDeskSummary>) -> String {
         candidate_card = candidate_card,
         governance_card = governance_card,
         remediation = remediation,
-        changed_checks = changed_checks,
-        history = history,
     )
 }
 
@@ -598,108 +577,6 @@ fn render_decision_governance(summary: &DecisionDeskSummary) -> String {
     )
 }
 
-fn render_decision_changes(summary: &DecisionDeskSummary) -> String {
-    let Some(gate) = summary.gate.as_ref() else {
-        return "<section class=\"summary-card decision-changes\"><p class=\"eyebrow\">Changed checks</p><h2>Insufficient comparison input</h2><p>Save at least two related evidence reports before expecting a changed-checks ledger.</p></section>".to_string();
-    };
-
-    let mut items = Vec::new();
-
-    for change in &gate.blocking_changes {
-        items.push(render_change_item("blocking", change));
-    }
-    for change in &gate.warning_changes {
-        items.push(render_change_item("warning", change));
-    }
-    for change in &gate.ignored_changes {
-        items.push(render_change_item("ignorable", change));
-    }
-
-    let body = if items.is_empty() {
-        "<p class=\"empty-inline\">No changed checks. Baseline and candidate are aligned at the current evidence depth.</p>".to_string()
-    } else {
-        format!("<ul class=\"check-list\">{}</ul>", items.join(""))
-    };
-
-    format!(
-        concat!(
-            "<section class=\"summary-card decision-changes\">",
-            "<p class=\"eyebrow\">Changed checks</p>",
-            "<h2>Policy-aware change ledger</h2>",
-            "{body}",
-            "</section>"
-        ),
-        body = body,
-    )
-}
-
-fn render_decision_history(summary: &DecisionDeskSummary) -> String {
-    let body = if summary.history.is_empty() {
-        "<p class=\"empty-inline\">No governance decisions have been recorded for this platform/target yet.</p>".to_string()
-    } else {
-        format!(
-            "<ul class=\"check-list\">{}</ul>",
-            summary
-                .history
-                .iter()
-                .map(|entry| {
-                    format!(
-                        concat!(
-                            "<li class=\"change-item\">",
-                            "<div class=\"chip-row\">",
-                            "<span class=\"chip\">{verdict}</span>",
-                            "<span class=\"chip\">promoted {promoted}</span>",
-                            "<span class=\"chip\">{baseline_name}</span>",
-                            "</div>",
-                            "<p class=\"mono-inline\">{decided_at}</p>",
-                            "<p>{summary}</p>",
-                            "</li>"
-                        ),
-                        verdict = escape_html(&entry.verdict),
-                        promoted = if entry.promoted { "yes" } else { "no" },
-                        baseline_name = escape_html(&entry.baseline_name),
-                        decided_at = escape_html(&entry.decided_at),
-                        summary = escape_html(&entry.summary),
-                    )
-                })
-                .collect::<Vec<_>>()
-                .join("")
-        )
-    };
-
-    format!(
-        concat!(
-            "<section class=\"summary-card decision-changes\">",
-            "<p class=\"eyebrow\">Decision history</p>",
-            "<h2>Recent governance ledger</h2>",
-            "{body}",
-            "</section>"
-        ),
-        body = body,
-    )
-}
-
-fn render_change_item(
-    severity: &str,
-    change: &crate::core::integration_report::IntegrationEvidenceCheckDiff,
-) -> String {
-    format!(
-        concat!(
-            "<li class=\"change-item\">",
-            "<div class=\"chip-row\">",
-            "<span class=\"chip\">{severity}</span>",
-            "<span class=\"chip\">{label}</span>",
-            "</div>",
-            "<p class=\"mono-inline\">{left} -&gt; {right}</p>",
-            "</li>"
-        ),
-        severity = escape_html(severity),
-        label = escape_html(&change.label),
-        left = escape_html(change.left_readiness.as_deref().unwrap_or("missing")),
-        right = escape_html(change.right_readiness.as_deref().unwrap_or("missing")),
-    )
-}
-
 fn render_filter_buttons(group: &str, label: &str, items: Vec<(String, usize)>) -> String {
     let mut buttons = vec![format!(
         "<button type=\"button\" class=\"facet-button is-active\" data-filter-group=\"{group}\" data-filter-value=\"all\">All</button>"
@@ -778,7 +655,7 @@ fn archive_index_style() -> &'static str {
         0 28px 80px rgba(15, 23, 42, 0.10),
         0 0 0 1px rgba(255, 255, 255, 0.80) inset;
       --mono: "JetBrains Mono", "SFMono-Regular", "Menlo", monospace;
-      --sans: -apple-system, BlinkMacSystemFont, "IBM Plex Sans", "Segoe UI", sans-serif;
+      --sans: "IBM Plex Sans", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       --display: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
@@ -806,7 +683,7 @@ fn archive_index_style() -> &'static str {
     }
 
     .page-shell {
-      width: min(1240px, calc(100vw - 32px));
+      width: min(1180px, calc(100vw - 32px));
       margin: 0 auto;
       padding: 28px 0 72px;
       position: relative;
@@ -905,11 +782,8 @@ fn archive_index_style() -> &'static str {
     }
 
     .decision-header {
-      background:
-        radial-gradient(circle at top left, rgba(37, 99, 235, 0.14), transparent 36%),
-        linear-gradient(135deg, rgba(255, 255, 255, 0.90), rgba(248, 250, 252, 0.82)),
-        var(--surface);
-      box-shadow: var(--shadow-hero);
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: var(--shadow-panel);
     }
 
     .decision-card,
@@ -924,6 +798,14 @@ fn archive_index_style() -> &'static str {
       font-family: var(--mono);
       font-size: 11px;
       color: var(--accent);
+    }
+
+    .hero-kicker {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: 0.04em;
     }
 
     h1, h2 {
@@ -1397,14 +1279,10 @@ mod tests {
         );
 
         assert!(html.contains("Start with transcripts"));
-        assert!(html.contains("Open saved reports"));
+        assert!(html.contains("Open governance snapshot"));
         assert!(html.contains("Open reports shell"));
-        assert!(html.contains(
-            "search semantic --workspace-root &lt;repo-root&gt; --query \"login issues\" --save-report"
-        ));
-        assert!(html.contains(
-            "search hybrid --workspace-root &lt;repo-root&gt; --query \"thread-1\" --save-report"
-        ));
+        assert!(html.contains("Open retrieval lane"));
+        assert!(html.contains("Open integration lane"));
         assert!(html.contains("data-filter-group=\"connector\""));
         assert!(html.contains("data-filter-group=\"completeness\""));
         assert!(html.contains("Open integration reports"));
