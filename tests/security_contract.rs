@@ -20,6 +20,10 @@ fn assert_contains_all(content: &str, expected: &[&str], path: &str) {
     }
 }
 
+fn marker(parts: &[&str]) -> String {
+    parts.concat()
+}
+
 fn contains_openai_style_secret(content: &str) -> bool {
     let bytes = content.as_bytes();
     let mut index = 0;
@@ -140,22 +144,23 @@ fn tracked_text_files_do_not_contain_live_secret_material() {
             continue;
         };
         let lowercase = content.to_ascii_lowercase();
-        if lowercase.contains("ghp_") {
-            violations.push(format!("{relative}: ghp_"));
+        let github_token_prefix = marker(&["gh", "p_"]);
+        if lowercase.contains(&github_token_prefix) {
+            violations.push(format!("{relative}: {github_token_prefix}"));
         }
         if contains_openai_style_secret(&content) {
             violations.push(format!("{relative}: sk-<long-secret>"));
         }
         for marker in [
-            "xoxp-",
-            "xoxb-",
-            "-----begin private key-----",
-            "-----begin openssh private key-----",
-            "aws_secret_access_key",
-            "authorization: bearer ",
-            "\"api_key\":",
+            marker(&["xox", "p-"]),
+            marker(&["xox", "b-"]),
+            marker(&["-----begin", " private key-----"]),
+            marker(&["-----begin", " openssh private key-----"]),
+            marker(&["aws_", "secret_access_key"]),
+            marker(&["authorization", ": bearer "]),
+            marker(&["\"api", "_key\":"]),
         ] {
-            if lowercase.contains(marker) {
+            if lowercase.contains(&marker) {
                 violations.push(format!("{relative}: {marker}"));
             }
         }

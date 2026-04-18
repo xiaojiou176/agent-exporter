@@ -337,7 +337,7 @@ fn prepare_persistent_index<E: SemanticEmbedder>(
                 pending_slots.len()
             );
         }
-        for (slot, vector) in pending_slots.into_iter().zip(vectors.into_iter()) {
+        for (slot, vector) in pending_slots.into_iter().zip(vectors) {
             indexed_documents[slot].embedding = Some(vector);
             embedded_documents += 1;
         }

@@ -314,18 +314,17 @@ impl LocalReplay {
                     phase: string_field(payload, "phase"),
                 });
             }
-            Some("turn_started") => {
-                if self.current_round.is_none() {
-                    let turn_id = string_field(payload, "turn_id")
-                        .unwrap_or_else(|| format!("local-turn-{}", self.rounds.len() + 1));
-                    self.current_round = Some(ArchiveRound {
-                        turn_id,
-                        status: ArchiveTurnStatus::InProgress,
-                        error: None,
-                        items: Vec::new(),
-                    });
-                }
+            Some("turn_started") if self.current_round.is_none() => {
+                let turn_id = string_field(payload, "turn_id")
+                    .unwrap_or_else(|| format!("local-turn-{}", self.rounds.len() + 1));
+                self.current_round = Some(ArchiveRound {
+                    turn_id,
+                    status: ArchiveTurnStatus::InProgress,
+                    error: None,
+                    items: Vec::new(),
+                });
             }
+            Some("turn_started") => {}
             Some("turn_complete") => {
                 if let Some(round) = self.current_round.as_mut() {
                     round.status = ArchiveTurnStatus::Completed;
