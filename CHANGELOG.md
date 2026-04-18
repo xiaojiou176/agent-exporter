@@ -13,6 +13,10 @@ The format is based on Keep a Changelog.
 ### Changed
 - Public docs, metadata, and release-facing surfaces continue to tighten the `CLI-first -> archive shell proof -> secondary surfaces` order without promoting any secondary surface into the current primary path.
 - contributor/security docs now describe the stricter local safety gates and required ignore contract for local agent tooling paths
+- the local workbench shells now use a stricter transcript-first lane hierarchy and lighter governance framing across archive, search, and integration surfaces
+
+### Added
+- `scripts/public_surface_smoke.py` for repo-owned local + live public-surface smoke checks before a future public packet cut
 
 ## [0.1.1] - 2026-04-10
 

@@ -27,13 +27,18 @@ description: Archive and governance workbench for AI agent transcripts, with a q
       This Pages home exists to lower orientation cost: understand the desk, run the shortest path, then open the right lane.
     </p>
     <div class="ae-actions">
-      <a class="ae-button ae-button-primary" href="https://github.com/xiaojiou176-open/agent-exporter">Open GitHub front door</a>
-      <a class="ae-button" href="#first-success">Try the first success path</a>
+      <a class="ae-button ae-button-primary" href="#first-success">Try the first success path</a>
       <a class="ae-button" href="./archive-shell-proof.html">Inspect archive shell proof</a>
+      <a class="ae-button" href="https://github.com/xiaojiou176-open/agent-exporter">Open GitHub front door</a>
     </div>
     <p class="ae-caption">
       Pages is a <strong>companion docs surface</strong>.
       The primary surface remains the <strong>quickstart path</strong>.
+    </p>
+    <p class="ae-note">
+      Published shelf note:
+      the latest release is the frozen public packet,
+      while this Pages surface may move ahead with repository-side truth on `main`.
     </p>
   </div>
   <aside class="ae-hero-side ae-panel">
@@ -48,12 +53,12 @@ description: Archive and governance workbench for AI agent transcripts, with a q
         <dd>one HTML transcript receipt plus one archive shell entrypoint</dd>
       </div>
       <div>
-        <dt>Flagship public packet</dt>
-        <dd>GitHub repo + CLI quickstart + archive shell proof</dd>
+        <dt>Start here</dt>
+        <dd>run the first success path before opening side lanes</dd>
       </div>
       <div>
-        <dt>Secondary surfaces</dt>
-        <dd>reports shell, integration pack, read-only governance MCP bridge</dd>
+        <dt>Boundary</dt>
+        <dd>local-first proof surface, not a hosted runtime</dd>
       </div>
     </dl>
   </aside>
@@ -213,7 +218,8 @@ cargo run -- connectors</code></pre>
       <p class="ae-kicker">published shelf</p>
       <h2>Use the latest release when you need the newest published packet.</h2>
       <ul class="ae-bullet-list">
-        <li>tagged binary artifacts</li>
+        <li>tagged release notes</li>
+        <li>the frozen packet links for that tag</li>
         <li>release notes for the shipped cut</li>
         <li>the packet state already frozen into a release</li>
       </ul>

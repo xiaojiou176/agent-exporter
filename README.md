@@ -1,6 +1,6 @@
 # agent-exporter
 
-`agent-exporter` is an **archive and governance workbench for AI agent transcripts**.
+`agent-exporter` helps you export AI agent transcripts into local receipts, then turn those receipts, reports, and governance evidence into an **archive and governance workbench**.
 
 [Try It In 3 Steps](#first-success-path) · [Zero-Context First Look](#zero-context-first-look) · [Docs Landing](https://xiaojiou176-open.github.io/agent-exporter/) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) · [Latest Release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
 
@@ -16,6 +16,10 @@ If you only remember four things, remember these:
 | What should I do first? | start with the **quickstart path** |
 | What is the first visible proof? | one HTML transcript receipt plus the archive shell proof |
 | What shape should I expect? | an inspectable archive workbench, not a hosted archive platform or generic MCP product |
+
+> Published shelf note:
+> the latest release is the frozen published packet,
+> while this README and the Pages docs may move ahead with newer repository-side truth on `main`.
 
 ## Product Kernel
 
@@ -137,12 +141,12 @@ Use this route map instead:
 - **Canonical MCP descriptor:** `server.json` for registry/read-back lanes around the local stdio bridge
 - **Latest release shelf:** release/tag truth for the current public packet
 
-## Secondary MCP Bridge Packet
+## Secondary Local Stdio Host Packet
 
 Think of this packet like a reviewer envelope.
 You open it when a registry or host intake lane asks for the bridge assets specifically, not when a first-time user is still trying to understand the product.
 
-The MCP bridge packet is a **second-ring reviewer packet**, not a replacement
+The local stdio host packet is a **second-ring reviewer packet**, not a replacement
 front door.
 
 Use it when a registry, host reviewer, or packet intake lane asks:
@@ -187,7 +191,8 @@ That broader question still belongs to the CLI quickstart and archive shell proo
 
 Use the latest release shelf when you need the newest **published** packet:
 
-- the newest tagged binary artifacts
+- the newest tagged release notes
+- the frozen packet links for that tag
 - the release notes for the current shipped cut
 - the public packet state that has already been frozen into a release
 

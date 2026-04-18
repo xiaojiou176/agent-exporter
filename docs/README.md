@@ -17,6 +17,11 @@
       <a class="ae-button" href="./archive-shell-proof.md">Open archive proof</a>
       <a class="ae-button" href="./repo-map.md">Open repo map</a>
     </div>
+    <p class="ae-note">
+      Published shelf note:
+      the latest release is the frozen public packet,
+      while this docs surface may move ahead with repository-side truth on `main`.
+    </p>
   </div>
   <aside class="ae-hero-side ae-panel">
     <p class="ae-kicker">this hub is best for</p>
@@ -175,7 +180,7 @@
 <section class="ae-section">
   <div class="ae-split">
     <article class="ae-split-card">
-      <p class="ae-kicker">secondary MCP bridge packet</p>
+      <p class="ae-kicker">secondary local stdio host packet</p>
       <h2>Keep this packet small, narrow, and honest.</h2>
       <ul class="ae-bullet-list">
         <li>`../llms-install.md` for the shortest attach path</li>
@@ -203,7 +208,8 @@
       <p class="ae-kicker">published packet</p>
       <h2>Use the latest release shelf for the newest published packet.</h2>
       <ul class="ae-bullet-list">
-        <li>the tagged binary cut</li>
+        <li>the tagged release notes</li>
+        <li>the frozen packet links for that tag</li>
         <li>release notes for the shipped packet</li>
         <li>the frozen packet state already inside a release</li>
       </ul>

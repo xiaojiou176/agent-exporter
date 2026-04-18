@@ -156,6 +156,35 @@ description: What the archive shell proves, what it does not prove, and how to r
 </section>
 
 <section class="ae-section">
+  <div class="ae-section-head">
+    <p class="ae-kicker">next doors</p>
+    <h2>After proof, choose the right frozen or reviewer-facing shelf.</h2>
+    <p class="ae-lead">
+      This page explains what the archive shell proves.
+      Once that question is answered, the next question is usually one of three:
+      do you need the latest published packet, the local stdio host packet, or the wider packet/listing ledger?
+    </p>
+  </div>
+  <div class="ae-proof-grid">
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">Published shelf</p>
+      <h3>Latest release</h3>
+      <p>Use this when you need the newest frozen public packet rather than the newest repository-side wording on <code>main</code>.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">Host reviewer lane</p>
+      <h3>Local stdio host packet</h3>
+      <p>Use <code>llms-install.md</code> and <code>server.json</code> when the question is specifically about host-side wiring and review packet truth.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">Packet truth</p>
+      <h3>Distribution packet ledger</h3>
+      <p>Use the ledger when you need platform/listing status, not when you are still trying to understand the product itself.</p>
+    </article>
+  </div>
+</section>
+
+<section class="ae-section">
   <div class="ae-note-grid">
     <article class="ae-note-card">
       <p class="ae-kicker">when to open this page</p>
