@@ -278,6 +278,7 @@ pub fn render_integration_reports_index_document(
             entry.readiness.as_deref().unwrap_or("unknown")
         }),
     );
+    let lane_glance = render_integration_lane_glance(reports);
 
     format!(
         concat!(
@@ -292,9 +293,10 @@ pub fn render_integration_reports_index_document(
             "<body>\n",
             "  <main class=\"page-shell\">\n",
             "    <header class=\"hero-card\">\n",
-            "      <p class=\"eyebrow\">agent-exporter integration reports</p>\n",
-            "      <h1>{title}</h1>\n",
-            "      <p class=\"hero-copy\">这是一张 integration evidence 的本地侧门。它只组织已经保存下来的 onboarding/doctor 报告，不会重新执行诊断，也不会进入 transcript/search corpus；primary front door 仍然是 CLI quickstart，archive shell proof 仍是第一层可浏览证明。</p>\n",
+            "      <p class=\"eyebrow\">integration evidence lane</p>\n",
+            "      <p class=\"hero-kicker\">{title}</p>\n",
+            "      <h1>Review integration evidence before you compare or promote.</h1>\n",
+            "      <p class=\"hero-copy\">这页回答的是：当前这套接线更像 ready 还是 partial、最近一次 doctor/onboard 留下了什么 receipt、以及你现在值不值得进入 baseline、policy、promotion 或 remediation 的更深 lane。它是 archive workbench 的侧门，不是主门，也不会在浏览器里重新执行诊断。</p>\n",
             "      <dl class=\"meta-grid\">\n",
             "        <div><dt>Generated</dt><dd><code>{generated_at}</code></dd></div>\n",
             "        <div><dt>Saved reports</dt><dd><code>{report_count}</code></dd></div>\n",
@@ -304,6 +306,9 @@ pub fn render_integration_reports_index_document(
             "        <a class=\"open-link\" href=\"../../Search/Reports/index.html\">Open retrieval reports</a>\n",
             "      </div>\n",
             "    </header>\n",
+            "    <section class=\"route-grid\" aria-label=\"integration lane framing\">\n",
+            "{lane_glance}\n",
+            "    </section>\n",
             "    <section class=\"search-bar\" aria-label=\"integration reports search\">\n",
             "      <label class=\"search-label\" for=\"integration-report-search\">Report search</label>\n",
             "      <input id=\"integration-report-search\" class=\"search-input\" type=\"search\" placeholder=\"Search title, platform, readiness, target...\" autocomplete=\"off\">\n",
@@ -325,11 +330,60 @@ pub fn render_integration_reports_index_document(
         title = escape_html(title),
         generated_at = escape_html(generated_at),
         report_count = reports.len(),
+        lane_glance = lane_glance,
         platform_facets = platform_facets,
         readiness_facets = readiness_facets,
         body = body,
         style = integration_report_style(),
         script = integration_report_script(),
+    )
+}
+
+fn render_integration_lane_glance(reports: &[IntegrationReportEntry]) -> String {
+    let latest = reports
+        .iter()
+        .max_by_key(|entry| entry.generated_at.as_deref().unwrap_or(""));
+    let latest_platform = latest
+        .and_then(|entry| entry.platform.as_deref())
+        .unwrap_or("unknown");
+    let latest_readiness = latest
+        .and_then(|entry| entry.readiness.as_deref())
+        .unwrap_or("unknown");
+    let latest_target = latest
+        .and_then(|entry| entry.target_root.as_deref())
+        .unwrap_or("no saved target yet");
+    let latest_generated = latest
+        .and_then(|entry| entry.generated_at.as_deref())
+        .unwrap_or("unknown");
+
+    format!(
+        concat!(
+            "<article class=\"route-card\">",
+            "<p class=\"eyebrow\">Use this page when</p>",
+            "<h2>You need onboarding or doctor receipts, not transcript browsing.</h2>",
+            "<p>这里是 integration evidence 的收据架。先看现在有哪些 saved reports、ready/partial 怎么分布，再决定要不要继续进入治理层。</p>",
+            "</article>",
+            "<article class=\"route-card\">",
+            "<p class=\"eyebrow\">Do not use this page for</p>",
+            "<h2>First contact with the product.</h2>",
+            "<p>如果你还没决定从哪开始，先回 archive shell；如果你只是想回看 semantic/hybrid 查询，先去 search reports，而不是在这里绕进接线票据。</p>",
+            "</article>",
+            "<article class=\"route-card\">",
+            "<p class=\"eyebrow\">Current integration picture</p>",
+            "<h2>Latest saved report at a glance</h2>",
+            "<div class=\"chip-row\">",
+            "<span class=\"chip\">{latest_platform}</span>",
+            "<span class=\"chip\">{latest_readiness}</span>",
+            "</div>",
+            "<p class=\"mono-inline\">target: <code>{latest_target}</code></p>",
+            "<p class=\"mono-inline\">generated: <code>{latest_generated}</code></p>",
+            "<p>先确认最近一次 receipt 是什么，再决定要不要下钻历史列表。</p>",
+            "</article>"
+        ),
+        latest_platform = escape_html(latest_platform),
+        latest_readiness = escape_html(latest_readiness),
+        latest_target = escape_html(latest_target),
+        latest_generated = escape_html(latest_generated),
     )
 }
 
@@ -446,6 +500,7 @@ fn render_index_card(entry: &IntegrationReportEntry) -> String {
     format!(
         concat!(
             "<article class=\"entry-card\" data-search-text=\"{searchable_text}\" data-platform=\"{platform}\" data-readiness=\"{readiness}\">",
+            "<div class=\"entry-card-head\">",
             "<p class=\"eyebrow\">Saved integration report</p>",
             "<h2>{title}</h2>",
             "<div class=\"chip-row\">",
@@ -453,9 +508,12 @@ fn render_index_card(entry: &IntegrationReportEntry) -> String {
             "<span class=\"chip\">{platform}</span>",
             "<span class=\"chip\">{readiness}</span>",
             "</div>",
-            "{target_line}",
+            "</div>",
+            "<div class=\"entry-card-body\">",
             "{generated_line}",
+            "{target_line}",
             "<p><a class=\"open-link\" href=\"{href}\">Open report</a></p>",
+            "</div>",
             "</article>"
         ),
         searchable_text = escape_html(&searchable_text),
@@ -527,8 +585,8 @@ fn integration_report_style() -> &'static str {
     --shadow-hero:
       0 28px 80px rgba(15, 23, 42, 0.10),
       0 0 0 1px rgba(255, 255, 255, 0.80) inset;
-    --mono: "JetBrains Mono", "SFMono-Regular", "Menlo", monospace;
-    --sans: -apple-system, BlinkMacSystemFont, "IBM Plex Sans", "Segoe UI", sans-serif;
+  --mono: "JetBrains Mono", "SFMono-Regular", "Menlo", monospace;
+  --sans: "IBM Plex Sans", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     --display: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   }
   * { box-sizing: border-box; }
@@ -553,9 +611,9 @@ fn integration_report_style() -> &'static str {
     opacity: 0.26;
   }
   .page-shell {
-    max-width: 1160px;
+    max-width: 1180px;
     margin: 0 auto;
-    padding: 28px 20px 64px;
+    padding: 28px 0 72px;
     position: relative;
     z-index: 1;
   }
@@ -580,7 +638,7 @@ fn integration_report_style() -> &'static str {
     margin-bottom: 24px;
   }
   .hero-card {
-    padding: 30px;
+    padding: 32px;
     border-radius: 32px;
     box-shadow: var(--shadow-hero);
     background:
@@ -608,6 +666,13 @@ fn integration_report_style() -> &'static str {
   .hero-copy, .summary-card, .check-detail, .search-status, .empty-inline, .empty-state p, .empty-result {
     color: var(--ink-soft);
     line-height: 1.72;
+  }
+  .hero-kicker {
+    margin: 0 0 12px;
+    color: var(--muted);
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.04em;
   }
   .summary-card {
     padding: 16px 18px;
@@ -637,7 +702,14 @@ fn integration_report_style() -> &'static str {
     margin-bottom: 4px;
     font-family: var(--mono);
   }
-  .meta-grid dd, .mono-inline, code {
+  .meta-grid dd {
+    margin: 0;
+    font-size: 15px;
+    color: var(--ink);
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  .mono-inline, code {
     margin: 0;
     font-family: var(--mono);
     font-size: 13px;
@@ -677,20 +749,45 @@ fn integration_report_style() -> &'static str {
     font-family: var(--mono);
     font-size: 12px;
   }
-  .check-grid, .card-grid, .two-col {
+  .check-grid, .card-grid, .two-col, .route-grid {
     display: grid;
     gap: 16px;
   }
   .check-grid {
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   }
-  .card-grid, .two-col {
+  .card-grid {
+    grid-template-columns: 1fr;
+  }
+  .two-col, .route-grid {
     grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  }
+  .route-grid {
+    margin-bottom: 18px;
+  }
+  .route-card {
+    position: relative;
+    overflow: hidden;
+    padding: 22px;
+    border-radius: 24px;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.84);
+    box-shadow: var(--shadow-panel);
   }
   .check-card, .entry-card {
     padding: 18px;
     background: rgba(255, 255, 255, 0.84);
     border-radius: 22px;
+  }
+  .entry-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+    gap: 18px;
+    align-items: start;
+  }
+  .entry-card-head, .entry-card-body {
+    display: grid;
+    gap: 10px;
   }
   .mono-list, .step-list {
     margin: 0;
@@ -764,8 +861,9 @@ fn integration_report_style() -> &'static str {
   [hidden] { display: none !important; }
   @media (max-width: 700px) {
     .page-shell { padding-inline: 14px; }
-    .hero-card, .section-card, .search-bar, .entry-card { border-radius: 20px; }
-    .card-grid, .two-col { grid-template-columns: 1fr; }
+    .hero-card, .section-card, .search-bar, .entry-card, .route-card { border-radius: 20px; }
+    .card-grid, .two-col, .route-grid { grid-template-columns: 1fr; }
+    .entry-card { grid-template-columns: 1fr; }
   }
 "#
 }

@@ -166,9 +166,10 @@ pub fn render_search_reports_index_document(
             "<body>\n",
             "  <main class=\"page-shell\">\n",
             "    <header class=\"hero-card\">\n",
-            "      <p class=\"eyebrow\">agent-exporter reports shell</p>\n",
-            "      <h1>{title}</h1>\n",
-            "      <p class=\"hero-copy\">这是一张 retrieval reports 的本地目录页。你可以把它理解成 search receipts 的柜台：检索执行仍然在 CLI，页面只负责组织和回看这些已保存的 report；它是 archive workbench 的侧门，不是主门。真正的 primary front door 仍然是 CLI quickstart，archive shell proof 则是第一层可浏览证明。</p>\n",
+            "      <p class=\"eyebrow\">retrieval lane</p>\n",
+            "      <p class=\"hero-kicker\">{title}</p>\n",
+            "      <h1>Revisit saved retrieval work without leaving the archive workbench.</h1>\n",
+            "      <p class=\"hero-copy\">当你已经做过 semantic 或 hybrid retrieval，想回看 query、排序和 report receipt 时，再来这页。它是 archive workbench 的侧门，不是主门；检索动作仍然发生在 CLI，这里只负责把已经保存下来的 retrieval evidence 组织成可回看的 shelf。</p>\n",
             "      <dl class=\"meta-grid\">\n",
             "        <div><dt>Generated</dt><dd><code>{generated_at}</code></dd></div>\n",
             "        <div><dt>Saved reports</dt><dd><code>{report_count}</code></dd></div>\n",
@@ -178,6 +179,9 @@ pub fn render_search_reports_index_document(
             "        <a class=\"open-link\" href=\"../../Integration/Reports/index.html\">Open integration reports</a>\n",
             "      </div>\n",
             "    </header>\n",
+            "    <section class=\"route-grid\" aria-label=\"retrieval lane framing\">\n",
+            "{route_cards}\n",
+            "    </section>\n",
             "    <section class=\"search-bar\" aria-label=\"reports search\">\n",
             "      <label class=\"search-label\" for=\"report-search\">Report search</label>\n",
             "      <input id=\"report-search\" class=\"search-input\" type=\"search\" placeholder=\"Search title, query, report kind...\" autocomplete=\"off\">\n",
@@ -198,10 +202,55 @@ pub fn render_search_reports_index_document(
         title = escape_html(archive_title),
         generated_at = escape_html(generated_at),
         report_count = reports.len(),
+        route_cards = render_reports_lane_glance(reports),
         report_kind_facets = report_kind_facets,
         body = body,
         style = search_report_style(),
         script = search_report_script(),
+    )
+}
+
+fn render_reports_lane_glance(reports: &[SearchReportEntry]) -> String {
+    let latest = reports
+        .iter()
+        .max_by_key(|entry| entry.generated_at.as_deref().unwrap_or(""));
+
+    let latest_card = if let Some(latest) = latest {
+        let query = latest.query.as_deref().unwrap_or("saved retrieval");
+        let generated = latest.generated_at.as_deref().unwrap_or("unknown");
+        format!(
+            concat!(
+                "<article class=\"route-card\">",
+                "<p class=\"eyebrow\">Latest saved report</p>",
+                "<h2>{title}</h2>",
+                "<p>如果你只是想知道最近一次 retrieval 到底留下了什么 receipt，从这里进最快。</p>",
+                "<p class=\"mono-inline\">query: <code>{query}</code></p>",
+                "<p class=\"mono-inline\">generated: <code>{generated}</code></p>",
+                "</article>"
+            ),
+            title = escape_html(&latest.title),
+            query = escape_html(query),
+            generated = escape_html(generated),
+        )
+    } else {
+        "<article class=\"route-card\"><p class=\"eyebrow\">Latest saved report</p><h2>No report yet</h2><p>先在 CLI 里保存一次 semantic 或 hybrid retrieval，才有值得回看的 shelf。</p></article>".to_string()
+    };
+
+    format!(
+        concat!(
+            "<article class=\"route-card\">",
+            "<p class=\"eyebrow\">Use this page when</p>",
+            "<h2>You want retrieval receipts, not transcript browsing.</h2>",
+            "<p>这里回答的是：我当时搜了什么、为什么是这个排序、最近保存过哪些 report。它不负责替代 transcript browser，也不负责做 integration governance judgement。</p>",
+            "</article>",
+            "<article class=\"route-card\">",
+            "<p class=\"eyebrow\">Do not use this page for</p>",
+            "<h2>First contact with the product.</h2>",
+            "<p>如果你还在找“从哪开始”，先回 archive shell；如果你要看 onboarding、doctor、baseline 或 policy，去 integration evidence lane，而不是在这里绕路。</p>",
+            "</article>",
+            "{latest_card}"
+        ),
+        latest_card = latest_card,
     )
 }
 
@@ -377,7 +426,7 @@ fn search_report_style() -> &'static str {
         0 28px 80px rgba(15, 23, 42, 0.10),
         0 0 0 1px rgba(255, 255, 255, 0.80) inset;
       --mono: "JetBrains Mono", "SFMono-Regular", "Menlo", monospace;
-      --sans: -apple-system, BlinkMacSystemFont, "IBM Plex Sans", "Segoe UI", sans-serif;
+      --sans: "IBM Plex Sans", "SF Pro Text", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       --display: "IBM Plex Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
@@ -454,6 +503,14 @@ fn search_report_style() -> &'static str {
       color: var(--accent);
     }
 
+    .hero-kicker {
+      margin: 0 0 12px;
+      color: var(--muted);
+      font-family: var(--mono);
+      font-size: 13px;
+      letter-spacing: 0.04em;
+    }
+
     h1, h2 {
       margin: 0 0 12px;
       line-height: 1.04;
@@ -479,6 +536,23 @@ fn search_report_style() -> &'static str {
       gap: 12px;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       margin: 18px 0 0;
+    }
+
+    .route-grid {
+      display: grid;
+      gap: 18px;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      margin: 0 0 22px;
+    }
+
+    .route-card {
+      position: relative;
+      overflow: hidden;
+      padding: 22px;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.84);
+      box-shadow: var(--shadow-panel);
     }
 
     .meta-grid div {
@@ -662,6 +736,7 @@ fn search_report_style() -> &'static str {
 
       .hero-card,
       .entry-card,
+      .route-card,
       .empty-state {
         border-radius: 20px;
         padding: 18px;
@@ -800,7 +875,9 @@ mod tests {
             }],
         );
 
-        assert!(html.contains("agent-exporter reports shell"));
+        assert!(
+            html.contains("Revisit saved retrieval work without leaving the archive workbench.")
+        );
         assert!(html.contains("Open archive shell"));
         assert!(html.contains("Open integration reports"));
         assert!(html.contains("search-report-semantic-demo.html"));
