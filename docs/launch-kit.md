@@ -124,6 +124,8 @@ image: /assets/media/agent-exporter-social-card.png
 | fastest visual orientation | [`promo-reel.html`](./promo-reel.html) | short visual companion before deeper proof |
 | shared preview image | [`agent-exporter-social-card.png`](./assets/media/agent-exporter-social-card.png) | best for chat cards, posts, and link previews |
 | mobile-first short-form share | [`agent-exporter-promo-vertical.mp4`](./assets/media/agent-exporter-promo-vertical.mp4) | best for portrait-first channels and mobile-first story/reel lanes |
+| spoken narration source | [`agent-exporter-promo-landscape-voiceover.m4a`](./assets/media/agent-exporter-promo-landscape-voiceover.m4a) | best when you want the promo narration as a reusable standalone track |
+| portrait narration source | [`agent-exporter-promo-vertical-voiceover.m4a`](./assets/media/agent-exporter-promo-vertical-voiceover.m4a) | best when you need the shorter mobile-first narration track |
 | visual proof slide | [`archive-shell-proof.svg`](./assets/archive-shell-proof.svg) | best when the audience wants proof structure over motion |
 | reviewer-safe caption asset | [`agent-exporter-promo.vtt`](./assets/media/agent-exporter-promo.vtt) | keeps the reel usable without audio |
 | first proof explanation | [`archive-shell-proof.html`](./archive-shell-proof.html) | explains what the current proof does and does not prove |
@@ -150,6 +152,30 @@ image: /assets/media/agent-exporter-social-card.png
       <p class="ae-mini-label">same truth</p>
       <h3>Format changes. Boundary does not.</h3>
       <p>Short-form is still not a license to overclaim. Keep CLI quickstart first, archive shell proof second, and side lanes after that.</p>
+    </article>
+  </div>
+</section>
+
+<section class="ae-section">
+  <div class="ae-section-head">
+    <p class="ae-kicker">audio-ready drafts</p>
+    <h2>These variants assume the reel can now speak, not just display captions.</h2>
+  </div>
+  <div class="ae-proof-grid">
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">landscape narration</p>
+      <h3>Longer reviewer-safe voiceover</h3>
+      <p>`agent-exporter` is an archive and governance workbench for AI agent transcripts. Start with the CLI quickstart. Export one HTML receipt. Publish the archive shell proof. Keep reports and governance as companion lanes on the same local desk.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">vertical narration</p>
+      <h3>Shorter mobile-first voiceover</h3>
+      <p>`CLI quickstart first. Export one HTML transcript receipt. Publish the archive shell proof. Local first. Not hosted. Governance stays a side lane, not the product identity.`</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">rule</p>
+      <h3>Audio does not change the truth boundary</h3>
+      <p>Voiceover can improve orientation, but it still may not replace the transcript, captions, or proof boundary.</p>
     </article>
   </div>
 </section>

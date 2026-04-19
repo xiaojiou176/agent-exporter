@@ -1,0 +1,5 @@
+agent-exporter is an archive and governance workbench for AI agent transcripts.
+Start with the CLI quickstart.
+Export one HTML transcript receipt.
+Publish the archive shell proof.
+Keep reports and governance as companion lanes on the same local desk.

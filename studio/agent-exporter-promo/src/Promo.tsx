@@ -1,6 +1,7 @@
 import React from "react";
 import {
   AbsoluteFill,
+  Audio,
   Img,
   interpolate,
   Sequence,
@@ -170,6 +171,7 @@ export const AgentExporterPromo: React.FC = () => {
         overflow: "hidden",
       }}
     >
+      <Audio src={staticFile("agent-exporter-promo-landscape-voiceover.m4a")} volume={0.92} />
       <AbsoluteFill
         style={{
           opacity: 0.25,
