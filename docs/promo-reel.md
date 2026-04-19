@@ -1,6 +1,7 @@
 ---
 title: Promo Reel
 description: A short visual walkthrough of agent-exporter's CLI-first archive workbench.
+image: /assets/media/agent-exporter-social-card.png
 ---
 
 <main id="main-content" role="main" markdown="1">
@@ -16,6 +17,7 @@ description: A short visual walkthrough of agent-exporter's CLI-first archive wo
     </p>
     <div class="ae-actions">
       <a class="ae-button ae-button-primary" href="./assets/media/agent-exporter-promo.mp4">Download the promo video</a>
+      <a class="ae-button" href="./assets/media/agent-exporter-social-card.png">Download social card</a>
       <a class="ae-button" href="./archive-shell-proof.html">Inspect archive shell proof</a>
       <a class="ae-button" href="./">Return to docs home</a>
     </div>
@@ -82,6 +84,15 @@ description: A short visual walkthrough of agent-exporter's CLI-first archive wo
     </p>
   </div>
   <div class="ae-split">
+    <article class="ae-split-card">
+      <p class="ae-kicker">share asset</p>
+      <h3>Social card</h3>
+      <p>
+        Download the
+        <a href="./assets/media/agent-exporter-social-card.png">share card image</a>
+        when you need a single-frame public preview for posts, cards, or reviewer packets.
+      </p>
+    </article>
     <article class="ae-split-card">
       <p class="ae-kicker">download captions</p>
       <h3>WebVTT captions</h3>
