@@ -133,7 +133,7 @@ def live_smoke(repo_root: Path) -> None:
             "docs index",
             website_url + "/README.html",
             [
-                "../README.html",
+                "./README.html",
                 "./promo-reel.html",
                 "./launch-kit.html",
                 "./archive-shell-proof.html",
@@ -168,7 +168,7 @@ def live_smoke(repo_root: Path) -> None:
                 "promo-reel.html",
                 "launch-kit.html",
                 "distribution-packet-ledger.html",
-                "../server.json",
+                "./server.json",
             ],
         ),
         (

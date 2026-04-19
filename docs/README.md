@@ -13,7 +13,7 @@
       If you are still trying to understand the product itself, go back to the flagship front door first.
     </p>
     <div class="ae-actions">
-      <a class="ae-button ae-button-primary" href="../README.html">Open flagship front door</a>
+      <a class="ae-button ae-button-primary" href="./README.html">Open flagship front door</a>
       <a class="ae-button" href="./promo-reel.html">Open promo reel</a>
       <a class="ae-button" href="./launch-kit.html">Open launch kit</a>
       <a class="ae-button" href="./archive-shell-proof.html">Open archive proof</a>
@@ -52,7 +52,7 @@
 
 | Question | Open this | Why |
 | --- | --- | --- |
-| "What is the product and what should I do first?" | [README front door](../README.html) | this is still the flagship front door |
+| "What is the product and what should I do first?" | [README front door](./README.html) | this is still the flagship front door |
 | "Can I get a fast visual walkthrough before I run it?" | [Promo reel](./promo-reel.html) | this is the compact visual companion, not the proof boundary |
 | "What should I share after the product story is clear?" | [Launch kit](./launch-kit.html) | this is the second-ring distribution-prep lane |
 | "What does the first proof actually prove?" | [Archive shell proof](./archive-shell-proof.html) | this is the first public proof layer |
@@ -103,7 +103,7 @@
 
 | If you are trying to... | Read this next |
 | --- | --- |
-| decide whether the repo is worth trying once | [README front door](../README.html) |
+| decide whether the repo is worth trying once | [README front door](./README.html) |
 | understand the first truthful visible proof | [Archive shell proof](./archive-shell-proof.html) |
 | understand the structure of the workbench | [Repo map](./repo-map.html) |
 | inspect registry / packet / listing truth | [Distribution packet ledger](./distribution-packet-ledger.html) |
@@ -199,8 +199,8 @@
       <p class="ae-kicker">secondary local stdio host packet</p>
       <h2>Keep this packet small, narrow, and honest.</h2>
       <ul class="ae-bullet-list">
-        <li><a href="../llms-install.html">llms-install</a> for the shortest attach path</li>
-        <li><a href="../server.json">server.json</a> for the canonical descriptor</li>
+        <li><a href="./llms-install.html">llms-install</a> for the shortest attach path</li>
+        <li><a href="./server.json">server.json</a> for the canonical descriptor</li>
         <li>marketplace logo/proof tile only for reviewer lanes</li>
       </ul>
     </article>
@@ -253,11 +253,11 @@
 
 | Layer | Current truth | First proof / entry |
 | --- | --- | --- |
-| CLI core | Codex `app-server` remains the canonical path; `local` and `claude-code` are landed | CLI quickstart in [README front door](../README.html) |
+| CLI core | Codex `app-server` remains the canonical path; `local` and `claude-code` are landed | CLI quickstart in [README front door](./README.html) |
 | Archive shell proof | `publish archive-index` generates the transcript browser, workspace backlinks, and the archive shell | `.agents/Conversations/index.html` |
 | Reports shell | `search semantic|hybrid --save-report` generates retrieval receipts and the reports shell | `.agents/Search/Reports/index.html` |
 | Integration pack | `integrate`, `doctor integrations`, and `onboard` are repo-owned companion lanes | `.agents/Integration/Reports/index.html` |
-| MCP descriptor | root `server.json` is the canonical registry/read-back descriptor for the local stdio bridge | [`server.json`](../server.json) |
+| MCP descriptor | root `server.json` is the canonical registry/read-back descriptor for the local stdio bridge | [`server.json`](./server.json) |
 | Governance lane | evidence, baselines, policy packs, and remediation now live in the local workbench | archive shell Decision Desk + integration evidence reports |
 
 </section>

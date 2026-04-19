@@ -197,7 +197,7 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
     assert_contains_all(
         &docs_index,
         &[
-            "../README.html",
+            "./README.html",
             "./promo-reel.html",
             "./launch-kit.html",
             "./archive-shell-proof.html",
@@ -215,7 +215,7 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
             "href=\"./promo-reel.html\"",
             "href=\"./launch-kit.html\"",
             "href=\"./distribution-packet-ledger.html\"",
-            "href=\"../server.json\"",
+            "href=\"./server.json\"",
         ],
         "docs/archive-shell-proof.md",
     );

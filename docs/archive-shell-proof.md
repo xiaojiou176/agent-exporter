@@ -195,8 +195,8 @@ description: What the archive shell proves, what it does not prove, and how to r
       <h3>Local stdio host packet</h3>
       <p>Use <code>llms-install.md</code> and <code>server.json</code> when the question is specifically about host-side wiring and review packet truth.</p>
       <div class="ae-inline-links">
-        <a class="ae-button" href="../llms-install.html">Open install note</a>
-        <a class="ae-button" href="../server.json">Open server.json</a>
+        <a class="ae-button" href="./llms-install.html">Open install note</a>
+        <a class="ae-button" href="./server.json">Open server.json</a>
       </div>
     </article>
     <article class="ae-proof-card">
