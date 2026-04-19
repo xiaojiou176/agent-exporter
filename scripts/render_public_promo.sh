@@ -8,4 +8,5 @@ cd "$PROMO_DIR"
 
 pnpm install --frozen-lockfile
 pnpm poster
+pnpm social-card
 pnpm render

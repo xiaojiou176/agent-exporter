@@ -1,6 +1,7 @@
 ---
 title: agent-exporter
 description: Archive and governance workbench for AI agent transcripts, with a quickstart path and archive-shell proof routing.
+image: /assets/media/agent-exporter-social-card.png
 ---
 
 <style>
@@ -83,6 +84,13 @@ description: Archive and governance workbench for AI agent transcripts, with a q
       Promo reel: a short visual walkthrough of the transcript-first workbench, proof ladder, and lane hierarchy.
     </figcaption>
   </figure>
+  <div class="ae-proof-grid">
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">share-ready asset</p>
+      <h3>Social card</h3>
+      <p>Need a single-frame preview for a post, chat share, or reviewer packet? Use the <a href="./assets/media/agent-exporter-social-card.png">social card image</a>.</p>
+    </article>
+  </div>
 </section>
 
 <section class="ae-section">

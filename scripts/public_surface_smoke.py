@@ -69,6 +69,7 @@ def local_smoke(repo_root: Path) -> None:
         repo_root / "docs" / "promo-reel.md",
         repo_root / "docs" / "assets" / "media" / "agent-exporter-promo.mp4",
         repo_root / "docs" / "assets" / "media" / "agent-exporter-promo-poster.png",
+        repo_root / "docs" / "assets" / "media" / "agent-exporter-social-card.png",
         repo_root / "docs" / "assets" / "media" / "agent-exporter-promo.vtt",
     ]
     for path in workbench_paths:
@@ -120,6 +121,8 @@ def live_smoke(repo_root: Path) -> None:
         if status != 200:
             raise SystemExit(f"{label} did not return 200: {url} -> {status}")
         print(f"[ok] {label}: {final_url}")
+        if label in {"pages landing", "promo reel"} and "agent-exporter-social-card.png" not in body:
+            raise SystemExit(f"{label} is missing the shared social card reference")
         if label == "raw server descriptor":
             live_descriptor = json.loads(body)
             if live_descriptor["websiteUrl"] != server["websiteUrl"]:

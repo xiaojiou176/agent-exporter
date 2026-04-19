@@ -188,6 +188,12 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
         );
     }
 
+    let docs_home = read_repo_file("docs/index.md");
+    assert!(
+        docs_home.contains("agent-exporter-social-card.png"),
+        "docs/index.md lost the social card entrypoint"
+    );
+
     let promo_page = "docs/promo-reel.md";
     let promo_content = read_repo_file(promo_page);
     assert_contains_all(
@@ -198,6 +204,7 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
             "archive shell proof",
             "agent-exporter-promo.mp4",
             "agent-exporter-promo-poster.png",
+            "agent-exporter-social-card.png",
             "agent-exporter-promo.vtt",
             "Plain-text transcript",
         ],
@@ -207,6 +214,7 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
     for asset in [
         "docs/assets/media/agent-exporter-promo.mp4",
         "docs/assets/media/agent-exporter-promo-poster.png",
+        "docs/assets/media/agent-exporter-social-card.png",
         "docs/assets/media/agent-exporter-promo.vtt",
     ] {
         assert!(
@@ -235,5 +243,13 @@ fn pages_index_keeps_main_landmark_and_visibility_styles() {
     assert!(
         layout.contains("role=\"contentinfo\""),
         "docs/_layouts/default.html lost the footer contentinfo landmark"
+    );
+    assert!(
+        layout.contains("og:image"),
+        "docs/_layouts/default.html lost the social image metadata"
+    );
+    assert!(
+        layout.contains("twitter:card"),
+        "docs/_layouts/default.html lost the Twitter card metadata"
     );
 }
