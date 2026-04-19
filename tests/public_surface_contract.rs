@@ -208,6 +208,7 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
             "first-success path",
             "archive shell proof",
             "agent-exporter-promo.mp4",
+            "agent-exporter-promo-vertical.mp4",
             "agent-exporter-promo-poster.png",
             "agent-exporter-social-card.png",
             "agent-exporter-promo.vtt",
@@ -216,8 +217,21 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
         promo_page,
     );
 
+    let launch_content = read_repo_file("docs/launch-kit.md");
+    assert_contains_all(
+        &launch_content,
+        &[
+            "agent-exporter-promo-vertical.mp4",
+            "Vertical cut",
+            "channel variants",
+        ],
+        "docs/launch-kit.md",
+    );
+
     for asset in [
         "docs/assets/media/agent-exporter-promo.mp4",
+        "docs/assets/media/agent-exporter-promo-vertical.mp4",
+        "docs/assets/media/agent-exporter-promo-vertical-poster.png",
         "docs/assets/media/agent-exporter-promo-poster.png",
         "docs/assets/media/agent-exporter-social-card.png",
         "docs/assets/media/agent-exporter-promo.vtt",
