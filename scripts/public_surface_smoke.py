@@ -133,11 +133,13 @@ def live_smoke(repo_root: Path) -> None:
             "docs index",
             website_url + "/README.html",
             [
-                "./README.html",
+                repo_url,
                 "./promo-reel.html",
                 "./launch-kit.html",
                 "./archive-shell-proof.html",
                 "./repo-map.html",
+                repo_url + "/blob/main/llms-install.md",
+                repo_url + "/blob/main/server.json",
             ],
         ),
         (
@@ -168,7 +170,8 @@ def live_smoke(repo_root: Path) -> None:
                 "promo-reel.html",
                 "launch-kit.html",
                 "distribution-packet-ledger.html",
-                "./server.json",
+                repo_url + "/blob/main/llms-install.md",
+                repo_url + "/blob/main/server.json",
             ],
         ),
         (
@@ -177,7 +180,8 @@ def live_smoke(repo_root: Path) -> None:
             [
                 "./promo-reel.html",
                 "./launch-kit.html",
-                "README front door",
+                repo_url,
+                "GitHub front door",
                 "tree/main/src/output",
             ],
         ),
