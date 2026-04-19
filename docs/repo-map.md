@@ -72,7 +72,7 @@ description: Public repo map for the agent-exporter workbench, with clear routin
 
 | If your question is... | Open this next | Why |
 | --- | --- | --- |
-| "How do I get one successful result?" | [README front door](./README.html) | the flagship front door stays there |
+| "How do I get one successful result?" | [GitHub front door](https://github.com/xiaojiou176-open/agent-exporter) | the flagship front door stays there |
 | "Can I get the shortest visual walkthrough first?" | [Promo reel](./promo-reel.html) | this is the compact visual companion |
 | "What should I share once the product story is already clear?" | [Launch kit](./launch-kit.html) | this is the second-ring distribution-prep lane |
 | "What does the first proof actually prove?" | [Archive shell proof](./archive-shell-proof.html) | this is the proof explanation page |
@@ -169,7 +169,7 @@ description: Public repo map for the agent-exporter workbench, with clear routin
       <p class="ae-kicker">what to do next</p>
       <h2>Leave the map as soon as it has done its job.</h2>
       <ul class="ae-bullet-list">
-        <li>go back to the <a href="./README.html">README front door</a> for first success</li>
+        <li>go back to the <a href="https://github.com/xiaojiou176-open/agent-exporter">GitHub front door</a> for first success</li>
         <li>open <a href="./archive-shell-proof.html">archive shell proof</a> for proof interpretation</li>
         <li>open <a href="./promo-reel.html">promo reel</a> for the shortest visual walkthrough</li>
         <li>open <a href="./launch-kit.html">launch kit</a> for second-ring sharing and distribution-prep</li>

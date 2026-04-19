@@ -197,12 +197,14 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
     assert_contains_all(
         &docs_index,
         &[
-            "./README.html",
+            "https://github.com/xiaojiou176-open/agent-exporter",
             "./promo-reel.html",
             "./launch-kit.html",
             "./archive-shell-proof.html",
             "./repo-map.html",
             "./distribution-packet-ledger.html",
+            "https://github.com/xiaojiou176-open/agent-exporter/blob/main/llms-install.md",
+            "https://github.com/xiaojiou176-open/agent-exporter/blob/main/server.json",
         ],
         "docs/README.md",
     );
@@ -215,7 +217,8 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
             "href=\"./promo-reel.html\"",
             "href=\"./launch-kit.html\"",
             "href=\"./distribution-packet-ledger.html\"",
-            "href=\"./server.json\"",
+            "github.com/xiaojiou176-open/agent-exporter/blob/main/llms-install.md",
+            "github.com/xiaojiou176-open/agent-exporter/blob/main/server.json",
         ],
         "docs/archive-shell-proof.md",
     );
@@ -228,7 +231,7 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
             "./launch-kit.html",
             "Promo lane",
             "Launch lane",
-            "README front door",
+            "GitHub front door",
             "https://github.com/xiaojiou176-open/agent-exporter/tree/main/src/output",
         ],
         "docs/repo-map.md",
