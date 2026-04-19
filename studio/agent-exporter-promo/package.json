@@ -1,0 +1,21 @@
+{
+  "name": "agent-exporter-promo",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts AgentExporterPromo ../../docs/assets/media/agent-exporter-promo.mp4 --codec=h264",
+    "poster": "remotion still src/index.ts AgentExporterPromo ../../docs/assets/media/agent-exporter-promo-poster.png --frame=60"
+  },
+  "dependencies": {
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "remotion": "4.0.448"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.0",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
+    "typescript": "5.9.3"
+  }
+}

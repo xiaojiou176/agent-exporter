@@ -167,6 +167,11 @@ description: What the archive shell proves, what it does not prove, and how to r
   </div>
   <div class="ae-proof-grid">
     <article class="ae-proof-card">
+      <p class="ae-mini-label">visual companion</p>
+      <h3>Promo reel</h3>
+      <p>Use this when you want the shortest visual walkthrough before you open the proof or quickstart layers in detail.</p>
+    </article>
+    <article class="ae-proof-card">
       <p class="ae-mini-label">Published shelf</p>
       <h3>Latest release</h3>
       <p>Use this when you need the newest frozen public packet rather than the newest repository-side wording on <code>main</code>.</p>

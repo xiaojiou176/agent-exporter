@@ -42,6 +42,7 @@ fn public_front_door_files() -> &'static [&'static str] {
         "docs/README.md",
         "docs/index.md",
         "docs/archive-shell-proof.md",
+        "docs/promo-reel.md",
         "docs/repo-map.md",
         "docs/_layouts/default.html",
         "public-skills/README.md",
@@ -173,6 +174,41 @@ fn front_door_docs_keep_release_shelf_truth_explicit() {
         assert!(
             content.contains("repository-side truth"),
             "current main vs release shelf distinction disappeared from {path}"
+        );
+    }
+}
+
+#[test]
+fn public_surfaces_keep_promo_reel_links_and_assets() {
+    for path in ["README.md", "docs/README.md", "docs/index.md"] {
+        let content = read_repo_file(path);
+        assert!(
+            content.contains("promo reel"),
+            "promo reel link disappeared from {path}"
+        );
+    }
+
+    let promo_page = "docs/promo-reel.md";
+    let promo_content = read_repo_file(promo_page);
+    assert_contains_all(
+        &promo_content,
+        &[
+            "promo reel",
+            "first-success path",
+            "archive shell proof",
+            "agent-exporter-promo.mp4",
+            "agent-exporter-promo-poster.png",
+        ],
+        promo_page,
+    );
+
+    for asset in [
+        "docs/assets/media/agent-exporter-promo.mp4",
+        "docs/assets/media/agent-exporter-promo-poster.png",
+    ] {
+        assert!(
+            repo_root().join(asset).exists(),
+            "promo asset disappeared from {asset}"
         );
     }
 }

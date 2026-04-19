@@ -66,6 +66,9 @@ def local_smoke(repo_root: Path) -> None:
         repo_root / ".agents" / "Conversations" / "index.html",
         repo_root / ".agents" / "Search" / "Reports" / "index.html",
         repo_root / ".agents" / "Integration" / "Reports" / "index.html",
+        repo_root / "docs" / "promo-reel.md",
+        repo_root / "docs" / "assets" / "media" / "agent-exporter-promo.mp4",
+        repo_root / "docs" / "assets" / "media" / "agent-exporter-promo-poster.png",
     ]
     for path in workbench_paths:
         ensure_exists(path, "generated workbench surface")
@@ -101,6 +104,7 @@ def live_smoke(repo_root: Path) -> None:
     urls = [
         ("repo front door", repo_url),
         ("pages landing", website_url + "/"),
+        ("promo reel", website_url + "/promo-reel.html"),
         ("archive shell proof", website_url + "/archive-shell-proof.html"),
         ("latest release shelf", repo_url + "/releases/latest"),
         (

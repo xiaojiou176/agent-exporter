@@ -22,6 +22,7 @@ shop into a different factory.
 | Packet | What it really is | Current truth |
 | --- | --- | --- |
 | Flagship public packet | repo front door + CLI quickstart + archive shell proof | primary public box |
+| Promo reel | short visual walkthrough linked from the flagship surfaces | supporting orientation lane |
 | Release shelf | tagged release notes plus frozen packet links | published shelf |
 | Host-native public skill packet | reviewer-facing folder for the local stdio host packet | secondary lane |
 | Integration pack | repo-owned companion lane for Codex / Claude Code / OpenClaw wiring | secondary lane |
@@ -32,6 +33,7 @@ shop into a different factory.
 | Packet slice | Exact repo paths | Current status | What it does not prove |
 | --- | --- | --- | --- |
 | Flagship CLI packet | `README.md`, `docs/README.md`, `docs/archive-shell-proof.md` | active front door | hosted platform, remote runtime, or repo-wide MCP product identity |
+| Promo reel | `docs/promo-reel.md`, `docs/assets/media/agent-exporter-promo.mp4`, `docs/assets/media/agent-exporter-promo-poster.png`, `studio/agent-exporter-promo/**` | supporting orientation lane | proof boundary replacement, hosted demo, or public claim inflation |
 | Release shelf packet | release/tag plus release notes linked from `README.md` and `docs/README.md` | published shelf | latest `main` packet truth; this shelf can lag behind `main` and must say so explicitly |
 | Host-native public skill packet | `public-skills/README.md`, `public-skills/agent-exporter-archive-governance-workbench/README.md`, `public-skills/agent-exporter-archive-governance-workbench/manifest.yaml` | secondary lane; ClawHub live, Goose review-pending, agent-skill.co blocked upstream, OpenHands closed-not-accepted, awesome-opencode not_honest_cargo_yet | flagship packet replacement, generic registry acceptance, or an opencode-native project/resource claim this repo does not honestly fit today |
 | Integration pack | `docs/integrations/README.md`, `docs/integrations/templates/README.md` | repo-owned companion lane | host-native runtime proof |
@@ -100,6 +102,7 @@ What this smoke covers:
 - local first-success path still works
 - archive / reports / integration workbench shells still generate
 - `onboard codex --save-report` still lands a ready local pack
+- the promo reel page plus poster/video assets still exist in the repo-owned public packet
 - current public front door, proof page, release shelf, and raw `server.json`
   are reachable
 
