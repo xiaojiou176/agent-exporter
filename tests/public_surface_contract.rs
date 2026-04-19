@@ -211,6 +211,7 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
             "agent-exporter-promo-vertical.mp4",
             "agent-exporter-promo-poster.png",
             "agent-exporter-social-card.png",
+            "agent-exporter-promo-landscape-voiceover.m4a",
             "agent-exporter-promo.vtt",
             "Plain-text transcript",
         ],
@@ -224,6 +225,9 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
             "agent-exporter-promo-vertical.mp4",
             "Vertical cut",
             "channel variants",
+            "agent-exporter-promo-landscape-voiceover.m4a",
+            "agent-exporter-promo-vertical-voiceover.m4a",
+            "audio-ready drafts",
         ],
         "docs/launch-kit.md",
     );
@@ -234,6 +238,8 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
         "docs/assets/media/agent-exporter-promo-vertical-poster.png",
         "docs/assets/media/agent-exporter-promo-poster.png",
         "docs/assets/media/agent-exporter-social-card.png",
+        "docs/assets/media/agent-exporter-promo-landscape-voiceover.m4a",
+        "docs/assets/media/agent-exporter-promo-vertical-voiceover.m4a",
         "docs/assets/media/agent-exporter-promo.vtt",
     ] {
         assert!(

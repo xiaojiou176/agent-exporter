@@ -73,6 +73,8 @@ def local_smoke(repo_root: Path) -> None:
         repo_root / "docs" / "assets" / "media" / "agent-exporter-promo-vertical.mp4",
         repo_root / "docs" / "assets" / "media" / "agent-exporter-promo-vertical-poster.png",
         repo_root / "docs" / "assets" / "media" / "agent-exporter-social-card.png",
+        repo_root / "docs" / "assets" / "media" / "agent-exporter-promo-landscape-voiceover.m4a",
+        repo_root / "docs" / "assets" / "media" / "agent-exporter-promo-vertical-voiceover.m4a",
         repo_root / "docs" / "assets" / "media" / "agent-exporter-promo.vtt",
     ]
     for path in workbench_paths:

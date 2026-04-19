@@ -19,6 +19,7 @@ image: /assets/media/agent-exporter-social-card.png
       <a class="ae-button ae-button-primary" href="./assets/media/agent-exporter-promo.mp4">Download the promo video</a>
       <a class="ae-button" href="./assets/media/agent-exporter-promo-vertical.mp4">Download vertical cut</a>
       <a class="ae-button" href="./assets/media/agent-exporter-social-card.png">Download social card</a>
+      <a class="ae-button" href="./assets/media/agent-exporter-promo-landscape-voiceover.m4a">Download voiceover</a>
       <a class="ae-button" href="./launch-kit.html">Open launch kit</a>
       <a class="ae-button" href="./archive-shell-proof.html">Inspect archive shell proof</a>
       <a class="ae-button" href="./">Return to docs home</a>
@@ -114,6 +115,15 @@ image: /assets/media/agent-exporter-social-card.png
       </p>
     </article>
     <article class="ae-split-card">
+      <p class="ae-kicker">voiceover</p>
+      <h3>Narration track</h3>
+      <p>
+        Download the
+        <a href="./assets/media/agent-exporter-promo-landscape-voiceover.m4a">landscape voiceover</a>
+        when you need the spoken promo track as a standalone asset for editing or reuse.
+      </p>
+    </article>
+    <article class="ae-split-card">
       <p class="ae-kicker">script</p>
       <h3>Plain-text transcript</h3>
       <ol class="ae-bullet-list">
@@ -150,6 +160,11 @@ image: /assets/media/agent-exporter-social-card.png
       <p class="ae-mini-label">distribution-prep</p>
       <h3>Open the launch kit</h3>
       <p>When the product story is already clear, move into the launch kit for share-ready copy and asset routing.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">audio lane</p>
+      <h3>Voiceover stays supporting</h3>
+      <p>The spoken track can help orientation, but it still may not replace the transcript, captions, or proof boundary.</p>
     </article>
   </div>
 </section>
