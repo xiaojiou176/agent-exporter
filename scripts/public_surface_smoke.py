@@ -76,6 +76,9 @@ def local_smoke(repo_root: Path) -> None:
         repo_root / "docs" / "assets" / "media" / "agent-exporter-promo-landscape-voiceover.m4a",
         repo_root / "docs" / "assets" / "media" / "agent-exporter-promo-vertical-voiceover.m4a",
         repo_root / "docs" / "assets" / "media" / "agent-exporter-promo.vtt",
+        repo_root / "docs" / "assets" / "media" / "agent-exporter-promo-zh-CN.vtt",
+        repo_root / "docs" / "assets" / "media" / "agent-exporter-promo-vertical.vtt",
+        repo_root / "docs" / "assets" / "media" / "agent-exporter-promo-vertical-zh-CN.vtt",
     ]
     for path in workbench_paths:
         ensure_exists(path, "generated workbench surface")

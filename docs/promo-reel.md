@@ -70,6 +70,12 @@ image: /assets/media/agent-exporter-social-card.png
         srclang="en"
         label="English captions"
       />
+      <track
+        kind="subtitles"
+        src="./assets/media/agent-exporter-promo-zh-CN.vtt"
+        srclang="zh-CN"
+        label="Simplified Chinese subtitles"
+      />
     </video>
     <figcaption class="ae-caption">
       Short reel: transcript-first archive workbench, proof ladder, and lane hierarchy.
@@ -110,8 +116,10 @@ image: /assets/media/agent-exporter-social-card.png
       <h3>WebVTT captions</h3>
       <p>
         Download the
-        <a href="./assets/media/agent-exporter-promo.vtt">caption file</a>
-        if you want the reel text as a standalone asset.
+        <a href="./assets/media/agent-exporter-promo.vtt">English caption file</a>
+        or the
+        <a href="./assets/media/agent-exporter-promo-zh-CN.vtt">Simplified Chinese subtitle file</a>
+        if you want the reel text as standalone assets.
       </p>
     </article>
     <article class="ae-split-card">
