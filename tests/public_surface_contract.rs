@@ -213,6 +213,7 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
             "agent-exporter-social-card.png",
             "agent-exporter-promo-landscape-voiceover.m4a",
             "agent-exporter-promo.vtt",
+            "agent-exporter-promo-zh-CN.vtt",
             "Plain-text transcript",
         ],
         promo_page,
@@ -228,6 +229,7 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
             "agent-exporter-promo-landscape-voiceover.m4a",
             "agent-exporter-promo-vertical-voiceover.m4a",
             "audio-ready drafts",
+            "agent-exporter-promo-vertical-zh-CN.vtt",
         ],
         "docs/launch-kit.md",
     );
@@ -241,6 +243,9 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
         "docs/assets/media/agent-exporter-promo-landscape-voiceover.m4a",
         "docs/assets/media/agent-exporter-promo-vertical-voiceover.m4a",
         "docs/assets/media/agent-exporter-promo.vtt",
+        "docs/assets/media/agent-exporter-promo-zh-CN.vtt",
+        "docs/assets/media/agent-exporter-promo-vertical.vtt",
+        "docs/assets/media/agent-exporter-promo-vertical-zh-CN.vtt",
     ] {
         assert!(
             repo_root().join(asset).exists(),

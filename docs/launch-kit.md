@@ -127,7 +127,7 @@ image: /assets/media/agent-exporter-social-card.png
 | spoken narration source | [`agent-exporter-promo-landscape-voiceover.m4a`](./assets/media/agent-exporter-promo-landscape-voiceover.m4a) | best when you want the promo narration as a reusable standalone track |
 | portrait narration source | [`agent-exporter-promo-vertical-voiceover.m4a`](./assets/media/agent-exporter-promo-vertical-voiceover.m4a) | best when you need the shorter mobile-first narration track |
 | visual proof slide | [`archive-shell-proof.svg`](./assets/archive-shell-proof.svg) | best when the audience wants proof structure over motion |
-| reviewer-safe caption asset | [`agent-exporter-promo.vtt`](./assets/media/agent-exporter-promo.vtt) | keeps the reel usable without audio |
+| caption pack | [`agent-exporter-promo.vtt`](./assets/media/agent-exporter-promo.vtt), [`agent-exporter-promo-zh-CN.vtt`](./assets/media/agent-exporter-promo-zh-CN.vtt), [`agent-exporter-promo-vertical.vtt`](./assets/media/agent-exporter-promo-vertical.vtt), [`agent-exporter-promo-vertical-zh-CN.vtt`](./assets/media/agent-exporter-promo-vertical-zh-CN.vtt) | keeps both landscape and portrait reels usable across English and Simplified Chinese |
 | first proof explanation | [`archive-shell-proof.html`](./archive-shell-proof.html) | explains what the current proof does and does not prove |
 
 </section>
@@ -176,6 +176,11 @@ image: /assets/media/agent-exporter-social-card.png
       <p class="ae-mini-label">rule</p>
       <h3>Audio does not change the truth boundary</h3>
       <p>Voiceover can improve orientation, but it still may not replace the transcript, captions, or proof boundary.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">i18n asset</p>
+      <h3>Bilingual subtitle support</h3>
+      <p>Both landscape and portrait variants now ship with English and Simplified Chinese subtitle assets, while the public-facing pages remain English-first.</p>
     </article>
   </div>
 </section>
