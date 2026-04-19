@@ -17,7 +17,9 @@ image: /assets/media/agent-exporter-social-card.png
     </p>
     <div class="ae-actions">
       <a class="ae-button ae-button-primary" href="./assets/media/agent-exporter-promo.mp4">Download the promo video</a>
+      <a class="ae-button" href="./assets/media/agent-exporter-promo-vertical.mp4">Download vertical cut</a>
       <a class="ae-button" href="./assets/media/agent-exporter-social-card.png">Download social card</a>
+      <a class="ae-button" href="./launch-kit.html">Open launch kit</a>
       <a class="ae-button" href="./archive-shell-proof.html">Inspect archive shell proof</a>
       <a class="ae-button" href="./">Return to docs home</a>
     </div>
@@ -94,6 +96,15 @@ image: /assets/media/agent-exporter-social-card.png
       </p>
     </article>
     <article class="ae-split-card">
+      <p class="ae-kicker">mobile-first cut</p>
+      <h3>Vertical promo</h3>
+      <p>
+        Download the
+        <a href="./assets/media/agent-exporter-promo-vertical.mp4">9:16 vertical cut</a>
+        when the channel expects portrait video and fast mobile-first orientation.
+      </p>
+    </article>
+    <article class="ae-split-card">
       <p class="ae-kicker">download captions</p>
       <h3>WebVTT captions</h3>
       <p>
@@ -134,6 +145,11 @@ image: /assets/media/agent-exporter-social-card.png
       <p class="ae-mini-label">best next door</p>
       <h3>Use the first-success path</h3>
       <p>After the reel, the right next step is still to run the three commands that create a real local receipt.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">distribution-prep</p>
+      <h3>Open the launch kit</h3>
+      <p>When the product story is already clear, move into the launch kit for share-ready copy and asset routing.</p>
     </article>
   </div>
 </section>

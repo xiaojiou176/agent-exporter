@@ -3,6 +3,7 @@ import {Composition} from "remotion";
 
 import {AgentExporterPromo} from "./Promo";
 import {AgentExporterSocialCard} from "./SocialCard";
+import {AgentExporterVerticalPromo} from "./VerticalPromo";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -23,6 +24,15 @@ export const RemotionRoot: React.FC = () => {
         fps={30}
         width={1200}
         height={630}
+        defaultProps={{}}
+      />
+      <Composition
+        id="AgentExporterVerticalPromo"
+        component={AgentExporterVerticalPromo}
+        durationInFrames={450}
+        fps={30}
+        width={1080}
+        height={1920}
         defaultProps={{}}
       />
     </>
