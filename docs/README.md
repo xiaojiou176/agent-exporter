@@ -15,6 +15,7 @@
     <div class="ae-actions">
       <a class="ae-button ae-button-primary" href="../README.md">Open flagship front door</a>
       <a class="ae-button" href="./promo-reel.html">Open promo reel</a>
+      <a class="ae-button" href="./launch-kit.html">Open launch kit</a>
       <a class="ae-button" href="./archive-shell-proof.md">Open archive proof</a>
       <a class="ae-button" href="./repo-map.md">Open repo map</a>
     </div>
@@ -53,6 +54,7 @@
 | --- | --- | --- |
 | "What is the product and what should I do first?" | `../README.md` | this is still the flagship front door |
 | "Can I get a fast visual walkthrough before I run it?" | `./promo-reel.md` | this is the compact visual companion, not the proof boundary |
+| "What should I share after the product story is clear?" | `./launch-kit.md` | this is the second-ring distribution-prep lane |
 | "What does the first proof actually prove?" | `./archive-shell-proof.md` | this is the first public proof layer |
 | "Where do the surfaces and files live?" | `./repo-map.md` | this is the repo-side map |
 | "What is the packet/listing status?" | `./distribution-packet-ledger.md` | packet truth belongs in the second ring |

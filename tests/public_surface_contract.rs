@@ -43,6 +43,7 @@ fn public_front_door_files() -> &'static [&'static str] {
         "docs/index.md",
         "docs/archive-shell-proof.md",
         "docs/promo-reel.md",
+        "docs/launch-kit.md",
         "docs/repo-map.md",
         "docs/_layouts/default.html",
         "public-skills/README.md",
@@ -185,6 +186,10 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
         assert!(
             content.contains("promo reel"),
             "promo reel link disappeared from {path}"
+        );
+        assert!(
+            content.contains("launch kit"),
+            "launch kit link disappeared from {path}"
         );
     }
 

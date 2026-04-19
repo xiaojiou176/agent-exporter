@@ -2,7 +2,7 @@
 
 `agent-exporter` helps you export AI agent transcripts into local receipts, then turn those receipts, reports, and governance evidence into an **archive and governance workbench**.
 
-[Try It In 3 Steps](#first-success-path) · [Zero-Context First Look](#zero-context-first-look) · [Promo Reel](https://xiaojiou176-open.github.io/agent-exporter/promo-reel.html) · [Docs Landing](https://xiaojiou176-open.github.io/agent-exporter/) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) · [Latest Release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
+[Try It In 3 Steps](#first-success-path) · [Zero-Context First Look](#zero-context-first-look) · [Promo Reel](https://xiaojiou176-open.github.io/agent-exporter/promo-reel.html) · [launch kit](https://xiaojiou176-open.github.io/agent-exporter/launch-kit.html) · [Docs Landing](https://xiaojiou176-open.github.io/agent-exporter/) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) · [Latest Release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
 
 ![agent-exporter proof map showing CLI quickstart, transcript export, archive shell proof, reports shell, and integration evidence as one inspectable workbench](./docs/assets/archive-shell-proof.svg)
 
@@ -132,6 +132,7 @@ Use this route map instead:
 | If your next question is... | Open this | Why |
 | --- | --- | --- |
 | "What exactly does the proof page prove?" | [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) | it is the first public proof layer after the CLI path |
+| "What should I share or post after the product story is clear?" | [Launch Kit](https://xiaojiou176-open.github.io/agent-exporter/launch-kit.html) | this is the second-ring distribution-prep lane |
 | "Where do the repo lanes actually live?" | [`docs/README.md`](./docs/README.md) | it keeps the product map and proof hierarchy in one place |
 | "What does the MCP bridge packet include?" | [`llms-install.md`](./llms-install.md) + [`server.json`](./server.json) | these are the honest bridge packet surfaces |
 | "What is the current packet/listing status?" | [`docs/distribution-packet-ledger.md`](./docs/distribution-packet-ledger.md) | packet status belongs in the second ring, not the first screen |

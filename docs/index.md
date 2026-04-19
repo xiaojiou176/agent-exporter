@@ -30,6 +30,7 @@ image: /assets/media/agent-exporter-social-card.png
     <div class="ae-actions">
       <a class="ae-button ae-button-primary" href="#first-success">Try the first success path</a>
       <a class="ae-button" href="./promo-reel.html">Watch the promo reel</a>
+      <a class="ae-button" href="./launch-kit.html">Open launch kit</a>
       <a class="ae-button" href="./archive-shell-proof.html">Inspect archive shell proof</a>
       <a class="ae-button" href="https://github.com/xiaojiou176-open/agent-exporter">Open GitHub front door</a>
     </div>
@@ -89,6 +90,11 @@ image: /assets/media/agent-exporter-social-card.png
       <p class="ae-mini-label">share-ready asset</p>
       <h3>Social card</h3>
       <p>Need a single-frame preview for a post, chat share, or reviewer packet? Use the <a href="./assets/media/agent-exporter-social-card.png">social card image</a>.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">distribution-prep</p>
+      <h3>Launch kit</h3>
+      <p>Once the product story is already clear, open the <a href="./launch-kit.html">launch kit</a> for truthful copy variants and asset routing.</p>
     </article>
   </div>
 </section>
