@@ -58,11 +58,53 @@ description: A short visual walkthrough of agent-exporter's CLI-first archive wo
       style="width: 100%; border-radius: 26px; display: block; background: #0F172A;"
     >
       <source src="./assets/media/agent-exporter-promo.mp4" type="video/mp4" />
+      <track
+        default
+        kind="captions"
+        src="./assets/media/agent-exporter-promo.vtt"
+        srclang="en"
+        label="English captions"
+      />
     </video>
     <figcaption class="ae-caption">
       Short reel: transcript-first archive workbench, proof ladder, and lane hierarchy.
     </figcaption>
   </figure>
+</section>
+
+<section class="ae-section">
+  <div class="ae-section-head">
+    <p class="ae-kicker">transcript</p>
+    <h2>Read the promo before or after you watch it.</h2>
+    <p class="ae-lead">
+      The reel should remain usable even when audio is muted or video playback is inconvenient.
+      Captions and a plain-text script keep this page useful as a reviewer-facing public packet surface.
+    </p>
+  </div>
+  <div class="ae-split">
+    <article class="ae-split-card">
+      <p class="ae-kicker">download captions</p>
+      <h3>WebVTT captions</h3>
+      <p>
+        Download the
+        <a href="./assets/media/agent-exporter-promo.vtt">caption file</a>
+        if you want the reel text as a standalone asset.
+      </p>
+    </article>
+    <article class="ae-split-card">
+      <p class="ae-kicker">script</p>
+      <h3>Plain-text transcript</h3>
+      <ol class="ae-bullet-list">
+        <li>`agent-exporter` is an archive and governance workbench for AI agent transcripts.</li>
+        <li>Start with the CLI quickstart and prove the command surface first.</li>
+        <li>Export one HTML transcript receipt you can read and keep locally.</li>
+        <li>Publish the archive shell to organize transcripts, reports, and evidence on one desk.</li>
+        <li>This is a local workbench, not a hosted platform or remote runtime.</li>
+        <li>Governance is a companion lane, not the product identity.</li>
+        <li>The flagship packet is still GitHub repo, CLI quickstart, and archive shell proof.</li>
+      </ol>
+    </article>
+  </div>
 </section>
 
 <section class="ae-section">
