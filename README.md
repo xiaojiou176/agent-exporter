@@ -2,9 +2,14 @@
 
 `agent-exporter` helps you export AI agent transcripts into local receipts, then turn those receipts, reports, and governance evidence into an **archive and governance workbench**.
 
-[Try It In 3 Steps](#first-success-path) · [Zero-Context First Look](#zero-context-first-look) · [Docs Landing](https://xiaojiou176-open.github.io/agent-exporter/) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) · [Latest Release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
+[Try It In 3 Steps](#first-success-path) · [Zero-Context First Look](#zero-context-first-look) · [Promo Reel](https://xiaojiou176-open.github.io/agent-exporter/promo-reel.html) · [Docs Landing](https://xiaojiou176-open.github.io/agent-exporter/) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) · [Latest Release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
 
 ![agent-exporter proof map showing CLI quickstart, transcript export, archive shell proof, reports shell, and integration evidence as one inspectable workbench](./docs/assets/archive-shell-proof.svg)
+
+[![agent-exporter promo reel poster showing CLI quickstart, archive proof, and workbench lane hierarchy](./docs/assets/media/agent-exporter-promo-poster.png)](https://xiaojiou176-open.github.io/agent-exporter/promo-reel.html)
+
+> Prefer a 20-second visual pass first?
+> Watch the [promo reel](https://xiaojiou176-open.github.io/agent-exporter/promo-reel.html), then come back to the quickstart path for real proof.
 
 ## Front Door Map
 

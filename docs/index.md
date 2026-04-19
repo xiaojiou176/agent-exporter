@@ -28,6 +28,7 @@ description: Archive and governance workbench for AI agent transcripts, with a q
     </p>
     <div class="ae-actions">
       <a class="ae-button ae-button-primary" href="#first-success">Try the first success path</a>
+      <a class="ae-button" href="./promo-reel.html">Watch the promo reel</a>
       <a class="ae-button" href="./archive-shell-proof.html">Inspect archive shell proof</a>
       <a class="ae-button" href="https://github.com/xiaojiou176-open/agent-exporter">Open GitHub front door</a>
     </div>
@@ -62,6 +63,26 @@ description: Archive and governance workbench for AI agent transcripts, with a q
       </div>
     </dl>
   </aside>
+</section>
+
+<section class="ae-section">
+  <div class="ae-section-head">
+    <p class="ae-kicker">visual walkthrough</p>
+    <h2>Take the 20-second pass only when it helps you orient faster.</h2>
+    <p class="ae-lead">
+      The promo reel is a compact visual companion for first-time reviewers.
+      It does not replace the CLI quickstart or the archive shell proof.
+      It exists to lower orientation cost before you run the real path.
+    </p>
+  </div>
+  <figure class="ae-media-card">
+    <a href="./promo-reel.html">
+      <img src="./assets/media/agent-exporter-promo-poster.png" alt="Poster frame from the agent-exporter promo reel">
+    </a>
+    <figcaption class="ae-caption">
+      Promo reel: a short visual walkthrough of the transcript-first workbench, proof ladder, and lane hierarchy.
+    </figcaption>
+  </figure>
 </section>
 
 <section class="ae-section">
