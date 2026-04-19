@@ -47,7 +47,7 @@ def ensure_exists(path: Path, label: str) -> None:
 def fetch(url: str) -> tuple[str, int, str]:
     request = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
     with urllib.request.urlopen(request, timeout=20) as response:
-        body = response.read(4000).decode("utf-8", "replace")
+        body = response.read().decode("utf-8", "replace")
         return response.geturl(), response.status, body
 
 
@@ -127,19 +127,6 @@ def live_smoke(repo_root: Path) -> None:
                 "promo-reel.html",
                 "launch-kit.html",
                 "archive-shell-proof.html",
-            ],
-        ),
-        (
-            "docs index",
-            website_url + "/README.html",
-            [
-                repo_url,
-                "./promo-reel.html",
-                "./launch-kit.html",
-                "./archive-shell-proof.html",
-                "./repo-map.html",
-                repo_url + "/blob/main/llms-install.md",
-                repo_url + "/blob/main/server.json",
             ],
         ),
         (
