@@ -198,6 +198,8 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
             "archive shell proof",
             "agent-exporter-promo.mp4",
             "agent-exporter-promo-poster.png",
+            "agent-exporter-promo.vtt",
+            "Plain-text transcript",
         ],
         promo_page,
     );
@@ -205,6 +207,7 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
     for asset in [
         "docs/assets/media/agent-exporter-promo.mp4",
         "docs/assets/media/agent-exporter-promo-poster.png",
+        "docs/assets/media/agent-exporter-promo.vtt",
     ] {
         assert!(
             repo_root().join(asset).exists(),

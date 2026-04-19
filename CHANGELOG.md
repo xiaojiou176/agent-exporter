@@ -11,6 +11,7 @@ The format is based on Keep a Changelog.
 - explicit `clippy -D warnings` on the required CI path
 - a repo-owned Remotion promo reel lane, rendered poster/video assets, and a public promo page
 - promo reel checks inside `public_surface_contract` and `public_surface_smoke.py`
+- captions and a plain-text transcript path for the promo reel public packet
 
 ### Changed
 - Public docs, metadata, and release-facing surfaces continue to tighten the `CLI-first -> archive shell proof -> secondary surfaces` order without promoting any secondary surface into the current primary path.
