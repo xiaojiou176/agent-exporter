@@ -13,6 +13,7 @@ The format is based on Keep a Changelog.
 - promo reel checks inside `public_surface_contract` and `public_surface_smoke.py`
 - captions and a plain-text transcript path for the promo reel public packet
 - a share-ready social card plus OG/Twitter metadata for Pages promo/public surfaces
+- a second-ring launch kit page with truthful copy variants and asset routing for future distribution prep
 
 ### Changed
 - Public docs, metadata, and release-facing surfaces continue to tighten the `CLI-first -> archive shell proof -> secondary surfaces` order without promoting any secondary surface into the current primary path.

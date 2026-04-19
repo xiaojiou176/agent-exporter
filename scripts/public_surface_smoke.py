@@ -67,6 +67,7 @@ def local_smoke(repo_root: Path) -> None:
         repo_root / ".agents" / "Search" / "Reports" / "index.html",
         repo_root / ".agents" / "Integration" / "Reports" / "index.html",
         repo_root / "docs" / "promo-reel.md",
+        repo_root / "docs" / "launch-kit.md",
         repo_root / "docs" / "assets" / "media" / "agent-exporter-promo.mp4",
         repo_root / "docs" / "assets" / "media" / "agent-exporter-promo-poster.png",
         repo_root / "docs" / "assets" / "media" / "agent-exporter-social-card.png",
@@ -107,6 +108,7 @@ def live_smoke(repo_root: Path) -> None:
         ("repo front door", repo_url),
         ("pages landing", website_url + "/"),
         ("promo reel", website_url + "/promo-reel.html"),
+        ("launch kit", website_url + "/launch-kit.html"),
         ("archive shell proof", website_url + "/archive-shell-proof.html"),
         ("latest release shelf", repo_url + "/releases/latest"),
         (
