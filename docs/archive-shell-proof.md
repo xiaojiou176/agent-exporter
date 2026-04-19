@@ -161,8 +161,8 @@ description: What the archive shell proves, what it does not prove, and how to r
     <h2>After proof, choose the right frozen or reviewer-facing shelf.</h2>
     <p class="ae-lead">
       This page explains what the archive shell proves.
-      Once that question is answered, the next question is usually one of three:
-      do you need the latest published packet, the local stdio host packet, or the wider packet/listing ledger?
+      Once that question is answered, the next question is usually one of four:
+      do you need the visual companion, the launch kit, the latest published packet, or the wider packet/listing ledger?
     </p>
   </div>
   <div class="ae-proof-grid">
@@ -170,21 +170,42 @@ description: What the archive shell proves, what it does not prove, and how to r
       <p class="ae-mini-label">visual companion</p>
       <h3>Promo reel</h3>
       <p>Use this when you want the shortest visual walkthrough before you open the proof or quickstart layers in detail.</p>
+      <div class="ae-inline-links">
+        <a class="ae-button" href="./promo-reel.html">Open promo reel</a>
+      </div>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">distribution-prep</p>
+      <h3>Launch kit</h3>
+      <p>Use this when the product story is already clear and you need truthful share-ready copy, asset routing, and packet-prep guidance.</p>
+      <div class="ae-inline-links">
+        <a class="ae-button" href="./launch-kit.html">Open launch kit</a>
+      </div>
     </article>
     <article class="ae-proof-card">
       <p class="ae-mini-label">Published shelf</p>
       <h3>Latest release</h3>
       <p>Use this when you need the newest frozen public packet rather than the newest repository-side wording on <code>main</code>.</p>
+      <div class="ae-inline-links">
+        <a class="ae-button" href="https://github.com/xiaojiou176-open/agent-exporter/releases/latest">Open latest release</a>
+      </div>
     </article>
     <article class="ae-proof-card">
       <p class="ae-mini-label">Host reviewer lane</p>
       <h3>Local stdio host packet</h3>
       <p>Use <code>llms-install.md</code> and <code>server.json</code> when the question is specifically about host-side wiring and review packet truth.</p>
+      <div class="ae-inline-links">
+        <a class="ae-button" href="../llms-install.html">Open install note</a>
+        <a class="ae-button" href="../server.json">Open server.json</a>
+      </div>
     </article>
     <article class="ae-proof-card">
       <p class="ae-mini-label">Packet truth</p>
       <h3>Distribution packet ledger</h3>
       <p>Use the ledger when you need platform/listing status, not when you are still trying to understand the product itself.</p>
+      <div class="ae-inline-links">
+        <a class="ae-button" href="./distribution-packet-ledger.html">Open packet ledger</a>
+      </div>
     </article>
   </div>
 </section>

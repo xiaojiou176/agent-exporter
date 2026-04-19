@@ -193,6 +193,47 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
         );
     }
 
+    let docs_index = read_repo_file("docs/README.md");
+    assert_contains_all(
+        &docs_index,
+        &[
+            "../README.html",
+            "./promo-reel.html",
+            "./launch-kit.html",
+            "./archive-shell-proof.html",
+            "./repo-map.html",
+            "./distribution-packet-ledger.html",
+        ],
+        "docs/README.md",
+    );
+
+    let archive_proof = read_repo_file("docs/archive-shell-proof.md");
+    assert_contains_all(
+        &archive_proof,
+        &[
+            "Launch kit",
+            "href=\"./promo-reel.html\"",
+            "href=\"./launch-kit.html\"",
+            "href=\"./distribution-packet-ledger.html\"",
+            "href=\"../server.json\"",
+        ],
+        "docs/archive-shell-proof.md",
+    );
+
+    let repo_map = read_repo_file("docs/repo-map.md");
+    assert_contains_all(
+        &repo_map,
+        &[
+            "./promo-reel.html",
+            "./launch-kit.html",
+            "Promo lane",
+            "Launch lane",
+            "README front door",
+            "https://github.com/xiaojiou176-open/agent-exporter/tree/main/src/output",
+        ],
+        "docs/repo-map.md",
+    );
+
     let docs_home = read_repo_file("docs/index.md");
     assert!(
         docs_home.contains("agent-exporter-social-card.png"),
@@ -281,5 +322,13 @@ fn pages_index_keeps_main_landmark_and_visibility_styles() {
     assert!(
         layout.contains("twitter:card"),
         "docs/_layouts/default.html lost the Twitter card metadata"
+    );
+    assert!(
+        layout.contains("Promo"),
+        "docs/_layouts/default.html lost the promo nav entry"
+    );
+    assert!(
+        layout.contains("Launch Kit"),
+        "docs/_layouts/default.html lost the launch-kit nav entry"
     );
 }

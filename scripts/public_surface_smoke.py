@@ -51,6 +51,12 @@ def fetch(url: str) -> tuple[str, int, str]:
         return response.geturl(), response.status, body
 
 
+def require_substrings(label: str, body: str, expected: list[str]) -> None:
+    for needle in expected:
+        if needle not in body:
+            raise SystemExit(f"{label} is missing expected public-surface marker: {needle}")
+
+
 def local_smoke(repo_root: Path) -> None:
     run(["cargo", "fmt", "--check"], cwd=repo_root)
     run(["cargo", "clippy", "--all-targets", "--all-features", "--", "-D", "warnings"], cwd=repo_root)
@@ -112,26 +118,84 @@ def live_smoke(repo_root: Path) -> None:
     repo_url = server["repository"]["url"]
     website_url = server["websiteUrl"].rstrip("/")
     urls = [
-        ("repo front door", repo_url),
-        ("pages landing", website_url + "/"),
-        ("promo reel", website_url + "/promo-reel.html"),
-        ("launch kit", website_url + "/launch-kit.html"),
-        ("archive shell proof", website_url + "/archive-shell-proof.html"),
-        ("latest release shelf", repo_url + "/releases/latest"),
+        ("repo front door", repo_url, []),
+        (
+            "pages landing",
+            website_url + "/",
+            [
+                "agent-exporter-social-card.png",
+                "promo-reel.html",
+                "launch-kit.html",
+                "archive-shell-proof.html",
+            ],
+        ),
+        (
+            "docs index",
+            website_url + "/README.html",
+            [
+                "../README.html",
+                "./promo-reel.html",
+                "./launch-kit.html",
+                "./archive-shell-proof.html",
+                "./repo-map.html",
+            ],
+        ),
+        (
+            "promo reel",
+            website_url + "/promo-reel.html",
+            [
+                "agent-exporter-social-card.png",
+                "agent-exporter-promo.mp4",
+                "agent-exporter-promo-vertical.mp4",
+                "agent-exporter-promo-landscape-voiceover.m4a",
+                "launch-kit.html",
+            ],
+        ),
+        (
+            "launch kit",
+            website_url + "/launch-kit.html",
+            [
+                "agent-exporter-promo-vertical.mp4",
+                "agent-exporter-promo-vertical-voiceover.m4a",
+                "archive-shell-proof.html",
+                "promo-reel.html",
+            ],
+        ),
+        (
+            "archive shell proof",
+            website_url + "/archive-shell-proof.html",
+            [
+                "promo-reel.html",
+                "launch-kit.html",
+                "distribution-packet-ledger.html",
+                "../server.json",
+            ],
+        ),
+        (
+            "repo map",
+            website_url + "/repo-map.html",
+            [
+                "./promo-reel.html",
+                "./launch-kit.html",
+                "README front door",
+                "tree/main/src/output",
+            ],
+        ),
+        ("latest release shelf", repo_url + "/releases/latest", []),
         (
             "raw server descriptor",
             repo_url.replace("https://github.com/", "https://raw.githubusercontent.com/")
             + "/main/server.json",
+            [],
         ),
     ]
 
-    for label, url in urls:
+    for label, url, expected in urls:
         final_url, status, body = fetch(url)
         if status != 200:
             raise SystemExit(f"{label} did not return 200: {url} -> {status}")
         print(f"[ok] {label}: {final_url}")
-        if label in {"pages landing", "promo reel"} and "agent-exporter-social-card.png" not in body:
-            raise SystemExit(f"{label} is missing the shared social card reference")
+        require_substrings(label, body, expected)
         if label == "raw server descriptor":
             live_descriptor = json.loads(body)
             if live_descriptor["websiteUrl"] != server["websiteUrl"]:
