@@ -1,3 +1,10 @@
+---
+title: Docs Index
+description: Documentation hub for agent-exporter public pages, proof shelves, and companion lanes.
+image: /assets/media/agent-exporter-social-card.png
+permalink: /docs-index.html
+---
+
 # Documentation Index
 
 <main id="main-content" role="main" markdown="1">

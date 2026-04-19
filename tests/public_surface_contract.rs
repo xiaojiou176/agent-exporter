@@ -197,6 +197,7 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
     assert_contains_all(
         &docs_index,
         &[
+            "permalink: /docs-index.html",
             "https://github.com/xiaojiou176-open/agent-exporter",
             "./promo-reel.html",
             "./launch-kit.html",
@@ -208,6 +209,21 @@ fn public_surfaces_keep_promo_reel_links_and_assets() {
         ],
         "docs/README.md",
     );
+
+    for path in [
+        "docs/_layouts/default.html",
+        "docs/index.md",
+        "docs/archive-shell-proof.md",
+        "docs/repo-map.md",
+        "docs/promo-reel.md",
+        "docs/launch-kit.md",
+    ] {
+        let content = read_repo_file(path);
+        assert!(
+            !content.contains("README.html"),
+            "dead docs-index route `README.html` reappeared in {path}"
+        );
+    }
 
     let archive_proof = read_repo_file("docs/archive-shell-proof.md");
     assert_contains_all(
@@ -333,5 +349,13 @@ fn pages_index_keeps_main_landmark_and_visibility_styles() {
     assert!(
         layout.contains("Launch Kit"),
         "docs/_layouts/default.html lost the launch-kit nav entry"
+    );
+    assert!(
+        layout.contains("/docs-index.html"),
+        "docs/_layouts/default.html lost the live docs-index route"
+    );
+    assert!(
+        !layout.contains("/README.html"),
+        "docs/_layouts/default.html still points docs nav to dead README.html"
     );
 }

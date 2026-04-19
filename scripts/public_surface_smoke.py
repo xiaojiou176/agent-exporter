@@ -130,6 +130,20 @@ def live_smoke(repo_root: Path) -> None:
             ],
         ),
         (
+            "docs index",
+            website_url + "/docs-index.html",
+            [
+                repo_url,
+                "./promo-reel.html",
+                "./launch-kit.html",
+                "./archive-shell-proof.html",
+                "./repo-map.html",
+                "./distribution-packet-ledger.html",
+                repo_url + "/blob/main/llms-install.md",
+                repo_url + "/blob/main/server.json",
+            ],
+        ),
+        (
             "promo reel",
             website_url + "/promo-reel.html",
             [
@@ -159,6 +173,17 @@ def live_smoke(repo_root: Path) -> None:
                 "distribution-packet-ledger.html",
                 repo_url + "/blob/main/llms-install.md",
                 repo_url + "/blob/main/server.json",
+            ],
+        ),
+        (
+            "distribution packet ledger",
+            website_url + "/distribution-packet-ledger.html",
+            [
+                "Flagship public packet",
+                "Promo reel",
+                "Launch kit",
+                "python3 scripts/public_surface_smoke.py",
+                "Latest release",
             ],
         ),
         (
