@@ -13,11 +13,11 @@
       If you are still trying to understand the product itself, go back to the flagship front door first.
     </p>
     <div class="ae-actions">
-      <a class="ae-button ae-button-primary" href="../README.md">Open flagship front door</a>
+      <a class="ae-button ae-button-primary" href="./README.html">Open flagship front door</a>
       <a class="ae-button" href="./promo-reel.html">Open promo reel</a>
       <a class="ae-button" href="./launch-kit.html">Open launch kit</a>
-      <a class="ae-button" href="./archive-shell-proof.md">Open archive proof</a>
-      <a class="ae-button" href="./repo-map.md">Open repo map</a>
+      <a class="ae-button" href="./archive-shell-proof.html">Open archive proof</a>
+      <a class="ae-button" href="./repo-map.html">Open repo map</a>
     </div>
     <p class="ae-note">
       Published shelf note:
@@ -52,12 +52,12 @@
 
 | Question | Open this | Why |
 | --- | --- | --- |
-| "What is the product and what should I do first?" | `../README.md` | this is still the flagship front door |
-| "Can I get a fast visual walkthrough before I run it?" | `./promo-reel.md` | this is the compact visual companion, not the proof boundary |
-| "What should I share after the product story is clear?" | `./launch-kit.md` | this is the second-ring distribution-prep lane |
-| "What does the first proof actually prove?" | `./archive-shell-proof.md` | this is the first public proof layer |
-| "Where do the surfaces and files live?" | `./repo-map.md` | this is the repo-side map |
-| "What is the packet/listing status?" | `./distribution-packet-ledger.md` | packet truth belongs in the second ring |
+| "What is the product and what should I do first?" | [README front door](./README.html) | this is still the flagship front door |
+| "Can I get a fast visual walkthrough before I run it?" | [Promo reel](./promo-reel.html) | this is the compact visual companion, not the proof boundary |
+| "What should I share after the product story is clear?" | [Launch kit](./launch-kit.html) | this is the second-ring distribution-prep lane |
+| "What does the first proof actually prove?" | [Archive shell proof](./archive-shell-proof.html) | this is the first public proof layer |
+| "Where do the surfaces and files live?" | [Repo map](./repo-map.html) | this is the repo-side map |
+| "What is the packet/listing status?" | [Distribution packet ledger](./distribution-packet-ledger.html) | packet truth belongs in the second ring |
 
 </section>
 
@@ -103,11 +103,11 @@
 
 | If you are trying to... | Read this next |
 | --- | --- |
-| decide whether the repo is worth trying once | `../README.md` |
-| understand the first truthful visible proof | `./archive-shell-proof.md` |
-| understand the structure of the workbench | `./repo-map.md` |
-| inspect registry / packet / listing truth | `./distribution-packet-ledger.md` |
-| inspect host-native packet lanes | `../public-skills/README.md` |
+| decide whether the repo is worth trying once | [README front door](./README.html) |
+| understand the first truthful visible proof | [Archive shell proof](./archive-shell-proof.html) |
+| understand the structure of the workbench | [Repo map](./repo-map.html) |
+| inspect registry / packet / listing truth | [Distribution packet ledger](./distribution-packet-ledger.html) |
+| inspect host-native packet lanes | [Public skills packet](https://github.com/xiaojiou176-open/agent-exporter/blob/main/public-skills/README.md) |
 
 </section>
 
@@ -162,21 +162,33 @@
       <p class="ae-mini-label">Companion docs home</p>
       <h3>Pages landing</h3>
       <p>`https://xiaojiou176-open.github.io/agent-exporter/`</p>
+      <div class="ae-inline-links">
+        <a class="ae-button" href="./">Open Pages landing</a>
+      </div>
     </article>
     <article class="ae-proof-card">
       <p class="ae-mini-label">Proof page</p>
       <h3>Archive shell proof</h3>
       <p>`https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html`</p>
+      <div class="ae-inline-links">
+        <a class="ae-button" href="./archive-shell-proof.html">Open archive shell proof</a>
+      </div>
     </article>
     <article class="ae-proof-card">
       <p class="ae-mini-label">Structure page</p>
       <h3>Repo map</h3>
       <p>`https://xiaojiou176-open.github.io/agent-exporter/repo-map/`</p>
+      <div class="ae-inline-links">
+        <a class="ae-button" href="./repo-map.html">Open repo map</a>
+      </div>
     </article>
     <article class="ae-proof-card">
       <p class="ae-mini-label">Published shelf</p>
       <h3>Latest release</h3>
       <p>`https://github.com/xiaojiou176-open/agent-exporter/releases/latest`</p>
+      <div class="ae-inline-links">
+        <a class="ae-button" href="https://github.com/xiaojiou176-open/agent-exporter/releases/latest">Open latest release</a>
+      </div>
     </article>
   </div>
 </section>
@@ -187,8 +199,8 @@
       <p class="ae-kicker">secondary local stdio host packet</p>
       <h2>Keep this packet small, narrow, and honest.</h2>
       <ul class="ae-bullet-list">
-        <li>`../llms-install.md` for the shortest attach path</li>
-        <li>`../server.json` for the canonical descriptor</li>
+        <li><a href="./llms-install.html">llms-install</a> for the shortest attach path</li>
+        <li><a href="./server.json">server.json</a> for the canonical descriptor</li>
         <li>marketplace logo/proof tile only for reviewer lanes</li>
       </ul>
     </article>
@@ -241,11 +253,11 @@
 
 | Layer | Current truth | First proof / entry |
 | --- | --- | --- |
-| CLI core | Codex `app-server` remains the canonical path; `local` and `claude-code` are landed | CLI quickstart in `../README.md` |
+| CLI core | Codex `app-server` remains the canonical path; `local` and `claude-code` are landed | CLI quickstart in [README front door](./README.html) |
 | Archive shell proof | `publish archive-index` generates the transcript browser, workspace backlinks, and the archive shell | `.agents/Conversations/index.html` |
 | Reports shell | `search semantic|hybrid --save-report` generates retrieval receipts and the reports shell | `.agents/Search/Reports/index.html` |
 | Integration pack | `integrate`, `doctor integrations`, and `onboard` are repo-owned companion lanes | `.agents/Integration/Reports/index.html` |
-| MCP descriptor | root `server.json` is the canonical registry/read-back descriptor for the local stdio bridge | `../server.json` |
+| MCP descriptor | root `server.json` is the canonical registry/read-back descriptor for the local stdio bridge | [`server.json`](./server.json) |
 | Governance lane | evidence, baselines, policy packs, and remediation now live in the local workbench | archive shell Decision Desk + integration evidence reports |
 
 </section>
@@ -256,8 +268,8 @@
       <p class="ae-kicker">secondary lane truth</p>
       <h2>Use packet/listing files only when lane truth matters.</h2>
       <ul class="ae-bullet-list">
-        <li>`./distribution-packet-ledger.md`</li>
-        <li>`../public-skills/README.md`</li>
+        <li><a href="./distribution-packet-ledger.html">distribution packet ledger</a></li>
+        <li><a href="https://github.com/xiaojiou176-open/agent-exporter/blob/main/public-skills/README.md">public-skills packet README</a></li>
       </ul>
       <p>Those files hold `listed-live`, `review-pending`, `platform-not-accepted-yet`, `closed-not-accepted`, and `exact_blocker_with_fresh_evidence` states without turning packet status into the first screen.</p>
     </article>
