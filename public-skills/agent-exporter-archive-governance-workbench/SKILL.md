@@ -44,6 +44,8 @@ Do **not** use this packet as a substitute for the flagship product story.
 
 ## Current registry truth
 
+- `Official MCP Registry`: `listed-live`
+  - server name: `io.github.xiaojiou176-open/agent-exporter-mcp`
 - `ClawHub`: `listed-live`
   - fresh read-back: `clawhub inspect agent-exporter-archive-governance-workbench --no-input`
 - `Goose Skills Marketplace`: `review-pending`
@@ -53,6 +55,8 @@ Do **not** use this packet as a substitute for the flagship product story.
 - `OpenHands/extensions`: `closed-not-accepted`
   - submission ref: `https://github.com/OpenHands/extensions/pull/162`
   - maintainer note: distribute a custom `marketplace.json` instead of expecting an upstream listing
+- `Smithery`: `build-contract-blocked`
+  - attempted repo-root publish currently fails during shttp bundle build
 - `awesome-opencode`: `exact_blocker_with_fresh_evidence`
   - exact blocker: this packet is a host-native skill folder for an archive/governance workbench, not an honest opencode-native project/resource entry today
 

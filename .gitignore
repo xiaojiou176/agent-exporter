@@ -13,5 +13,6 @@ dist/
 .runtime-cache/
 target/
 .env
+.mcpregistry_*
 .DS_Store
 node_modules/

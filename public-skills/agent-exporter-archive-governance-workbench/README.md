@@ -86,6 +86,9 @@ This packet teaches an agent how to:
 
 ## Current registry truth
 
+- `Official MCP Registry`: `listed-live`
+  - server name: `io.github.xiaojiou176-open/agent-exporter-mcp`
+  - fresh read-back: `mcp-publisher publish server.json` completed successfully on `2026-04-20`
 - `ClawHub`: `listed-live`
   - fresh read-back: `clawhub inspect agent-exporter-archive-governance-workbench --no-input`
 - `Goose Skills Marketplace`: `review-pending`
@@ -96,6 +99,9 @@ This packet teaches an agent how to:
 - `OpenHands/extensions`: `closed-not-accepted`
   - submission ref: `https://github.com/OpenHands/extensions/pull/162`
   - maintainer note: distribute a custom `marketplace.json` instead of expecting an upstream listing
+- `Smithery`: `build-contract-blocked`
+  - attempted command: `smithery mcp publish . -n xiaojiou176-open/agent-exporter-mcp --json`
+  - current blocker: Smithery's repo-root build path tried to build an shttp bundle and failed to resolve the Rust repo root as a supported publish entrypoint
 - `awesome-opencode`: `exact_blocker_with_fresh_evidence`
   - exact blocker: this packet is a host-native skill folder for an archive/governance workbench, not an honest opencode-native project/resource entry today
 
@@ -131,6 +137,7 @@ This packet teaches an agent how to:
 - no hosted archive platform
 - no listed-live Goose or agent-skill.co entry without fresh read-back
 - no listed-live OpenHands/extensions entry; that lane was closed rather than accepted
+- no Smithery listing yet; the current repo-root publish path is still blocked
 - no awesome-opencode project/resource claim; current cargo is still not honest for that lane
 - no full-CLI MCP parity
 - no change to the flagship quickstart-first primary surface

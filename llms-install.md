@@ -127,8 +127,11 @@ real workspace, then you ask it for deeper governance work.
 This install page proves the repo-owned local bridge exists.
 It does **not** prove:
 
-- Official MCP Registry publication
-- Smithery publication
 - a hosted runtime
 - a live marketplace listing beyond the intake receipts
 - that the MCP bridge replaces the CLI-first flagship packet
+
+Registry/listing truth now lives in the distribution packet ledger:
+
+- Official MCP Registry is already published
+- Smithery is not listed yet and is currently blocked at the repo-root build contract

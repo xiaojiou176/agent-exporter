@@ -54,10 +54,12 @@ Current packet:
 
 Current lane truth:
 
+- `Official MCP Registry`: `listed-live` for `io.github.xiaojiou176-open/agent-exporter-mcp`
 - `ClawHub`: `listed-live`
 - `Goose Skills Marketplace`: `review-pending` via `block/Agent-Skills#24`
 - `agent-skill.co source repo`: `platform-not-accepted-yet` via `heilcheng/awesome-agent-skills#180` while Vercel team authorization is pending
 - `OpenHands/extensions`: `closed-not-accepted`; maintainer pointed to a custom `marketplace.json` distribution path instead
+- `Smithery`: `build-contract-blocked`; `smithery mcp publish . -n xiaojiou176-open/agent-exporter-mcp --json` failed while building an shttp bundle from the Rust repo root
 - `awesome-opencode`: `exact_blocker_with_fresh_evidence`; the current packet is a host-native skill folder for an archive/governance workbench, not an honest opencode-native project/resource entry today
 
 ## What This Lane Must Not Overclaim

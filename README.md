@@ -181,10 +181,13 @@ What this packet proves:
 
 What this packet does **not** prove:
 
-- Official MCP Registry publication
-- Smithery publication
 - a hosted runtime
 - a public package registry lane beyond the repo-owned bridge packet
+
+For fresh registry/listing truth, use the
+[distribution packet ledger](./docs/distribution-packet-ledger.md).
+That is where Official MCP Registry publication and the current Smithery blocker
+are tracked honestly.
 
 <details>
 <summary><strong>Why this packet stays in the second ring</strong></summary>
