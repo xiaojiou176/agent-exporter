@@ -210,7 +210,7 @@ export const AgentExporterPromo: React.FC = () => {
                   color: palette.accent,
                 }}
               >
-                archive and governance workbench
+                transcript-first workbench
               </div>
               <div
                 style={{
@@ -220,7 +220,7 @@ export const AgentExporterPromo: React.FC = () => {
                   letterSpacing: "-0.05em",
                 }}
               >
-                Put transcript export, archive proof, and governance on one desk.
+                Export one transcript. Build one local workbench.
               </div>
               <div
                 style={{
@@ -230,9 +230,8 @@ export const AgentExporterPromo: React.FC = () => {
                   maxWidth: 720,
                 }}
               >
-                `agent-exporter` helps you turn AI agent transcripts into local
-                receipts, then route reports and governance evidence through one
-                inspectable workbench.
+                Create a browsable HTML receipt, publish the archive shell, and
+                keep reports plus governance evidence on one inspectable desk.
               </div>
               <div style={{display: "flex", gap: 14}}>
                 <div
@@ -245,7 +244,7 @@ export const AgentExporterPromo: React.FC = () => {
                     fontWeight: 600,
                   }}
                 >
-                  CLI quickstart
+                  HTML receipt
                 </div>
                 <div
                   style={{
@@ -282,13 +281,13 @@ export const AgentExporterPromo: React.FC = () => {
                   color: palette.accent,
                 }}
               >
-                what it is not
+                what you get
               </div>
               <div style={{display: "grid", gap: 14}}>
                 {[
-                  "not a hosted archive platform",
-                  "not a generic MCP product",
-                  "not product theatre before proof",
+                  "one local HTML transcript receipt",
+                  "one archive shell entrypoint",
+                  "reports and governance as companion lanes",
                 ].map((line) => (
                   <div
                     key={line}
@@ -312,7 +311,7 @@ export const AgentExporterPromo: React.FC = () => {
                   color: palette.muted,
                 }}
               >
-                local-first, developer-grade, and calm enough to trust.
+                local-first, proof-first, and not a hosted platform.
               </div>
             </div>
           </div>
@@ -372,14 +371,14 @@ export const AgentExporterPromo: React.FC = () => {
               <Card
                 label="01"
                 title="Read the bench shape"
-                body="Run `scaffold`, then `connectors`, before you point the repo at a real thread."
+                body="Run scaffold, then connectors, before you point the repo at a real thread."
                 frame={frame}
                 start={156}
               />
               <Card
                 label="02"
                 title="Export one transcript"
-                body="Create a browsable HTML receipt inside `.agents/Conversations/`."
+                body="Create a browsable HTML receipt inside .agents/Conversations/."
                 frame={frame}
                 start={168}
               />
@@ -563,7 +562,7 @@ export const AgentExporterPromo: React.FC = () => {
                   color: palette.accent,
                 }}
               >
-                next door
+                what to do next
               </div>
               <div
                 style={{
@@ -573,7 +572,7 @@ export const AgentExporterPromo: React.FC = () => {
                   letterSpacing: "-0.04em",
                 }}
               >
-                Try it in 3 steps. Then inspect the proof.
+                Try it in 3 steps. Then inspect the proof lane.
               </div>
               <div
                 style={{
@@ -583,8 +582,8 @@ export const AgentExporterPromo: React.FC = () => {
                   maxWidth: 720,
                 }}
               >
-                `README`, Pages docs, and the archive shell proof now speak the
-                same truth: local-first, quickstart-first, proof before platform.
+                README, Pages docs, and the proof lane now tell the same story:
+                export first, inspect the proof, then open companion lanes.
               </div>
             </div>
             <div

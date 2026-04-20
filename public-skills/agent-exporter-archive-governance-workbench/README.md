@@ -81,7 +81,7 @@ This packet teaches an agent how to:
 
 - Landing: https://xiaojiou176-open.github.io/agent-exporter/
 - Archive shell proof: https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html
-- Repo map: https://xiaojiou176-open.github.io/agent-exporter/repo-map/
+- Repo map: https://xiaojiou176-open.github.io/agent-exporter/repo-map.html
 - Releases: https://github.com/xiaojiou176-open/agent-exporter/releases
 
 ## Current registry truth

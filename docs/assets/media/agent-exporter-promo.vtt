@@ -1,22 +1,19 @@
 WEBVTT
 
 00:00:00.000 --> 00:00:03.000
-agent-exporter is an archive and governance workbench for AI agent transcripts.
+Export one AI agent transcript into a local HTML receipt.
 
-00:00:03.000 --> 00:00:07.000
-Start with the CLI quickstart. Prove the command surface before anything else.
+00:00:03.000 --> 00:00:06.300
+Publish the archive shell so transcripts, reports, and governance evidence stay on one desk.
 
-00:00:07.000 --> 00:00:11.000
-Export one HTML transcript receipt you can read and keep locally.
+00:00:06.300 --> 00:00:09.000
+Start with the CLI quickstart.
 
-00:00:11.000 --> 00:00:15.000
-Publish the archive shell to organize transcripts, reports, and evidence on one desk.
+00:00:09.000 --> 00:00:12.200
+Use the proof page when you need the first public explanation.
 
-00:00:15.000 --> 00:00:20.000
-This is a local workbench, not a hosted platform or remote runtime.
+00:00:12.200 --> 00:00:15.200
+This is a local-first workbench, not a hosted platform.
 
-00:00:20.000 --> 00:00:24.000
-Governance is a companion lane. It does not replace the transcript-first front door.
-
-00:00:24.000 --> 00:00:28.000
-The flagship public packet is still GitHub repo, CLI quickstart, and archive shell proof.
+00:00:15.200 --> 00:00:18.000
+Proof first. Companion lanes after that.

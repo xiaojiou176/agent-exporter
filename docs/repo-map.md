@@ -21,7 +21,7 @@ description: Public repo map for the agent-exporter workbench, with clear routin
       <a class="ae-button" href="https://github.com/xiaojiou176-open/agent-exporter">Open GitHub front door</a>
     </div>
   </div>
-  <aside class="ae-hero-side ae-panel">
+  <div class="ae-hero-side ae-panel">
     <p class="ae-kicker">use this page for</p>
     <dl class="ae-glance-list">
       <div>
@@ -37,7 +37,7 @@ description: Public repo map for the agent-exporter workbench, with clear routin
         <dd>first-time product orientation</dd>
       </div>
     </dl>
-  </aside>
+  </div>
 </section>
 
 <section class="ae-section">
@@ -70,17 +70,53 @@ description: Public repo map for the agent-exporter workbench, with clear routin
     <h2>Open the lane that matches the question you actually have.</h2>
   </div>
 
-| If your question is... | Open this next | Why |
-| --- | --- | --- |
-| "How do I get one successful result?" | [GitHub front door](https://github.com/xiaojiou176-open/agent-exporter) | the flagship front door stays there |
-| "Can I get the shortest visual walkthrough first?" | [Promo reel](./promo-reel.html) | this is the compact visual companion |
-| "What should I share once the product story is already clear?" | [Launch kit](./launch-kit.html) | this is the second-ring distribution-prep lane |
-| "What does the first proof actually prove?" | [Archive shell proof](./archive-shell-proof.html) | this is the proof explanation page |
-| "Where are transcripts, reports, and evidence rendered?" | [`src/output/`](https://github.com/xiaojiou176-open/agent-exporter/tree/main/src/output) | this is the output shell layer |
-| "Where are connector boundaries defined?" | [`src/connectors/`](https://github.com/xiaojiou176-open/agent-exporter/tree/main/src/connectors) | this is the source adapter layer |
-| "Where does archive and governance logic live?" | [`src/core/`](https://github.com/xiaojiou176-open/agent-exporter/tree/main/src/core) | this is the contract and decision layer |
-| "Where is the repo-owned integration lane?" | [`docs/integrations/`](https://github.com/xiaojiou176-open/agent-exporter/tree/main/docs/integrations) | this is the integration pack surface |
-| "Where are the truth boundaries and upstream reading lists?" | [`docs/reference/`](https://github.com/xiaojiou176-open/agent-exporter/tree/main/docs/reference) | this is the constraint shelf |
+<div class="ae-proof-grid">
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">front door</p>
+    <h3>How do I get one successful result?</h3>
+    <p><a href="https://github.com/xiaojiou176-open/agent-exporter">Open the GitHub front door</a> because the flagship packet still lives there.</p>
+  </article>
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">visual companion</p>
+    <h3>Can I get the shortest visual walkthrough first?</h3>
+    <p><a href="./promo-reel.html">Open the promo reel</a> when a short motion pass will orient you faster than more prose.</p>
+  </article>
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">sharing lane</p>
+    <h3>What should I share once the product story is already clear?</h3>
+    <p><a href="./launch-kit.html">Open the launch kit</a> for second-ring distribution-prep assets and copy.</p>
+  </article>
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">proof</p>
+    <h3>What does the first proof actually prove?</h3>
+    <p><a href="./archive-shell-proof.html">Open archive shell proof</a> when the proof boundary itself is the question.</p>
+  </article>
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">renderers</p>
+    <h3>Where are transcripts, reports, and evidence rendered?</h3>
+    <p><a href="https://github.com/xiaojiou176-open/agent-exporter/tree/main/src/output"><code>src/output/</code></a> is the visible shell layer.</p>
+  </article>
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">connectors</p>
+    <h3>Where are connector boundaries defined?</h3>
+    <p><a href="https://github.com/xiaojiou176-open/agent-exporter/tree/main/src/connectors"><code>src/connectors/</code></a> is the source adapter layer.</p>
+  </article>
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">contracts</p>
+    <h3>Where does archive and governance logic live?</h3>
+    <p><a href="https://github.com/xiaojiou176-open/agent-exporter/tree/main/src/core"><code>src/core/</code></a> is the contract and decision layer.</p>
+  </article>
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">integration lane</p>
+    <h3>Where is the repo-owned integration lane?</h3>
+    <p><a href="https://github.com/xiaojiou176-open/agent-exporter/tree/main/docs/integrations"><code>docs/integrations/</code></a> is the integration pack surface.</p>
+  </article>
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">reference shelf</p>
+    <h3>Where are the truth boundaries and upstream reading lists?</h3>
+    <p><a href="https://github.com/xiaojiou176-open/agent-exporter/tree/main/docs/reference"><code>docs/reference/</code></a> is the constraint shelf.</p>
+  </article>
+</div>
 
 </section>
 
@@ -92,32 +128,32 @@ description: Public repo map for the agent-exporter workbench, with clear routin
   <div class="ae-surface-grid">
     <article class="ae-surface-card">
       <p class="ae-mini-label">Entry</p>
-      <h3>`src/cli.rs`</h3>
+      <h3><code>src/cli.rs</code></h3>
       <p>The CLI entrypoint and command routing. This is still the operational front door.</p>
     </article>
     <article class="ae-surface-card">
       <p class="ae-mini-label">Source adapters</p>
-      <h3>`src/connectors/`</h3>
+      <h3><code>src/connectors/</code></h3>
       <p>Codex and Claude Code source boundaries. This is where transcript intake rules live.</p>
     </article>
     <article class="ae-surface-card">
       <p class="ae-mini-label">Contracts</p>
-      <h3>`src/core/`</h3>
+      <h3><code>src/core/</code></h3>
       <p>Archive, search, evidence, and host-safety rules. This is the product logic shelf.</p>
     </article>
     <article class="ae-surface-card">
       <p class="ae-mini-label">Readable surfaces</p>
-      <h3>`src/output/`</h3>
+      <h3><code>src/output/</code></h3>
       <p>Archive shell, search report, and integration evidence rendering. This is the visible workbench layer.</p>
     </article>
     <article class="ae-surface-card">
       <p class="ae-mini-label">Public docs</p>
-      <h3>`docs/`</h3>
+      <h3><code>docs/</code></h3>
       <p>The companion public docs surface. It explains, routes, and proves, but does not replace the CLI front door.</p>
     </article>
     <article class="ae-surface-card">
       <p class="ae-mini-label">Promo lane</p>
-      <h3>`docs/promo-reel.md`</h3>
+      <h3><code>docs/promo-reel.md</code></h3>
       <p>The compact visual companion for first-time reviewers who want the shortest proof-aligned walkthrough.</p>
       <div class="ae-inline-links">
         <a class="ae-button" href="./promo-reel.html">Open promo reel</a>
@@ -125,7 +161,7 @@ description: Public repo map for the agent-exporter workbench, with clear routin
     </article>
     <article class="ae-surface-card">
       <p class="ae-mini-label">Launch lane</p>
-      <h3>`docs/launch-kit.md`</h3>
+      <h3><code>docs/launch-kit.md</code></h3>
       <p>The second-ring distribution-prep shelf for channel-ready copy, asset routing, and packet-safe sharing.</p>
       <div class="ae-inline-links">
         <a class="ae-button" href="./launch-kit.html">Open launch kit</a>
@@ -133,22 +169,22 @@ description: Public repo map for the agent-exporter workbench, with clear routin
     </article>
     <article class="ae-surface-card">
       <p class="ae-mini-label">Design law</p>
-      <h3>`design-system/`</h3>
+      <h3><code>design-system/</code></h3>
       <p>The repo-owned visual and IA doctrine for front door and workbench shells.</p>
     </article>
     <article class="ae-surface-card">
       <p class="ae-mini-label">Integration lane</p>
-      <h3>`docs/integrations/`</h3>
+      <h3><code>docs/integrations/</code></h3>
       <p>Repo-owned integration pack guidance for Codex, Claude Code, and related side lanes.</p>
     </article>
     <article class="ae-surface-card">
       <p class="ae-mini-label">Reference shelf</p>
-      <h3>`docs/reference/`</h3>
+      <h3><code>docs/reference/</code></h3>
       <p>Upstream contracts, reading lists, and host-safety boundaries. Use this when you need truth-source detail.</p>
     </article>
     <article class="ae-surface-card">
       <p class="ae-mini-label">Governance artifacts</p>
-      <h3>`policies/`</h3>
+      <h3><code>policies/</code></h3>
       <p>Integration evidence policy packs and governance baselines. This is the local rulebook shelf.</p>
     </article>
   </div>

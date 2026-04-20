@@ -1,6 +1,5 @@
-CLI quickstart first.
-Export one HTML transcript receipt.
-Publish the archive shell proof.
-Local first.
-Not hosted.
-Governance stays a side lane, not the product identity.
+Export one transcript.
+Publish one local archive shell.
+Quickstart first.
+Proof before platform.
+Companion lanes come after the proof.

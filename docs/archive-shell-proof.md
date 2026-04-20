@@ -21,7 +21,7 @@ description: What the archive shell proves, what it does not prove, and how to r
       <a class="ae-button" href="./">Return to docs home</a>
     </div>
   </div>
-  <aside class="ae-hero-side ae-panel">
+  <div class="ae-hero-side ae-panel">
     <p class="ae-kicker">what this page is for</p>
     <dl class="ae-glance-list">
       <div>
@@ -37,7 +37,7 @@ description: What the archive shell proves, what it does not prove, and how to r
         <dd>local workbench proof, not a hosted runtime</dd>
       </div>
     </dl>
-  </aside>
+  </div>
 </section>
 
 <section class="ae-section">
@@ -69,7 +69,7 @@ description: What the archive shell proves, what it does not prove, and how to r
       <h2>Real local workbench proof.</h2>
       <ul class="ae-proof-list">
         <li>transcript export can become a browsable HTML receipt</li>
-        <li>`publish archive-index` can organize transcripts, reports shell, and integration evidence into one inspectable archive shell</li>
+        <li><code>publish archive-index</code> can organize transcripts, reports shell, and integration evidence into one inspectable archive shell</li>
         <li>the archive shell is already <strong>workbench proof</strong>: it can route a reader through local artifacts without pretending to be a hosted platform</li>
       </ul>
     </article>
@@ -80,7 +80,7 @@ description: What the archive shell proves, what it does not prove, and how to r
         <li>this is not a hosted product demo</li>
         <li>this is not a GitHub Pages live archive shell</li>
         <li>this is not a remote multi-user platform</li>
-        <li>this does not automatically mean `submit-ready`, `listed-live`, or `already approved`</li>
+        <li>this does not automatically mean <code>submit-ready</code>, <code>listed-live</code>, or <code>already approved</code></li>
       </ul>
     </article>
   </div>
@@ -114,7 +114,7 @@ description: What the archive shell proves, what it does not prove, and how to r
   --destination workspace-conversations \
   --workspace-root /absolute/path/to/repo</code></pre>
       </div>
-      <p class="ae-command-caption">This leaves behind a concrete HTML receipt in `.agents/Conversations/`.</p>
+      <p class="ae-command-caption">This leaves behind a concrete HTML receipt in <code>.agents/Conversations/</code>.</p>
     </article>
     <article class="ae-step">
       <span class="ae-step-number">03</span>
@@ -126,7 +126,7 @@ description: What the archive shell proves, what it does not prove, and how to r
     </article>
   </div>
   <p class="ae-note">
-    After a successful local run you should see `.agents/Conversations/*.html`, `.agents/Conversations/index.html`,
+    After a successful local run you should see <code>.agents/Conversations/*.html</code>, <code>.agents/Conversations/index.html</code>,
     and navigation paths from the transcript browser into reports shell and integration evidence.
   </p>
 </section>
@@ -220,7 +220,7 @@ description: What the archive shell proves, what it does not prove, and how to r
     <article class="ae-note-card">
       <p class="ae-kicker">why this matters</p>
       <h3>Truthful product positioning depends on ordering.</h3>
-      <p>`agent-exporter` is already more than an export utility, but its first public proof still has to start with CLI quickstart, transcript export, and archive shell generation.</p>
+      <p><code>agent-exporter</code> is already more than an export utility, but its first public proof still has to start with CLI quickstart, transcript export, and archive shell generation.</p>
     </article>
   </div>
 </section>
