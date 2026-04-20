@@ -6,6 +6,13 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-04-20
+
+### Changed
+- distribution packet ledger now opens with a public-truth shelf hero instead of dropping straight into dense tables
+- public skill packet READMEs now surface quick-truth and registry outcome summaries before the long-form explanation
+- published shelf catches up again after the public packet surface polish
+
 ## [0.1.3] - 2026-04-20
 
 ### Added
