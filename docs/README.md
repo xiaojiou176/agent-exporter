@@ -328,7 +328,7 @@ permalink: /docs-index.html
         <li><a href="./distribution-packet-ledger.html">distribution packet ledger</a></li>
         <li><a href="https://github.com/xiaojiou176-open/agent-exporter/blob/main/public-skills/README.md">public-skills packet README</a></li>
       </ul>
-      <p>Those files hold <code>listed-live</code>, <code>review-pending</code>, <code>platform-not-accepted-yet</code>, <code>closed-not-accepted</code>, and <code>exact_blocker_with_fresh_evidence</code> states without turning packet status into the first screen.</p>
+      <p>Those files hold <code>listed-live</code>, <code>review-pending</code>, <code>platform-not-accepted-yet</code>, <code>closed-not-accepted</code>, <code>build-contract-blocked</code>, and <code>exact_blocker_with_fresh_evidence</code> states without turning packet status into the first screen.</p>
     </article>
     <article class="ae-split-card">
       <p class="ae-kicker">maintainer-only references</p>

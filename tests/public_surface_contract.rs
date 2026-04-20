@@ -72,6 +72,7 @@ fn public_skill_packet_truth_matches_live_and_pending_lanes() {
     assert_contains_all(
         &manifest,
         &[
+            "Official MCP Registry published",
             "clawhub:",
             "status: listed-live",
             "read_back: clawhub inspect agent-exporter-archive-governance-workbench --no-input",
@@ -86,7 +87,8 @@ fn public_skill_packet_truth_matches_live_and_pending_lanes() {
             "submission_ref: https://github.com/OpenHands/extensions/pull/162",
             "awesome-opencode:",
             "status: exact_blocker_with_fresh_evidence",
-            "listing_state_summary: ClawHub listed-live; Goose review-pending; agent-skill.co blocked by external Vercel authorization; OpenHands/extensions closed-not-accepted; awesome-opencode exact_blocker_with_fresh_evidence.",
+            "listing_state_summary: Official MCP Registry published; ClawHub listed-live; Goose review-pending; agent-skill.co blocked by external Vercel authorization; OpenHands/extensions closed-not-accepted; Smithery repo-root publish currently build-contract-blocked; awesome-opencode exact_blocker_with_fresh_evidence.",
+            "No Smithery listing exists yet; the current repo-root publish path fails before publication",
             "No listed-live Goose or agent-skill.co entry exists yet",
             "No listed-live OpenHands/extensions entry exists; that lane was closed instead",
             "No awesome-opencode entry exists; current packet is not honest opencode cargo yet",
@@ -110,9 +112,11 @@ fn public_skill_packet_truth_matches_live_and_pending_lanes() {
 #[test]
 fn public_skill_packet_prose_keeps_live_lane_truth_in_sync() {
     let expected = [
+        "`Official MCP Registry`: `listed-live`",
         "`ClawHub`: `listed-live`",
         "`Goose Skills Marketplace`: `review-pending`",
         "`OpenHands/extensions`: `closed-not-accepted`",
+        "`Smithery`: `build-contract-blocked`",
         "`awesome-opencode`: `exact_blocker_with_fresh_evidence`",
     ];
 

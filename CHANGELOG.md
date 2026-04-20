@@ -6,6 +6,16 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.1.3] - 2026-04-20
+
+### Added
+- Official MCP Registry publication for `io.github.xiaojiou176-open/agent-exporter-mcp`
+
+### Changed
+- public packet truth now records Official MCP Registry as live instead of a missing lane
+- host packet docs now treat Smithery as a build-contract blocker instead of a vague unverified absence
+- published shelf realigns again to the latest distribution truth after the registry publication
+
 ## [0.1.2] - 2026-04-20
 
 ### Added
