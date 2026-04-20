@@ -1,5 +1,6 @@
-Export one AI agent transcript into a local HTML receipt.
-Publish the archive shell so transcripts, reports, and governance evidence stay on one desk.
-Start with the CLI quickstart.
-Use the proof page when you need the first public explanation.
+Run scaffold and connectors.
+Export one HTML transcript receipt.
+Publish the archive shell so receipts, reports, and governance evidence stay on one desk.
+Open archive shell proof when you need the boundary.
 This is a local-first workbench, not a hosted platform.
+Companion lanes come after the proof.

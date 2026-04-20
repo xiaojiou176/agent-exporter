@@ -1,8 +1,8 @@
 # agent-exporter
 
-`agent-exporter` helps you export AI agent transcripts into local receipts, then turn those receipts, reports, and governance evidence into an **archive and governance workbench**.
+`agent-exporter` helps you export one AI agent transcript into a local HTML receipt, then turn that receipt, reports, and governance evidence into an **archive and governance workbench**.
 
-[Try It In 3 Steps](#first-success-path) · [Zero-Context First Look](#zero-context-first-look) · [Promo Reel](https://xiaojiou176-open.github.io/agent-exporter/promo-reel.html) · [launch kit](https://xiaojiou176-open.github.io/agent-exporter/launch-kit.html) · [Docs Landing](https://xiaojiou176-open.github.io/agent-exporter/) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) · [Latest Release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
+[Try It In 3 Steps](#first-success-path) · [Watch 20s Reel](https://xiaojiou176-open.github.io/agent-exporter/promo-reel.html) · [launch kit](https://xiaojiou176-open.github.io/agent-exporter/launch-kit.html) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) · [Docs Landing](https://xiaojiou176-open.github.io/agent-exporter/) · [Latest Release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
 
 ![agent-exporter proof map showing CLI quickstart, transcript export, archive shell proof, reports shell, and integration evidence as one inspectable workbench](./docs/assets/archive-shell-proof.svg)
 
@@ -11,6 +11,11 @@
 > Prefer a 20-second visual pass first?
 > Watch the [promo reel](https://xiaojiou176-open.github.io/agent-exporter/promo-reel.html), then come back to the quickstart path for real proof.
 
+> First-success strip:
+> run `cargo run -- scaffold` and `cargo run -- connectors`,
+> export one HTML receipt,
+> then publish the archive shell.
+
 ## Front Door Map
 
 If you only remember four things, remember these:
@@ -18,8 +23,8 @@ If you only remember four things, remember these:
 | Question | Short answer |
 | --- | --- |
 | What is this? | an **archive and governance workbench** for AI agent transcripts |
-| What should I do first? | start with the **quickstart path** |
-| What is the first visible proof? | one HTML transcript receipt plus the archive shell proof |
+| What should I do first? | run `scaffold` + `connectors`, export one HTML receipt, then publish the archive shell |
+| What is the first visible proof? | one HTML transcript receipt plus one archive shell entrypoint |
 | What shape should I expect? | an inspectable archive workbench, not a hosted archive platform or generic MCP product |
 
 > Published shelf note:
@@ -84,7 +89,7 @@ If you want the shortest truthful filter before reading deeper, use this table:
 | --- | --- |
 | Primary entrypoint | `CLI quickstart` |
 | Zero-context start | `scaffold` -> `connectors` |
-| First success | `connectors` -> `export codex --format html` -> `publish archive-index` |
+| First success | `scaffold` + `connectors` -> `export codex --format html` -> `publish archive-index` |
 | First visible proof | a local HTML transcript receipt plus the tracked archive-shell proof page |
 | What it must never be reduced to | a hosted archive platform, a generic remote transcript service, or a generic MCP product |
 

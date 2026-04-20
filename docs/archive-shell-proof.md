@@ -42,12 +42,39 @@ description: What the archive shell proves, what it does not prove, and how to r
 
 <section class="ae-section">
   <div class="ae-section-head">
+    <p class="ae-kicker">what you should see</p>
+    <h2>Read the artifacts first, then use diagrams as map legends.</h2>
+    <p class="ae-lead">
+      Before this page earns the right to show diagrams, it should tell you what concrete things the shortest truthful path is supposed to leave behind.
+    </p>
+  </div>
+  <div class="ae-proof-grid">
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">artifact 01</p>
+      <h3>One HTML transcript receipt</h3>
+      <p>You should get a browsable transcript receipt inside <code>.agents/Conversations/</code>, not just a hidden export file.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">artifact 02</p>
+      <h3>One archive shell entrypoint</h3>
+      <p>You should then get <code>.agents/Conversations/index.html</code> as the local navigation surface for transcripts, reports, and evidence.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">proof boundary</p>
+      <h3>Still local-only proof</h3>
+      <p>Those artifacts prove a local workbench path. They still do not prove a hosted runtime, a remote service, or a live app shell.</p>
+    </article>
+  </div>
+</section>
+
+<section class="ae-section">
+  <div class="ae-section-head">
     <p class="ae-kicker">visual proof assets</p>
     <h2>Two diagrams, two jobs.</h2>
     <p class="ae-lead">
       The first diagram shows the workbench shape.
       The second shows the proof ladder from CLI to transcript receipt to archive shell.
-      Read them like a map legend, not like a product hype montage.
+      Read them like map legends after the artifacts, not like a product hype montage.
     </p>
   </div>
   <div class="ae-media-grid">

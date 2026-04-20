@@ -230,8 +230,9 @@ export const AgentExporterPromo: React.FC = () => {
                   maxWidth: 720,
                 }}
               >
-                Create a browsable HTML receipt, publish the archive shell, and
-                keep reports plus governance evidence on one inspectable desk.
+                Run scaffold and connectors, export one HTML receipt, then
+                publish the archive shell that keeps reports plus governance
+                evidence on one inspectable desk.
               </div>
               <div style={{display: "flex", gap: 14}}>
                 <div
