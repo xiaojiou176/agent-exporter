@@ -1,17 +1,123 @@
-# Distribution Packet Ledger
+---
+title: Distribution Packet Ledger
+description: Truth shelf for agent-exporter packet, registry, listing, and published-release status.
+image: /assets/media/agent-exporter-social-card.png
+---
 
-This page is the repo-wide shipping label for `agent-exporter`.
+<main id="main-content" role="main" markdown="1">
 
-Use it when you need a clean answer to this question:
+<section class="ae-hero">
+  <div class="ae-hero-main">
+    <p class="ae-kicker">distribution packet ledger</p>
+    <h1>Use this page when packet, registry, or release-shelf truth matters more than first-time product orientation.</h1>
+    <p class="ae-lead">
+      This page is the repo-wide shipping label for <code>agent-exporter</code>.
+      It answers one narrow but important question:
+      which packet is the flagship public box, which lanes are secondary, and which external registries are live, pending, blocked, or not an honest fit.
+    </p>
+    <div class="ae-actions">
+      <a class="ae-button ae-button-primary" href="https://github.com/xiaojiou176-open/agent-exporter/releases/latest">Open latest release shelf</a>
+      <a class="ae-button" href="https://github.com/xiaojiou176-open/agent-exporter">Open GitHub front door</a>
+      <a class="ae-button" href="./archive-shell-proof.html">Open archive shell proof</a>
+    </div>
+    <p class="ae-caption">
+      Keep this page in the second ring.
+      The first screen still belongs to the flagship packet:
+      <strong>GitHub repo + CLI quickstart + archive shell proof.</strong>
+    </p>
+  </div>
+  <div class="ae-hero-side ae-panel">
+    <p class="ae-kicker">at a glance</p>
+    <dl class="ae-glance-list">
+      <div>
+        <dt>Flagship packet</dt>
+        <dd>GitHub repo + CLI quickstart + archive shell proof</dd>
+      </div>
+      <div>
+        <dt>Published shelf</dt>
+        <dd><code>v0.1.3</code> is the newest frozen packet</dd>
+      </div>
+      <div>
+        <dt>Live external lane</dt>
+        <dd>Official MCP Registry and ClawHub</dd>
+      </div>
+      <div>
+        <dt>Still blocked</dt>
+        <dd>Smithery repo-root publish build contract</dd>
+      </div>
+    </dl>
+  </div>
+</section>
 
-> Which packet is the flagship public box, which packets are only secondary
-> lanes, and why this repo should not be mistaken for a runtime/container
-> warehouse?
+<section class="ae-section">
+  <div class="ae-section-head">
+    <p class="ae-kicker">packet truth in one screen</p>
+    <h2>Read the packet hierarchy before you read the detailed ledger.</h2>
+    <p class="ae-lead">
+      Think of the repo like a workshop.
+      The CLI workbench is the main bench in the middle.
+      Integration, governance, and host packet lanes are side stations.
+      They help the same workbench; they do not turn the shop into a different factory.
+    </p>
+  </div>
+  <div class="ae-proof-grid">
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">primary public box</p>
+      <h3>Flagship packet</h3>
+      <p>GitHub repo front door, CLI quickstart, and archive shell proof still own the product identity.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">frozen shelf</p>
+      <h3>Latest release</h3>
+      <p><code>v0.1.3</code> is the newest published shelf. It should match the current packet truth for this cut, even if later work moves ahead again on <code>main</code>.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">live listing</p>
+      <h3>Official MCP Registry</h3>
+      <p>The local stdio bridge is now published as <code>io.github.xiaojiou176-open/agent-exporter-mcp</code>.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">live listing</p>
+      <h3>ClawHub</h3>
+      <p>The host-native skill packet remains publicly discoverable as a secondary packet lane.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">still pending</p>
+      <h3>Goose and awesome-agent-skills</h3>
+      <p>Those lanes still depend on external maintainer acceptance and have not flipped to listed-live.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">real blocker</p>
+      <h3>Smithery</h3>
+      <p>The current repo-root publish path fails during Smithery's shttp bundle build, so this is a build-contract blocker, not a vague missing status.</p>
+    </article>
+  </div>
+</section>
 
-Think of the repo like a workshop.
-The CLI workbench is the main bench in the middle. Integration and governance
-lanes are side stations. They help the same workbench; they do not turn the
-shop into a different factory.
+<section class="ae-section">
+  <div class="ae-section-head">
+    <p class="ae-kicker">how to use this page</p>
+    <h2>Open the summary first. Drop into the ledger only when you need exact evidence.</h2>
+  </div>
+  <div class="ae-split">
+    <article class="ae-split-card">
+      <p class="ae-kicker">open this page when</p>
+      <ul class="ae-bullet-list">
+        <li>you need to know which packet is actually public</li>
+        <li>you need registry/listing truth for host or reviewer lanes</li>
+        <li>you need to separate published shelf truth from repository-side truth</li>
+      </ul>
+    </article>
+    <article class="ae-split-card">
+      <p class="ae-kicker">do not use this page for</p>
+      <ul class="ae-bullet-list">
+        <li>first-time product orientation</li>
+        <li>the shortest try-it-once path</li>
+        <li>turning packet status into product identity</li>
+      </ul>
+    </article>
+  </div>
+</section>
 
 ## Current packet split
 
@@ -135,3 +241,5 @@ Keep these names aligned in every public-facing surface:
 - **Published packet** = latest tagged release notes plus frozen packet links
 - **Local stdio host packet** = `llms-install.md` + `server.json` + reviewer-facing skill packet
 - **Distribution packet ledger** = the truth shelf for packet/listing status
+
+</main>

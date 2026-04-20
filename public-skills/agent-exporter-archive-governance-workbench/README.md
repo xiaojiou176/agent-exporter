@@ -2,6 +2,17 @@
 
 This folder is the host-native public skill packet for `agent-exporter`.
 
+## Quick Truth
+
+If you only need the fast verdict, use this table first:
+
+| Question | Current answer |
+| --- | --- |
+| What is this packet? | a host-native review envelope for the local stdio bridge |
+| Which lane owns first-time orientation? | GitHub repo + CLI quickstart + archive shell proof |
+| Which live external lanes exist? | Official MCP Registry and ClawHub |
+| Which lanes are still blocked or pending? | Goose review-pending, awesome-agent-skills open, Smithery build-contract-blocked |
+
 ## What This Packet Is For
 
 Use this folder when the question is specifically about the local stdio host packet:

@@ -2,6 +2,17 @@
 
 This directory holds public-facing skill packets for `agent-exporter`.
 
+## Quick Truth
+
+If you only need the fast verdict, use this table first:
+
+| Question | Current answer |
+| --- | --- |
+| What is this lane? | a host-native packet lane, not the flagship front door |
+| Which packet owns first-time orientation? | GitHub repo + CLI quickstart + archive shell proof |
+| Which live external lanes exist? | Official MCP Registry and ClawHub |
+| Which lanes are still not done? | Goose review-pending, awesome-agent-skills open, Smithery build-contract-blocked |
+
 ## What This Lane Is
 
 Think of this directory as the **local stdio host packet lane**, not a second homepage.
@@ -61,6 +72,18 @@ Current lane truth:
 - `OpenHands/extensions`: `closed-not-accepted`; maintainer pointed to a custom `marketplace.json` distribution path instead
 - `Smithery`: `build-contract-blocked`; `smithery mcp publish . -n xiaojiou176-open/agent-exporter-mcp --json` failed while building an shttp bundle from the Rust repo root
 - `awesome-opencode`: `exact_blocker_with_fresh_evidence`; the current packet is a host-native skill folder for an archive/governance workbench, not an honest opencode-native project/resource entry today
+
+## Registry Outcome Map
+
+| Lane | Current state | Why it matters |
+| --- | --- | --- |
+| Official MCP Registry | `listed-live` | canonical MCP registry lane for the local stdio bridge |
+| ClawHub | `listed-live` | host-native packet lane remains externally discoverable |
+| Goose Skills Marketplace | `review-pending` | submission exists but maintainer acceptance is still pending |
+| awesome-agent-skills | `platform-not-accepted-yet` | source-repo lane is still open and blocked upstream |
+| OpenHands/extensions | `closed-not-accepted` | this is no longer an active upstream listing lane |
+| Smithery | `build-contract-blocked` | current repo-root publish path fails before publication |
+| awesome-opencode | `exact_blocker_with_fresh_evidence` | current packet is not an honest opencode-native fit |
 
 ## What This Lane Must Not Overclaim
 
