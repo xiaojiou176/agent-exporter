@@ -9,28 +9,28 @@ image: /assets/media/agent-exporter-social-card.png
 <section class="ae-hero">
   <div class="ae-hero-main">
     <p class="ae-kicker">promo reel</p>
-    <h1>Watch the shortest visual walkthrough before you decide whether the workbench deserves a deeper look.</h1>
+    <h1>Watch a short proof-aligned walkthrough, then run the real first-success path.</h1>
     <p class="ae-lead">
       This reel is not a hosted product demo.
-      It is a compact visual explanation of the same repo truth already stated in the README and archive shell proof:
-      <strong>CLI quickstart first, archive shell proof second, secondary lanes after that.</strong>
+      It is the visual companion to the same truth spine already used across the README and proof pages:
+      <strong><code>scaffold</code> + <code>connectors</code>, export one HTML receipt, then publish the archive shell.</strong>
     </p>
     <div class="ae-actions">
-      <a class="ae-button ae-button-primary" href="./assets/media/agent-exporter-promo.mp4">Download the promo video</a>
-      <a class="ae-button" href="./assets/media/agent-exporter-promo-vertical.mp4">Download vertical cut</a>
-      <a class="ae-button" href="./assets/media/agent-exporter-social-card.png">Download social card</a>
-      <a class="ae-button" href="./assets/media/agent-exporter-promo-landscape-voiceover.m4a">Download voiceover</a>
-      <a class="ae-button" href="./launch-kit.html">Open launch kit</a>
+      <a class="ae-button ae-button-primary" href="#watch-reel">Watch the promo reel</a>
       <a class="ae-button" href="./archive-shell-proof.html">Inspect archive shell proof</a>
-      <a class="ae-button" href="./">Return to docs home</a>
+      <a class="ae-button" href="./launch-kit.html">Open launch kit</a>
     </div>
+    <p class="ae-caption">
+      Need downloadable assets instead of first orientation?
+      Use the asset shelf below after you watch or skip the reel.
+    </p>
   </div>
   <div class="ae-hero-side ae-panel">
     <p class="ae-kicker">watch for</p>
     <dl class="ae-glance-list">
       <div>
         <dt>Main message</dt>
-        <dd>transcript export, archive proof, and governance belong on one local desk</dd>
+        <dd>one HTML receipt, one archive shell, companion lanes after the proof</dd>
       </div>
       <div>
         <dt>Boundary</dt>
@@ -38,13 +38,13 @@ image: /assets/media/agent-exporter-social-card.png
       </div>
       <div>
         <dt>Best next action</dt>
-        <dd>run the three-step first success path after the reel</dd>
+        <dd>run <code>scaffold</code> + <code>connectors</code>, then export the first HTML receipt</dd>
       </div>
     </dl>
   </div>
 </section>
 
-<section class="ae-section">
+<section id="watch-reel" class="ae-section">
   <div class="ae-section-head">
     <p class="ae-kicker">watch</p>
     <h2>A 18-second overview of the workbench.</h2>
@@ -135,12 +135,12 @@ image: /assets/media/agent-exporter-social-card.png
       <p class="ae-kicker">script</p>
       <h3>Plain-text transcript</h3>
       <ol class="ae-bullet-list">
-        <li>Export one AI agent transcript into a local HTML receipt.</li>
-        <li>Publish the archive shell so transcripts, reports, and governance evidence stay on one desk.</li>
-        <li>Start with the CLI quickstart.</li>
-        <li>Use the proof page when you need the first public explanation.</li>
+        <li>Run <code>scaffold</code> and <code>connectors</code>.</li>
+        <li>Export one HTML transcript receipt.</li>
+        <li>Publish the archive shell.</li>
+        <li>Open archive shell proof when you need the boundary.</li>
         <li>This is a local-first workbench, not a hosted platform.</li>
-        <li>Proof first. Companion lanes after that.</li>
+        <li>Companion lanes come after the proof.</li>
       </ol>
     </article>
   </div>

@@ -18,6 +18,7 @@ shop into a different factory.
 > Freshness note:
 > treat this ledger as repo-side truth that must be rechecked before any new public packet cut.
 > The latest release can lag behind `main`, and that lag is expected as long as it is explicitly disclosed.
+> On `2026-04-20`, repo-owned local smoke, public-surface contract tests, and promo asset rebuild all ran fresh again; live public URL reachability remains pinned to the last published verification until the next Pages-facing publish loop.
 
 | Packet | What it really is | Current truth |
 | --- | --- | --- |

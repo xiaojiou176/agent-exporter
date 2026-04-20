@@ -8,7 +8,7 @@
     "poster": "remotion still src/index.ts AgentExporterPromo ../../docs/assets/media/agent-exporter-promo-poster.png --frame=60",
     "social-card": "remotion still src/index.ts AgentExporterSocialCard ../../docs/assets/media/agent-exporter-social-card.png",
     "vertical": "remotion render src/index.ts AgentExporterVerticalPromo ../../docs/assets/media/agent-exporter-promo-vertical.mp4 --codec=h264",
-    "vertical-poster": "remotion still src/index.ts AgentExporterVerticalPromo ../../docs/assets/media/agent-exporter-promo-vertical-poster.png --frame=30"
+    "vertical-poster": "remotion still src/index.ts AgentExporterVerticalPromo ../../docs/assets/media/agent-exporter-promo-vertical-poster.png --frame=360"
   },
   "dependencies": {
     "react": "19.2.0",

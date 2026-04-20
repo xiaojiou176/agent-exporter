@@ -21,19 +21,16 @@ image: /assets/media/agent-exporter-social-card.png
 <section class="ae-hero">
   <div class="ae-hero-main">
     <p class="ae-kicker">archive and governance workbench</p>
-    <h1>Put transcript export, archive proof, and governance on one desk without pretending to be a hosted platform.</h1>
+    <h1>Export one transcript, then open a local archive workbench.</h1>
     <p class="ae-lead">
-      <code>agent-exporter</code> helps you export one AI agent transcript into a local receipt, then expand that receipt into an archive and governance workbench.
-      The CLI stays the real front door because the first honest thing this product should do is generate visible proof.
-      This Pages home exists to lower orientation cost: understand the result, run the shortest path, then open the right lane.
+      <code>agent-exporter</code> keeps the front door honest:
+      run <code>scaffold</code> and <code>connectors</code>, export one HTML receipt, then publish the archive shell.
+      This companion page exists to lower orientation cost after that:
+      show the result, point at the proof, then open the right lane.
     </p>
     <div class="ae-actions">
       <a class="ae-button ae-button-primary" href="#first-success">Try the first success path</a>
-      <a class="ae-button" href="./promo-reel.html">Watch the promo reel</a>
       <a class="ae-button" href="./archive-shell-proof.html">Inspect archive shell proof</a>
-    </div>
-    <div class="ae-inline-links">
-      <a class="ae-button" href="./launch-kit.html">Open launch kit</a>
       <a class="ae-button" href="https://github.com/xiaojiou176-open/agent-exporter">Open GitHub front door</a>
     </div>
     <p class="ae-caption">
@@ -50,22 +47,50 @@ image: /assets/media/agent-exporter-social-card.png
     <p class="ae-kicker">at a glance</p>
     <dl class="ae-glance-list">
       <div>
-        <dt>Primary entrypoint</dt>
-        <dd>quickstart path</dd>
+        <dt>First success</dt>
+        <dd><code>scaffold</code> + <code>connectors</code> -> HTML receipt -> archive shell</dd>
       </div>
       <div>
         <dt>First proof</dt>
         <dd>one HTML transcript receipt plus one archive shell entrypoint</dd>
       </div>
       <div>
-        <dt>Start here</dt>
-        <dd>run the first success path before opening side lanes</dd>
+        <dt>Optional visual pass</dt>
+        <dd>watch the promo reel only when it orients you faster</dd>
       </div>
       <div>
         <dt>Boundary</dt>
         <dd>local-first proof surface, not a hosted runtime</dd>
       </div>
     </dl>
+  </div>
+</section>
+
+<section class="ae-section">
+  <div class="ae-section-head">
+    <p class="ae-kicker">what you should see</p>
+    <h2>Read the artifacts first, then open the explanations.</h2>
+    <p class="ae-lead">
+      The first useful question is not “what architecture does this imply?”
+      It is “what concrete thing should appear after the shortest truthful path runs?”
+    </p>
+  </div>
+  <div class="ae-proof-grid">
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">artifact 01</p>
+      <h3>One HTML transcript receipt</h3>
+      <p>You should get a browsable local receipt instead of a hidden export file or a promise about what the repo could do later.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">artifact 02</p>
+      <h3>One archive shell entrypoint</h3>
+      <p>You should then get a local archive shell that routes transcript receipts, reports, and evidence on the same desk.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">proof rule</p>
+      <h3>Companion lanes stay after the proof</h3>
+      <p>Promo, launch, integration, and governance all matter, but none of them should outrun the first visible artifacts.</p>
+    </article>
   </div>
 </section>
 
@@ -96,7 +121,7 @@ image: /assets/media/agent-exporter-social-card.png
     <article class="ae-proof-card">
       <p class="ae-mini-label">distribution-prep</p>
       <h3>Launch kit</h3>
-      <p>Once the product story is already clear, open the <a href="./launch-kit.html">launch kit</a> for truthful copy variants and asset routing.</p>
+      <p>Once the product story and first visible proof are already clear, open the <a href="./launch-kit.html">launch kit</a> for share-ready copy and asset routing.</p>
     </article>
   </div>
 </section>

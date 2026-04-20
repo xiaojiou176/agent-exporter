@@ -1,5 +1,5 @@
-Export one transcript.
-Publish one local archive shell.
-Quickstart first.
+Run scaffold and connectors.
+Export one HTML receipt.
+Publish the archive shell.
 Proof before platform.
 Companion lanes come after the proof.

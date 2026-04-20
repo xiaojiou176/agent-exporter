@@ -1,13 +1,13 @@
 WEBVTT
 
 00:00:00.000 --> 00:00:02.000
-先从 CLI quickstart 开始。
+先运行 scaffold 和 connectors。
 
 00:00:02.000 --> 00:00:04.300
-导出一份 HTML transcript receipt。
+导出一份 HTML receipt。
 
 00:00:04.300 --> 00:00:06.700
-再生成 archive shell proof。
+再发布 archive shell。
 
 00:00:06.700 --> 00:00:08.300
 本地优先。

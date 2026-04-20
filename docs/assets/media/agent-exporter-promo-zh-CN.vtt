@@ -1,16 +1,19 @@
 WEBVTT
 
-00:00:00.000 --> 00:00:03.000
-agent-exporter 是一个面向 AI agent transcripts 的 archive and governance workbench。
+00:00:00.000 --> 00:00:02.800
+先运行 scaffold 和 connectors。
 
-00:00:03.000 --> 00:00:05.600
-先从 CLI quickstart 开始。
+00:00:02.800 --> 00:00:05.600
+导出一份 HTML transcript receipt。
 
-00:00:05.600 --> 00:00:08.400
-导出一份可读的 HTML transcript receipt。
+00:00:05.600 --> 00:00:09.100
+再发布 archive shell，让 receipts、reports 和 governance evidence 留在同一张桌面上。
 
-00:00:08.400 --> 00:00:10.900
-再生成 archive shell proof。
+00:00:09.100 --> 00:00:12.100
+当你需要确认边界时，再打开 archive shell proof。
 
-00:00:10.900 --> 00:00:15.000
-reports 和 governance 只是同一张本地工作台上的 companion lanes。
+00:00:12.100 --> 00:00:15.100
+这是 local-first workbench，不是 hosted platform。
+
+00:00:15.100 --> 00:00:18.000
+companion lanes 要放在 proof 之后。

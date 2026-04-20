@@ -9,11 +9,11 @@ image: /assets/media/agent-exporter-social-card.png
 <section class="ae-hero">
   <div class="ae-hero-main">
     <p class="ae-kicker">launch kit</p>
-    <h1>Use this page when the product story is already clear and you need a truthful packet for sharing, posting, or reviewer handoff.</h1>
+    <h1>Use this page only after the product story and first visible proof are already clear.</h1>
     <p class="ae-lead">
       This is a <strong>second-ring distribution-prep lane</strong>.
-      It exists so you do not have to reinvent copy, assets, or proof boundaries every time you want to share <code>agent-exporter</code>.
-      It is not the first screen and it does not replace the CLI quickstart or archive shell proof.
+      It exists so you do not have to reinvent copy, assets, or claim brakes every time you want to share <code>agent-exporter</code>.
+      It is not the first screen and it does not replace the CLI quickstart, the first-success strip, or the archive shell proof.
     </p>
     <div class="ae-actions">
       <a class="ae-button ae-button-primary" href="./promo-reel.html">Open the promo reel</a>
@@ -42,22 +42,27 @@ image: /assets/media/agent-exporter-social-card.png
 
 <section class="ae-section">
   <div class="ae-section-head">
-    <p class="ae-kicker">core product sentence</p>
-    <h2>Start every outward-facing version from the same honest sentence.</h2>
+    <p class="ae-kicker">shared message spine</p>
+    <h2>Start every outward-facing version from the same four truth anchors.</h2>
   </div>
   <div class="ae-proof-grid">
     <article class="ae-proof-card">
-      <p class="ae-mini-label">one sentence</p>
-      <h3>Primary product sentence</h3>
-      <p><code>agent-exporter</code> is an archive and governance workbench for AI agent transcripts.</p>
+      <p class="ae-mini-label">product sentence</p>
+      <h3>Identity first</h3>
+      <p><code>agent-exporter</code> turns one AI agent transcript into a local HTML receipt, then expands that receipt into an archive and governance workbench.</p>
     </article>
     <article class="ae-proof-card">
-      <p class="ae-mini-label">what to emphasize</p>
-      <h3>Truth-aligned framing</h3>
-      <p>local-first, CLI-first, inspectable proof, transcript-first workbench, companion lanes after the first success path.</p>
+      <p class="ae-mini-label">first success</p>
+      <h3>Shortest truthful path</h3>
+      <p><code>scaffold</code> + <code>connectors</code>, export one HTML receipt, then publish the archive shell.</p>
     </article>
     <article class="ae-proof-card">
-      <p class="ae-mini-label">what not to say</p>
+      <p class="ae-mini-label">first visible proof</p>
+      <h3>Artifact before theory</h3>
+      <p>The first proof is one HTML transcript receipt plus one archive shell entrypoint, not a diagram, a badge, or a release note.</p>
+    </article>
+    <article class="ae-proof-card">
+      <p class="ae-mini-label">claim brakes</p>
       <h3>Inflation to avoid</h3>
       <p>Do not call it a hosted archive platform, a generic MCP product, or a remote multi-user service.</p>
     </article>
@@ -74,21 +79,21 @@ image: /assets/media/agent-exporter-social-card.png
       <span class="ae-step-number">01</span>
       <h3>Short blurb</h3>
       <div class="ae-command">
-        <pre tabindex="0"><code>agent-exporter helps you export AI agent transcripts into local receipts, then route reports and governance evidence through one inspectable archive workbench.</code></pre>
+        <pre tabindex="0"><code>agent-exporter helps you export one AI agent transcript into a local HTML receipt, then turn that receipt, reports, and governance evidence into one inspectable archive workbench.</code></pre>
       </div>
     </article>
     <article class="ae-step">
       <span class="ae-step-number">02</span>
       <h3>Medium blurb</h3>
       <div class="ae-command">
-        <pre tabindex="0"><code>agent-exporter is a local-first archive and governance workbench for AI agent transcripts. Start with the CLI quickstart, export one HTML receipt, then publish the archive shell to organize transcripts, reports, and evidence on one desk.</code></pre>
+        <pre tabindex="0"><code>agent-exporter is a local-first archive and governance workbench for AI agent transcripts. Run scaffold and connectors, export one HTML receipt, then publish the archive shell to keep transcripts, reports, and evidence on one desk.</code></pre>
       </div>
     </article>
     <article class="ae-step">
       <span class="ae-step-number">03</span>
-      <h3>Reviewer framing</h3>
+      <h3>Proof framing</h3>
       <div class="ae-command">
-        <pre tabindex="0"><code>This repo proves transcript export, archive proof, and governance can live on one inspectable local workbench without pretending to be a hosted platform.</code></pre>
+        <pre tabindex="0"><code>Run scaffold and connectors, export one HTML transcript receipt, then publish the archive shell proof. Keep reports and governance as companion lanes on the same local desk.</code></pre>
       </div>
     </article>
   </div>
@@ -183,7 +188,7 @@ image: /assets/media/agent-exporter-social-card.png
     <article class="ae-proof-card">
       <p class="ae-mini-label">same truth</p>
       <h3>Format changes. Boundary does not.</h3>
-      <p>Short-form is still not a license to overclaim. Keep CLI quickstart first, archive shell proof second, and side lanes after that.</p>
+      <p>Short-form is still not a license to overclaim. Keep the first-success strip first, the proof boundary second, and side lanes after that.</p>
     </article>
   </div>
 </section>
@@ -197,12 +202,12 @@ image: /assets/media/agent-exporter-social-card.png
     <article class="ae-proof-card">
       <p class="ae-mini-label">landscape narration</p>
       <h3>Longer reviewer-safe voiceover</h3>
-      <p><code>agent-exporter</code> is an archive and governance workbench for AI agent transcripts. Start with the CLI quickstart. Export one HTML receipt. Publish the archive shell proof. Keep reports and governance as companion lanes on the same local desk.</p>
+      <p>Run <code>scaffold</code> and <code>connectors</code>. Export one HTML transcript receipt. Publish the archive shell. Open archive shell proof when you need the boundary. Companion lanes come after the proof.</p>
     </article>
     <article class="ae-proof-card">
       <p class="ae-mini-label">vertical narration</p>
       <h3>Shorter mobile-first voiceover</h3>
-      <p><code>CLI quickstart first.</code> Export one HTML transcript receipt. Publish the archive shell proof. Local first. Not hosted. Governance stays a side lane, not the product identity.</p>
+      <p>Run <code>scaffold</code> and <code>connectors</code>. Export one HTML receipt. Publish the archive shell. Proof before platform. Companion lanes come after the proof.</p>
     </article>
     <article class="ae-proof-card">
       <p class="ae-mini-label">rule</p>

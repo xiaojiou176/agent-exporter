@@ -83,8 +83,9 @@ export const AgentExporterSocialCard: React.FC = () => {
               maxWidth: 690,
             }}
           >
-            Create an HTML receipt, publish the archive shell, and keep reports
-            plus governance evidence on one calm desk.
+            Run scaffold and connectors, export one HTML receipt, then publish
+            the archive shell that keeps reports plus governance evidence on
+            one calm desk.
           </div>
           <div style={{display: "flex", gap: 12}}>
             <div
@@ -117,15 +118,15 @@ export const AgentExporterSocialCard: React.FC = () => {
         <div
           style={{
             display: "grid",
-            gap: 14,
-            alignContent: "space-between",
+            gap: 10,
+            alignContent: "start",
           }}
         >
           <div
             style={{
               borderRadius: 28,
               border: `1px solid ${palette.line}`,
-              padding: 24,
+              padding: 20,
               background: "rgba(255,255,255,0.78)",
             }}
           >
@@ -151,11 +152,11 @@ export const AgentExporterSocialCard: React.FC = () => {
                   key={line}
                   style={{
                     borderRadius: 18,
-                    padding: "12px 14px",
+                    padding: "11px 14px",
                     background: "rgba(255,255,255,0.92)",
                     border: `1px solid ${palette.line}`,
                     color: palette.inkSoft,
-                    fontSize: 20,
+                    fontSize: 18,
                     lineHeight: 1.35,
                   }}
                 >
@@ -169,9 +170,9 @@ export const AgentExporterSocialCard: React.FC = () => {
               borderRadius: 24,
               background: palette.deep,
               color: "white",
-              padding: "18px 20px",
+              padding: "16px 18px",
               fontFamily: monoStack,
-              fontSize: 20,
+              fontSize: 18,
               lineHeight: 1.35,
             }}
           >
@@ -182,8 +183,9 @@ export const AgentExporterSocialCard: React.FC = () => {
           <div
             style={{
               color: palette.muted,
-              fontSize: 19,
-              lineHeight: 1.5,
+              fontSize: 17,
+              lineHeight: 1.42,
+              paddingBottom: 2,
             }}
           >
             local-first, proof-first, and not a hosted platform.

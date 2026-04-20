@@ -12,17 +12,15 @@ permalink: /docs-index.html
 <section class="ae-hero">
   <div class="ae-hero-main">
     <p class="ae-kicker">documentation hub</p>
-    <h1>Use this hub when you need the right explanation shelf, not when you need to rediscover the front door.</h1>
+    <h1>Use this hub only after the front door has told you what the product is and what to run first.</h1>
     <p class="ae-lead">
       This is the documentation hub for <code>agent-exporter</code>.
-      It is designed to reduce navigation overhead:
-      first decide what kind of question you have, then open the matching shelf.
-      If you are still trying to understand the product itself, go back to the flagship front door first.
+      It is designed to reduce navigation overhead after first orientation:
+      lock the product sentence, run the shortest truthful path, then come here for the matching shelf.
+      If you still need the product story itself, go back to the flagship front door first.
     </p>
     <div class="ae-actions">
       <a class="ae-button ae-button-primary" href="https://github.com/xiaojiou176-open/agent-exporter">Open GitHub front door</a>
-      <a class="ae-button" href="./promo-reel.html">Open promo reel</a>
-      <a class="ae-button" href="./launch-kit.html">Open launch kit</a>
       <a class="ae-button" href="./archive-shell-proof.html">Open archive proof</a>
       <a class="ae-button" href="./repo-map.html">Open repo map</a>
     </div>
@@ -30,6 +28,10 @@ permalink: /docs-index.html
       Published shelf note:
       the latest release is the frozen public packet,
       while this docs surface may move ahead with repository-side truth on <code>main</code>.
+    </p>
+    <p class="ae-caption">
+      First-success strip:
+      <strong><code>scaffold</code> + <code>connectors</code> -> HTML receipt -> archive shell.</strong>
     </p>
   </div>
   <div class="ae-hero-side ae-panel">
@@ -106,7 +108,7 @@ permalink: /docs-index.html
     <article class="ae-surface-card">
       <p class="ae-mini-label">Primary surface</p>
       <h3>Quickstart path</h3>
-      <p>The operational door is still the CLI quickstart, not a browser runtime.</p>
+      <p>The operational door is still <code>scaffold</code> + <code>connectors</code>, one HTML receipt, then the archive shell.</p>
     </article>
     <article class="ae-surface-card">
       <p class="ae-mini-label">Secondary surfaces</p>
@@ -133,7 +135,7 @@ permalink: /docs-index.html
   </div>
 
 <ul class="ae-bullet-list">
-  <li>If you want to decide whether the repo is worth trying once, open the <a href="https://github.com/xiaojiou176-open/agent-exporter">GitHub front door</a>.</li>
+  <li>If you want to decide whether the repo is worth trying once, open the <a href="https://github.com/xiaojiou176-open/agent-exporter">GitHub front door</a> and follow the first-success strip: <code>scaffold</code> + <code>connectors</code> -> HTML receipt -> archive shell.</li>
   <li>If you want the first truthful visible proof, open <a href="./archive-shell-proof.html">archive shell proof</a>.</li>
   <li>If you want the structure of the workbench, open the <a href="./repo-map.html">repo map</a>.</li>
   <li>If you want registry or packet/listing truth, open the <a href="./distribution-packet-ledger.html">distribution packet ledger</a>.</li>
