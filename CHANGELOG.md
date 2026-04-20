@@ -6,6 +6,8 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-04-20
+
 ### Added
 - `security_contract` coverage for `.gitignore` completeness and tracked-text secret leakage
 - explicit `clippy -D warnings` on the required CI path
@@ -14,14 +16,15 @@ The format is based on Keep a Changelog.
 - captions and a plain-text transcript path for the promo reel public packet
 - a share-ready social card plus OG/Twitter metadata for Pages promo/public surfaces
 - a second-ring launch kit page with truthful copy variants and asset routing for future distribution prep
+- `scripts/public_surface_smoke.py` for repo-owned local + live public-surface smoke checks before a future public packet cut
+- a repo-owned docs favicon so the live Pages surface no longer emits favicon 404 noise
 
 ### Changed
-- Public docs, metadata, and release-facing surfaces continue to tighten the `CLI-first -> archive shell proof -> secondary surfaces` order without promoting any secondary surface into the current primary path.
+- public docs, metadata, and release-facing surfaces now share one tighter first-success spine: `scaffold + connectors -> HTML receipt -> archive shell`
+- promo voiceover, captions, posters, social card, and vertical poster defaults now match the sharpened public story and the repaired social-card crop
 - contributor/security docs now describe the stricter local safety gates and required ignore contract for local agent tooling paths
 - the local workbench shells now use a stricter transcript-first lane hierarchy and lighter governance framing across archive, search, and integration surfaces
-
-### Added
-- `scripts/public_surface_smoke.py` for repo-owned local + live public-surface smoke checks before a future public packet cut
+- the published release shelf now catches up with the latest public packet instead of lagging behind `main`
 
 ## [0.1.1] - 2026-04-10
 
