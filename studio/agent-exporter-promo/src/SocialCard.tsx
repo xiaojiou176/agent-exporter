@@ -62,7 +62,7 @@ export const AgentExporterSocialCard: React.FC = () => {
               color: palette.accent,
             }}
           >
-            archive and governance workbench
+            transcript-first workbench
           </div>
           <div
             style={{
@@ -73,7 +73,7 @@ export const AgentExporterSocialCard: React.FC = () => {
               maxWidth: 700,
             }}
           >
-            Put transcript export, archive proof, and governance on one desk.
+            Export one transcript. Build one local workbench.
           </div>
           <div
             style={{
@@ -83,8 +83,8 @@ export const AgentExporterSocialCard: React.FC = () => {
               maxWidth: 690,
             }}
           >
-            CLI quickstart first. Archive shell proof second. Secondary lanes
-            after that.
+            Create an HTML receipt, publish the archive shell, and keep reports
+            plus governance evidence on one calm desk.
           </div>
           <div style={{display: "flex", gap: 12}}>
             <div
@@ -97,7 +97,7 @@ export const AgentExporterSocialCard: React.FC = () => {
                 fontWeight: 600,
               }}
             >
-              local-first
+              HTML receipt
             </div>
             <div
               style={{
@@ -109,7 +109,7 @@ export const AgentExporterSocialCard: React.FC = () => {
                 fontWeight: 600,
               }}
             >
-              proof before platform
+              archive shell proof
             </div>
           </div>
         </div>
@@ -139,13 +139,13 @@ export const AgentExporterSocialCard: React.FC = () => {
                 marginBottom: 12,
               }}
             >
-              what it is not
+              what you get
             </div>
             <div style={{display: "grid", gap: 10}}>
               {[
-                "not a hosted archive platform",
-                "not a generic MCP product",
-                "not platform theatre before proof",
+                "one local HTML transcript receipt",
+                "one archive shell entrypoint",
+                "reports and governance as companion lanes",
               ].map((line) => (
                 <div
                   key={line}
@@ -186,7 +186,7 @@ export const AgentExporterSocialCard: React.FC = () => {
               lineHeight: 1.5,
             }}
           >
-            inspectable, developer-grade, and calm enough to trust.
+            local-first, proof-first, and not a hosted platform.
           </div>
         </div>
       </div>

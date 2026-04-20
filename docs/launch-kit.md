@@ -12,7 +12,7 @@ image: /assets/media/agent-exporter-social-card.png
     <h1>Use this page when the product story is already clear and you need a truthful packet for sharing, posting, or reviewer handoff.</h1>
     <p class="ae-lead">
       This is a <strong>second-ring distribution-prep lane</strong>.
-      It exists so you do not have to reinvent copy, assets, or proof boundaries every time you want to share `agent-exporter`.
+      It exists so you do not have to reinvent copy, assets, or proof boundaries every time you want to share <code>agent-exporter</code>.
       It is not the first screen and it does not replace the CLI quickstart or archive shell proof.
     </p>
     <div class="ae-actions">
@@ -21,7 +21,7 @@ image: /assets/media/agent-exporter-social-card.png
       <a class="ae-button" href="./">Return to docs home</a>
     </div>
   </div>
-  <aside class="ae-hero-side ae-panel">
+  <div class="ae-hero-side ae-panel">
     <p class="ae-kicker">best used when</p>
     <dl class="ae-glance-list">
       <div>
@@ -37,7 +37,7 @@ image: /assets/media/agent-exporter-social-card.png
         <dd>first-time product orientation or hosted-platform positioning</dd>
       </div>
     </dl>
-  </aside>
+  </div>
 </section>
 
 <section class="ae-section">
@@ -49,7 +49,7 @@ image: /assets/media/agent-exporter-social-card.png
     <article class="ae-proof-card">
       <p class="ae-mini-label">one sentence</p>
       <h3>Primary product sentence</h3>
-      <p>`agent-exporter` is an archive and governance workbench for AI agent transcripts.</p>
+      <p><code>agent-exporter</code> is an archive and governance workbench for AI agent transcripts.</p>
     </article>
     <article class="ae-proof-card">
       <p class="ae-mini-label">what to emphasize</p>
@@ -74,21 +74,21 @@ image: /assets/media/agent-exporter-social-card.png
       <span class="ae-step-number">01</span>
       <h3>Short blurb</h3>
       <div class="ae-command">
-        <pre><code>`agent-exporter` helps you export AI agent transcripts into local receipts, then route reports and governance evidence through one inspectable archive workbench.</code></pre>
+        <pre tabindex="0"><code>agent-exporter helps you export AI agent transcripts into local receipts, then route reports and governance evidence through one inspectable archive workbench.</code></pre>
       </div>
     </article>
     <article class="ae-step">
       <span class="ae-step-number">02</span>
       <h3>Medium blurb</h3>
       <div class="ae-command">
-        <pre><code>`agent-exporter` is a local-first archive and governance workbench for AI agent transcripts. Start with the CLI quickstart, export one HTML receipt, then publish the archive shell to organize transcripts, reports, and evidence on one desk.</code></pre>
+        <pre tabindex="0"><code>agent-exporter is a local-first archive and governance workbench for AI agent transcripts. Start with the CLI quickstart, export one HTML receipt, then publish the archive shell to organize transcripts, reports, and evidence on one desk.</code></pre>
       </div>
     </article>
     <article class="ae-step">
       <span class="ae-step-number">03</span>
       <h3>Reviewer framing</h3>
       <div class="ae-command">
-        <pre><code>This repo proves transcript export, archive proof, and governance can live on one inspectable local workbench without pretending to be a hosted platform.</code></pre>
+        <pre tabindex="0"><code>This repo proves transcript export, archive proof, and governance can live on one inspectable local workbench without pretending to be a hosted platform.</code></pre>
       </div>
     </article>
   </div>
@@ -103,12 +103,12 @@ image: /assets/media/agent-exporter-social-card.png
     <article class="ae-split-card">
       <p class="ae-kicker">x / short post</p>
       <h3>Compact proof-first post</h3>
-      <p>`agent-exporter` is a local-first archive and governance workbench for AI agent transcripts. The honest path is still CLI quickstart -> transcript receipt -> archive shell proof, not hosted-platform theatre.</p>
+      <p><code>agent-exporter</code> is a local-first archive and governance workbench for AI agent transcripts. The honest path is still CLI quickstart -> transcript receipt -> archive shell proof, not hosted-platform theatre.</p>
     </article>
     <article class="ae-split-card">
       <p class="ae-kicker">linkedin / longer post</p>
       <h3>Story-first version</h3>
-      <p>I wanted a calmer way to export AI agent transcripts into local artifacts I could inspect and keep. `agent-exporter` now turns transcript receipts, reports, and governance evidence into one archive workbench, while staying honest about what it is not: not a hosted archive platform, not a generic MCP product, and not remote workflow theatre.</p>
+      <p>I wanted a calmer way to export AI agent transcripts into local artifacts I could inspect and keep. <code>agent-exporter</code> now turns transcript receipts, reports, and governance evidence into one archive workbench, while staying honest about what it is not: not a hosted archive platform, not a generic MCP product, and not remote workflow theatre.</p>
     </article>
   </div>
 </section>
@@ -119,16 +119,48 @@ image: /assets/media/agent-exporter-social-card.png
     <h2>Choose the asset that matches the moment.</h2>
   </div>
 
-| Need | Asset | Why |
-| --- | --- | --- |
-| fastest visual orientation | [`promo-reel.html`](./promo-reel.html) | short visual companion before deeper proof |
-| shared preview image | [`agent-exporter-social-card.png`](./assets/media/agent-exporter-social-card.png) | best for chat cards, posts, and link previews |
-| mobile-first short-form share | [`agent-exporter-promo-vertical.mp4`](./assets/media/agent-exporter-promo-vertical.mp4) | best for portrait-first channels and mobile-first story/reel lanes |
-| spoken narration source | [`agent-exporter-promo-landscape-voiceover.m4a`](./assets/media/agent-exporter-promo-landscape-voiceover.m4a) | best when you want the promo narration as a reusable standalone track |
-| portrait narration source | [`agent-exporter-promo-vertical-voiceover.m4a`](./assets/media/agent-exporter-promo-vertical-voiceover.m4a) | best when you need the shorter mobile-first narration track |
-| visual proof slide | [`archive-shell-proof.svg`](./assets/archive-shell-proof.svg) | best when the audience wants proof structure over motion |
-| caption pack | [`agent-exporter-promo.vtt`](./assets/media/agent-exporter-promo.vtt), [`agent-exporter-promo-zh-CN.vtt`](./assets/media/agent-exporter-promo-zh-CN.vtt), [`agent-exporter-promo-vertical.vtt`](./assets/media/agent-exporter-promo-vertical.vtt), [`agent-exporter-promo-vertical-zh-CN.vtt`](./assets/media/agent-exporter-promo-vertical-zh-CN.vtt) | keeps both landscape and portrait reels usable across English and Simplified Chinese |
-| first proof explanation | [`archive-shell-proof.html`](./archive-shell-proof.html) | explains what the current proof does and does not prove |
+<div class="ae-proof-grid">
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">fastest orientation</p>
+    <h3>Promo reel</h3>
+    <p><a href="./promo-reel.html">Open the promo reel</a> when a short visual pass should do the first orientation work.</p>
+  </article>
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">shared preview</p>
+    <h3>Social card</h3>
+    <p><a href="./assets/media/agent-exporter-social-card.png">Use the social card image</a> for chat cards, posts, and previews.</p>
+  </article>
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">mobile-first share</p>
+    <h3>Vertical cut</h3>
+    <p><a href="./assets/media/agent-exporter-promo-vertical.mp4">Use the vertical cut</a> when the channel expects portrait video and mobile-first motion.</p>
+  </article>
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">spoken narration</p>
+    <h3>Landscape voiceover</h3>
+    <p><a href="./assets/media/agent-exporter-promo-landscape-voiceover.m4a">Download the landscape voiceover</a> when you need a reusable standalone narration track.</p>
+  </article>
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">portrait narration</p>
+    <h3>Vertical voiceover</h3>
+    <p><a href="./assets/media/agent-exporter-promo-vertical-voiceover.m4a">Download the vertical voiceover</a> for the shorter mobile-first cut.</p>
+  </article>
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">proof still</p>
+    <h3>Archive shell proof slide</h3>
+    <p><a href="./assets/archive-shell-proof.svg">Use the proof slide</a> when the audience needs structure over motion.</p>
+  </article>
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">caption pack</p>
+    <h3>Bilingual subtitles</h3>
+    <p>Use the <a href="./assets/media/agent-exporter-promo.vtt">landscape EN</a>, <a href="./assets/media/agent-exporter-promo-zh-CN.vtt">landscape zh-CN</a>, <a href="./assets/media/agent-exporter-promo-vertical.vtt">vertical EN</a>, and <a href="./assets/media/agent-exporter-promo-vertical-zh-CN.vtt">vertical zh-CN</a> files to keep both cuts reviewer-safe and share-ready.</p>
+  </article>
+  <article class="ae-proof-card">
+    <p class="ae-mini-label">proof explanation</p>
+    <h3>Archive shell proof page</h3>
+    <p><a href="./archive-shell-proof.html">Open the proof page</a> when someone needs the current proof boundary itself.</p>
+  </article>
+</div>
 
 </section>
 
@@ -165,12 +197,12 @@ image: /assets/media/agent-exporter-social-card.png
     <article class="ae-proof-card">
       <p class="ae-mini-label">landscape narration</p>
       <h3>Longer reviewer-safe voiceover</h3>
-      <p>`agent-exporter` is an archive and governance workbench for AI agent transcripts. Start with the CLI quickstart. Export one HTML receipt. Publish the archive shell proof. Keep reports and governance as companion lanes on the same local desk.</p>
+      <p><code>agent-exporter</code> is an archive and governance workbench for AI agent transcripts. Start with the CLI quickstart. Export one HTML receipt. Publish the archive shell proof. Keep reports and governance as companion lanes on the same local desk.</p>
     </article>
     <article class="ae-proof-card">
       <p class="ae-mini-label">vertical narration</p>
       <h3>Shorter mobile-first voiceover</h3>
-      <p>`CLI quickstart first. Export one HTML transcript receipt. Publish the archive shell proof. Local first. Not hosted. Governance stays a side lane, not the product identity.`</p>
+      <p><code>CLI quickstart first.</code> Export one HTML transcript receipt. Publish the archive shell proof. Local first. Not hosted. Governance stays a side lane, not the product identity.</p>
     </article>
     <article class="ae-proof-card">
       <p class="ae-mini-label">rule</p>
@@ -204,7 +236,7 @@ image: /assets/media/agent-exporter-social-card.png
     <article class="ae-proof-card">
       <p class="ae-mini-label">remember</p>
       <h3>published shelf is frozen</h3>
-      <p>The latest release is a published shelf, while `main` may continue to move ahead with repository-side truth.</p>
+      <p>The latest release is a published shelf, while <code>main</code> may continue to move ahead with repository-side truth.</p>
     </article>
   </div>
 </section>

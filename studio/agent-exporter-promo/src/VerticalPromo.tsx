@@ -99,7 +99,7 @@ export const AgentExporterVerticalPromo: React.FC = () => {
               marginBottom: 20,
             }}
           >
-            archive and governance workbench
+            transcript-first workbench
           </div>
           <div
             style={{
@@ -110,7 +110,7 @@ export const AgentExporterVerticalPromo: React.FC = () => {
               marginBottom: 20,
             }}
           >
-            Put transcript export and archive proof on one desk.
+            Export one transcript. Build one local workbench.
           </div>
           <div
             style={{
@@ -119,7 +119,7 @@ export const AgentExporterVerticalPromo: React.FC = () => {
               color: palette.inkSoft,
             }}
           >
-            local-first, CLI-first, and calm enough to trust.
+            HTML receipt first. Archive proof second. Companion lanes after that.
           </div>
         </div>
 

@@ -47,11 +47,11 @@ Use this ledger like a shipping log, not a myth shelf.
 
 | Surface | Last verified (UTC) | Evidence handle | Owner boundary |
 | --- | --- | --- | --- |
-| GitHub repo front door | `2026-04-18` | public repo URL + repo description/homepage live readback | repo-owned |
-| Pages landing | `2026-04-18` | live `https://xiaojiou176-open.github.io/agent-exporter/` smoke | repo-owned |
-| Archive shell proof page | `2026-04-18` | live `https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html` smoke | repo-owned |
-| Latest release shelf | `2026-04-18` | `gh release view v0.1.1` + live `/releases/latest` readback | repo-owned wording, platform-hosted chrome |
-| Local stdio host packet descriptor | `2026-04-18` | raw `server.json` readback + `llms-install.md` truth check | repo-owned |
+| GitHub repo front door | `2026-04-19` | public repo URL + repo description/homepage live readback | repo-owned |
+| Pages landing | `2026-04-19` | live `https://xiaojiou176-open.github.io/agent-exporter/` smoke | repo-owned |
+| Archive shell proof page | `2026-04-19` | live `https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html` smoke | repo-owned |
+| Latest release shelf | `2026-04-19` | `gh release view v0.1.1` + live `/releases/latest` readback after frozen-shelf wording correction | repo-owned wording, platform-hosted chrome |
+| Local stdio host packet descriptor | `2026-04-19` | raw `server.json` readback + `llms-install.md` truth check | repo-owned |
 | ClawHub status | `2026-04-18` | packet manifest + host read-back receipt lane | external platform outcome after repo packet |
 | Goose / agent-skill.co / OpenHands / awesome-opencode | `2026-04-18` | submission refs and packet ledger notes | platform / reviewer later |
 

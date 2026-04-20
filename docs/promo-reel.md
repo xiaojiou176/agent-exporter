@@ -25,7 +25,7 @@ image: /assets/media/agent-exporter-social-card.png
       <a class="ae-button" href="./">Return to docs home</a>
     </div>
   </div>
-  <aside class="ae-hero-side ae-panel">
+  <div class="ae-hero-side ae-panel">
     <p class="ae-kicker">watch for</p>
     <dl class="ae-glance-list">
       <div>
@@ -41,7 +41,7 @@ image: /assets/media/agent-exporter-social-card.png
         <dd>run the three-step first success path after the reel</dd>
       </div>
     </dl>
-  </aside>
+  </div>
 </section>
 
 <section class="ae-section">
@@ -135,13 +135,12 @@ image: /assets/media/agent-exporter-social-card.png
       <p class="ae-kicker">script</p>
       <h3>Plain-text transcript</h3>
       <ol class="ae-bullet-list">
-        <li>`agent-exporter` is an archive and governance workbench for AI agent transcripts.</li>
-        <li>Start with the CLI quickstart and prove the command surface first.</li>
-        <li>Export one HTML transcript receipt you can read and keep locally.</li>
-        <li>Publish the archive shell to organize transcripts, reports, and evidence on one desk.</li>
-        <li>This is a local workbench, not a hosted platform or remote runtime.</li>
-        <li>Governance is a companion lane, not the product identity.</li>
-        <li>The flagship packet is still GitHub repo, CLI quickstart, and archive shell proof.</li>
+        <li>Export one AI agent transcript into a local HTML receipt.</li>
+        <li>Publish the archive shell so transcripts, reports, and governance evidence stay on one desk.</li>
+        <li>Start with the CLI quickstart.</li>
+        <li>Use the proof page when you need the first public explanation.</li>
+        <li>This is a local-first workbench, not a hosted platform.</li>
+        <li>Proof first. Companion lanes after that.</li>
       </ol>
     </article>
   </div>

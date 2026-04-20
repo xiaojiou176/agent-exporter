@@ -23,15 +23,17 @@ image: /assets/media/agent-exporter-social-card.png
     <p class="ae-kicker">archive and governance workbench</p>
     <h1>Put transcript export, archive proof, and governance on one desk without pretending to be a hosted platform.</h1>
     <p class="ae-lead">
-      `agent-exporter` is an <strong>archive and governance workbench for AI agent transcripts</strong>.
-      The CLI is still the real front door because the first honest thing this product should do is generate local proof.
-      This Pages home exists to lower orientation cost: understand the desk, run the shortest path, then open the right lane.
+      <code>agent-exporter</code> helps you export one AI agent transcript into a local receipt, then expand that receipt into an archive and governance workbench.
+      The CLI stays the real front door because the first honest thing this product should do is generate visible proof.
+      This Pages home exists to lower orientation cost: understand the result, run the shortest path, then open the right lane.
     </p>
     <div class="ae-actions">
       <a class="ae-button ae-button-primary" href="#first-success">Try the first success path</a>
       <a class="ae-button" href="./promo-reel.html">Watch the promo reel</a>
-      <a class="ae-button" href="./launch-kit.html">Open launch kit</a>
       <a class="ae-button" href="./archive-shell-proof.html">Inspect archive shell proof</a>
+    </div>
+    <div class="ae-inline-links">
+      <a class="ae-button" href="./launch-kit.html">Open launch kit</a>
       <a class="ae-button" href="https://github.com/xiaojiou176-open/agent-exporter">Open GitHub front door</a>
     </div>
     <p class="ae-caption">
@@ -41,10 +43,10 @@ image: /assets/media/agent-exporter-social-card.png
     <p class="ae-note">
       Published shelf note:
       the latest release is the frozen public packet,
-      while this Pages surface may move ahead with repository-side truth on `main`.
+      while this Pages surface may move ahead with repository-side truth on <code>main</code>.
     </p>
   </div>
-  <aside class="ae-hero-side ae-panel">
+  <div class="ae-hero-side ae-panel">
     <p class="ae-kicker">at a glance</p>
     <dl class="ae-glance-list">
       <div>
@@ -64,7 +66,7 @@ image: /assets/media/agent-exporter-social-card.png
         <dd>local-first proof surface, not a hosted runtime</dd>
       </div>
     </dl>
-  </aside>
+  </div>
 </section>
 
 <section class="ae-section">
@@ -160,7 +162,7 @@ cargo run -- connectors</code></pre>
   --destination workspace-conversations \
   --workspace-root /absolute/path/to/repo</code></pre>
       </div>
-      <p class="ae-command-caption">The result is an inspectable HTML receipt inside `.agents/Conversations/`.</p>
+      <p class="ae-command-caption">The result is an inspectable HTML receipt inside <code>.agents/Conversations/</code>.</p>
     </article>
     <article class="ae-step">
       <span class="ae-step-number">03</span>
@@ -169,7 +171,7 @@ cargo run -- connectors</code></pre>
       <div class="ae-command">
         <pre><code>cargo run -- publish archive-index --workspace-root /absolute/path/to/repo</code></pre>
       </div>
-      <p class="ae-command-caption">Now you have `.agents/Conversations/index.html` as the archive shell entrypoint.</p>
+      <p class="ae-command-caption">Now you have <code>.agents/Conversations/index.html</code> as the archive shell entrypoint.</p>
     </article>
   </div>
 </section>
@@ -191,8 +193,8 @@ cargo run -- connectors</code></pre>
       <ul class="ae-bullet-list">
         <li>not a hosted archive platform</li>
         <li>not a live multi-user service</li>
-        <li>not already `submit-ready`</li>
-        <li>not already `listed-live` across every secondary lane</li>
+        <li>not already <code>submit-ready</code></li>
+        <li>not already <code>listed-live</code> across every secondary lane</li>
       </ul>
     </article>
   </div>
@@ -241,7 +243,7 @@ cargo run -- connectors</code></pre>
   </details>
   <details class="ae-disclosure">
     <summary>Latest release shelf</summary>
-    <p>Use the release shelf when you need the newest tagged packet rather than the newest repository-side wording on `main`.</p>
+    <p>Use the release shelf when you need the newest tagged packet rather than the newest repository-side wording on <code>main</code>.</p>
   </details>
 </section>
 
@@ -261,7 +263,7 @@ cargo run -- connectors</code></pre>
     </article>
     <article class="ae-split-card">
       <p class="ae-kicker">repository-side truth</p>
-      <h2>Use the repo front door and Pages docs when you need the newest repository-side truth on `main`.</h2>
+      <h2>Use the repo front door and Pages docs when you need the newest repository-side truth on <code>main</code>.</h2>
       <ul class="ae-bullet-list">
         <li>front-door wording and CTA order</li>
         <li>packet and lane truth that moved after the last tag</li>
@@ -271,7 +273,7 @@ cargo run -- connectors</code></pre>
   </div>
   <p class="ae-note">
     These are neighboring shelves, not the same shelf.
-    A newer `main` can sharpen wording and proof hierarchy before the next release is cut.
+    A newer <code>main</code> can sharpen wording and proof hierarchy before the next release is cut.
   </p>
 </section>
 </main>
