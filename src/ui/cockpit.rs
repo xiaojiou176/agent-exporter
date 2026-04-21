@@ -99,6 +99,15 @@ struct ExportRequestBody {
     ai_summary_provider: Option<String>,
 }
 
+#[derive(Clone, Debug, Default)]
+struct AiSummaryJobOptions {
+    enabled: bool,
+    instructions: Option<String>,
+    profile: Option<String>,
+    model: Option<String>,
+    provider: Option<String>,
+}
+
 #[derive(Clone, Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 struct ExportThreadResult {
@@ -655,9 +664,7 @@ fn short_thread_id(thread_id: &str) -> &str {
     thread_id.get(..8).unwrap_or(thread_id)
 }
 
-fn custom_title<'a>(
-    entry: &'a crate::connectors::state_index::CodexThreadMetadata,
-) -> Option<&'a str> {
+fn custom_title(entry: &crate::connectors::state_index::CodexThreadMetadata) -> Option<&str> {
     let title = entry
         .title
         .as_deref()
@@ -711,11 +718,13 @@ async fn export(
         .clone()
         .unwrap_or_else(|| "codex".to_string());
     let app_server_args = body.app_server_args.clone().unwrap_or_default();
-    let ai_summary_enabled = body.ai_summary.unwrap_or(false);
-    let ai_summary_instructions = body.ai_summary_instructions.clone();
-    let ai_summary_profile = body.ai_summary_profile.clone();
-    let ai_summary_model = body.ai_summary_model.clone();
-    let ai_summary_provider = body.ai_summary_provider.clone();
+    let ai_summary_options = AiSummaryJobOptions {
+        enabled: body.ai_summary.unwrap_or(false),
+        instructions: body.ai_summary_instructions.clone(),
+        profile: body.ai_summary_profile.clone(),
+        model: body.ai_summary_model.clone(),
+        provider: body.ai_summary_provider.clone(),
+    };
     let selections = normalize_export_selections(body)?;
     let job_id = new_job_id();
 
@@ -751,11 +760,7 @@ async fn export(
             selections,
             app_server_command,
             app_server_args,
-            ai_summary_enabled,
-            ai_summary_instructions,
-            ai_summary_profile,
-            ai_summary_model,
-            ai_summary_provider,
+            ai_summary_options,
         );
     });
 
@@ -772,11 +777,7 @@ fn run_export_job(
     selections: Vec<ExportSelectionInput>,
     app_server_command: String,
     app_server_args: Vec<String>,
-    ai_summary_enabled: bool,
-    ai_summary_instructions: Option<String>,
-    ai_summary_profile: Option<String>,
-    ai_summary_model: Option<String>,
-    ai_summary_provider: Option<String>,
+    ai_summary_options: AiSummaryJobOptions,
 ) {
     let result = execute_export_job(
         &state,
@@ -785,11 +786,7 @@ fn run_export_job(
         selections,
         &app_server_command,
         &app_server_args,
-        ai_summary_enabled,
-        ai_summary_instructions.as_deref(),
-        ai_summary_profile.as_deref(),
-        ai_summary_model.as_deref(),
-        ai_summary_provider.as_deref(),
+        &ai_summary_options,
     );
 
     match result {
@@ -820,11 +817,7 @@ fn execute_export_job(
     selections: Vec<ExportSelectionInput>,
     app_server_command: &str,
     app_server_args: &[String],
-    ai_summary_enabled: bool,
-    ai_summary_instructions: Option<&str>,
-    ai_summary_profile: Option<&str>,
-    ai_summary_model: Option<&str>,
-    ai_summary_provider: Option<&str>,
+    ai_summary_options: &AiSummaryJobOptions,
 ) -> Result<ExportJobSnapshot> {
     let total = selections.len();
     let current_exe = env::current_exe().context("failed to resolve current executable")?;
@@ -881,7 +874,7 @@ fn execute_export_job(
         });
 
         let mut thread_result = thread_result;
-        if ai_summary_enabled {
+        if ai_summary_options.enabled {
             let ai_step_id = format!("ai-summary-{}", selection.thread_id);
             with_job_mut(state, job_id, |job| {
                 job.current_phase = Some(format!("ai_summary_{}/{}", completed, total));
@@ -908,16 +901,16 @@ fn execute_export_job(
                     export_format: OutputFormat::Html,
                     exported_at: &thread_result.exported_at,
                     exported_paths: &thread_result.output.output_paths,
-                    extra_instructions: ai_summary_instructions,
+                    extra_instructions: ai_summary_options.instructions.as_deref(),
                     timeout_seconds: None,
                 },
                 &AiSummaryOptions {
                     enabled: true,
-                    instructions: ai_summary_instructions.map(ToOwned::to_owned),
+                    instructions: ai_summary_options.instructions.clone(),
                     timeout_seconds: None,
-                    profile: ai_summary_profile.map(ToOwned::to_owned),
-                    model: ai_summary_model.map(ToOwned::to_owned),
-                    provider: ai_summary_provider.map(ToOwned::to_owned),
+                    profile: ai_summary_options.profile.clone(),
+                    model: ai_summary_options.model.clone(),
+                    provider: ai_summary_options.provider.clone(),
                 },
             ) {
                 Ok(outcome) => {
