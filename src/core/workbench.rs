@@ -19,6 +19,17 @@ fn default_pin_status() -> String {
     "active".to_string()
 }
 
+fn default_extraction_mode() -> String {
+    "fallback".to_string()
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct MemoryLaneAllowlistDocument {
+    #[serde(default)]
+    workspace_roots: Vec<String>,
+}
+
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct StructuredSummaryOutputFiles {
@@ -44,13 +55,21 @@ pub struct StructuredSummaryDocument {
     pub title: String,
     pub overview: String,
     pub share_safe_summary: String,
+    #[serde(default)]
     pub goals: Vec<String>,
+    #[serde(default)]
     pub files_touched: Vec<String>,
+    #[serde(default)]
     pub tests_run: Vec<String>,
+    #[serde(default)]
     pub risks: Vec<String>,
+    #[serde(default)]
     pub blockers: Vec<String>,
+    #[serde(default)]
     pub next_steps: Vec<String>,
+    #[serde(default)]
     pub citations: Vec<String>,
+    #[serde(default = "default_extraction_mode")]
     pub extraction_mode: String,
     pub output_files: StructuredSummaryOutputFiles,
 }
@@ -120,13 +139,21 @@ pub struct ThreadFamilySummary {
     pub transcript_count: usize,
     pub summary_count: usize,
     pub latest_href: Option<String>,
+    #[serde(default)]
     pub connectors: Vec<String>,
+    #[serde(default)]
     pub profiles: Vec<String>,
+    #[serde(default)]
     pub files_touched: Vec<String>,
+    #[serde(default)]
     pub tests_run: Vec<String>,
+    #[serde(default)]
     pub risks: Vec<String>,
+    #[serde(default)]
     pub blockers: Vec<String>,
+    #[serde(default)]
     pub next_steps: Vec<String>,
+    #[serde(default)]
     pub citations: Vec<String>,
     pub latest_summary: Option<ThreadFamilyLatestSummary>,
     pub official_answer: Option<ThreadFamilyOfficialAnswer>,
@@ -153,8 +180,11 @@ pub struct FleetViewEntry {
     pub latest_generated_at: String,
     pub report_count: usize,
     pub html_href: Option<String>,
+    #[serde(default)]
     pub latest_summary: String,
+    #[serde(default)]
     pub next_steps: Vec<String>,
+    #[serde(default)]
     pub history: Vec<FleetHistoryEntry>,
 }
 
@@ -261,6 +291,7 @@ pub struct OfficialAnswerPinRegistryDocument {
 pub struct OfficialAnswerPinView {
     pub label: String,
     pub artifact_kind: String,
+    #[serde(default)]
     pub artifact_json_path: String,
     pub title: String,
     pub summary: String,
@@ -269,6 +300,7 @@ pub struct OfficialAnswerPinView {
     pub pinned_at: String,
     pub note: Option<String>,
     pub relation_key: String,
+    #[serde(default = "default_pin_status")]
     pub status: String,
     pub resolved_at: Option<String>,
     pub superseded_at: Option<String>,
@@ -378,6 +410,10 @@ pub fn resolve_memory_lane_html_path(workspace_root: &Path) -> Result<PathBuf> {
 
 pub fn resolve_memory_lane_json_path(workspace_root: &Path) -> Result<PathBuf> {
     Ok(resolve_workspace_conversations_dir(workspace_root)?.join("memory-lane.json"))
+}
+
+pub fn resolve_memory_lane_allowlist_path(workspace_root: &Path) -> Result<PathBuf> {
+    Ok(resolve_workspace_conversations_dir(workspace_root)?.join("memory-lane-allowlist.json"))
 }
 
 pub fn write_archive_index_json_document(
@@ -716,10 +752,10 @@ pub fn collect_structured_summary_documents(
             path.extension()
                 .and_then(|value| value.to_str())
                 .is_some_and(|value| value.eq_ignore_ascii_case("json"))
-                && path
+                && !path
                     .file_name()
                     .and_then(|name| name.to_str())
-                    .is_some_and(|name| name.contains("-ai-summary-rounds-"))
+                    .is_some_and(is_non_summary_workbench_json)
         })
         .filter_map(|path| {
             let relative_href = path.file_name()?.to_string_lossy().to_string();
@@ -1185,6 +1221,9 @@ fn build_fleet_view(reports: &[IntegrationReportJsonDocument]) -> Vec<FleetViewE
 
     let mut by_relation = BTreeMap::<String, FleetAccumulator>::new();
     for report in reports {
+        if is_temporary_integration_target(&report.target) {
+            continue;
+        }
         let relation_key = integration_target_identity(&report.platform, &report.target);
         by_relation
             .entry(relation_key)
@@ -1502,6 +1541,32 @@ pub fn build_action_packs(
         });
     }
 
+    for family in families {
+        let Some(latest_summary) = family.latest_summary.as_ref() else {
+            continue;
+        };
+        if family.official_answer.is_some() {
+            continue;
+        }
+
+        let kind = summary_action_pack_kind(&latest_summary.profile_id);
+        let id = slugify(&format!(
+            "summary-{}-{}",
+            latest_summary.profile_id, family.label
+        ));
+        packs.push(ActionPackRecord {
+            id: id.clone(),
+            kind: kind.to_string(),
+            title: format!("{} for {}", latest_summary.title, family.label),
+            summary: latest_summary.share_safe_summary.clone(),
+            relation_key: Some(family.family_key.clone()),
+            source_kind: "structured-summary".to_string(),
+            markdown_href: format!("{id}.md"),
+            json_href: format!("{id}.json"),
+            steps: summary_action_pack_steps(family, latest_summary),
+        });
+    }
+
     for entry in fleet_view
         .iter()
         .filter(|entry| entry.latest_readiness != "ready" || !entry.next_steps.is_empty())
@@ -1541,6 +1606,13 @@ pub fn build_team_memory_lane_document(
     action_packs: &ActionPackIndexDocument,
 ) -> TeamMemoryLaneDocument {
     let mut workspaces = discover_workspace_snapshots(workspace_root);
+    let allowlist = read_memory_lane_allowlist(workspace_root);
+    if let Some(allowlist) = allowlist.as_ref() {
+        let current_root = workspace_root.display().to_string();
+        workspaces.retain(|entry| {
+            entry.workspace_root == current_root || allowlist.contains(&entry.workspace_root)
+        });
+    }
     if !workspaces
         .iter()
         .any(|entry| entry.workspace_root == workspace_root.display().to_string())
@@ -1571,18 +1643,48 @@ pub fn build_team_memory_lane_document(
         .iter()
         .take(5)
         .map(|family| {
+            let latest_profile = family
+                .latest_summary
+                .as_ref()
+                .map(|summary| summary.profile_id.as_str())
+                .unwrap_or("no-summary");
+            let official = family
+                .official_answer
+                .as_ref()
+                .map(|answer| format!("official {}", answer.status))
+                .unwrap_or_else(|| "no official answer".to_string());
             format!(
-                "{}: {} family summaries tracked",
-                family.label, family.summary_count
+                "{}: {} transcript(s) · {} summary(s) · latest {} · {}",
+                family.label,
+                family.transcript_count,
+                family.summary_count,
+                latest_profile,
+                official
             )
         })
         .collect::<Vec<_>>();
-    let reviewer_items = current_index
-        .official_answers
-        .iter()
-        .take(5)
-        .map(|pin| format!("{} ({})", pin.label, pin.status))
-        .collect::<Vec<_>>();
+    let reviewer_items = if current_index.official_answers.is_empty() {
+        current_index
+            .families
+            .iter()
+            .filter_map(|family| {
+                family.latest_summary.as_ref().map(|summary| {
+                    format!(
+                        "{}: latest {} summary is ready for review before pinning",
+                        family.label, summary.profile_id
+                    )
+                })
+            })
+            .take(5)
+            .collect::<Vec<_>>()
+    } else {
+        current_index
+            .official_answers
+            .iter()
+            .take(5)
+            .map(|pin| format!("{} ({})", pin.label, pin.status))
+            .collect::<Vec<_>>()
+    };
     let operator_items = current_index
         .fleet_view
         .iter()
@@ -1669,6 +1771,87 @@ fn discover_workspace_snapshots(workspace_root: &Path) -> Vec<TeamMemoryWorkspac
     workspaces
 }
 
+fn read_memory_lane_allowlist(workspace_root: &Path) -> Option<BTreeSet<String>> {
+    let path = resolve_memory_lane_allowlist_path(workspace_root).ok()?;
+    if !path.exists() {
+        return None;
+    }
+    let content = fs::read_to_string(path).ok()?;
+    let document: MemoryLaneAllowlistDocument = serde_json::from_str(&content).ok()?;
+    Some(document.workspace_roots.into_iter().collect())
+}
+
+fn is_non_summary_workbench_json(file_name: &str) -> bool {
+    file_name == "index.json"
+        || file_name == "refresh-manifest.json"
+        || file_name == "fleet-view.json"
+        || file_name == "memory-lane.json"
+        || file_name == "official-answer-pins.json"
+        || file_name == "action-packs"
+        || file_name.starts_with("share-safe-packet")
+}
+
+fn is_temporary_integration_target(target: &str) -> bool {
+    let path = Path::new(target);
+    let file_name = path
+        .file_name()
+        .and_then(|value| value.to_str())
+        .unwrap_or("");
+    target.contains("agent-exporter-public-smoke-")
+        || target.contains("/TemporaryItems/")
+        || target.contains("/tmp/agent-exporter-")
+        || target.contains("/private/tmp/agent-exporter-")
+        || file_name.starts_with("tmp.")
+}
+
+fn summary_action_pack_kind(profile_id: &str) -> &'static str {
+    match profile_id {
+        "bug-rca" | "share-safe-issue-draft" => "issue draft",
+        "handoff" => "handoff packet",
+        "decision" | "review-digest" => "decision packet",
+        "release" | "release-note" => "release packet",
+        "incident-brief" => "incident brief",
+        "team-update" => "team update",
+        _ => "summary packet",
+    }
+}
+
+fn summary_action_pack_steps(
+    family: &ThreadFamilySummary,
+    latest_summary: &ThreadFamilyLatestSummary,
+) -> Vec<String> {
+    if !family.next_steps.is_empty() {
+        return family.next_steps.iter().take(5).cloned().collect();
+    }
+
+    match latest_summary.profile_id.as_str() {
+        "bug-rca" | "share-safe-issue-draft" => vec![
+            "Review the latest bug/root-cause summary.".to_string(),
+            "Convert the blockers into an issue or repair checklist.".to_string(),
+            "Pin the final review result as the current official answer.".to_string(),
+        ],
+        "handoff" => vec![
+            "Review the latest handoff summary.".to_string(),
+            "Confirm the next owner and open tasks.".to_string(),
+            "Pin the approved handoff as the current official answer.".to_string(),
+        ],
+        "decision" | "review-digest" => vec![
+            "Review the latest decision summary.".to_string(),
+            "Confirm whether it should become the official answer.".to_string(),
+            "Pin the approved decision in the workbench.".to_string(),
+        ],
+        "release" | "release-note" => vec![
+            "Review the latest release summary.".to_string(),
+            "Confirm the release note and any remaining blockers.".to_string(),
+            "Promote the approved release answer and ship.".to_string(),
+        ],
+        _ => vec![
+            "Review the latest structured summary.".to_string(),
+            "Promote it into the right next-step artifact or official answer.".to_string(),
+        ],
+    }
+}
+
 fn slugify(value: &str) -> String {
     let mut slug = value
         .chars()
@@ -1699,8 +1882,9 @@ mod tests {
     use super::{
         OfficialAnswerPinRecord, OfficialAnswerPinRegistryDocument, StructuredSummaryDocument,
         StructuredSummaryOutputFiles, build_workbench_index_document,
-        render_share_safe_packet_markdown, summary_family_key,
-        write_official_answer_pin_registry_document, write_structured_summary_document,
+        collect_structured_summary_documents, render_share_safe_packet_markdown,
+        summary_family_key, write_official_answer_pin_registry_document,
+        write_structured_summary_document,
     };
     use crate::core::archive_index::ArchiveIndexEntry;
     use crate::core::integration_report::{
@@ -1873,5 +2057,95 @@ mod tests {
             render_share_safe_packet_markdown("demo archive", "2026-04-21T12:30:00Z", &document);
         assert!(packet.contains("Share-safe workbench packet"));
         assert!(!packet.contains(&workspace.path().display().to_string()));
+    }
+
+    #[test]
+    fn read_structured_summary_document_accepts_legacy_payload_without_tests_run() {
+        let workspace = tempdir().expect("workspace");
+        let summary_path = workspace.path().join("legacy-summary.json");
+        std::fs::write(
+            &summary_path,
+            serde_json::json!({
+                "schemaVersion": 1,
+                "threadId": "thread-1",
+                "connector": "codex",
+                "sourceKind": "app-server-thread-read",
+                "completeness": "complete",
+                "generatedAt": "2026-04-21T12:00:00Z",
+                "profileId": "handoff",
+                "runtimeProfile": null,
+                "runtimeModel": null,
+                "runtimeProvider": null,
+                "familyKey": "thread:thread-1",
+                "title": "legacy",
+                "overview": "overview",
+                "shareSafeSummary": "share safe",
+                "goals": ["ship"],
+                "filesTouched": ["src/ui/cockpit.rs"],
+                "blockers": ["none"],
+                "outputFiles": {
+                    "markdown": "legacy.md",
+                    "html": "legacy.html",
+                    "json": "legacy.json"
+                }
+            })
+            .to_string(),
+        )
+        .expect("write legacy summary");
+
+        let document =
+            super::read_structured_summary_document(&summary_path).expect("legacy summary");
+        assert!(document.tests_run.is_empty());
+        assert!(document.risks.is_empty());
+        assert!(document.next_steps.is_empty());
+        assert!(document.citations.is_empty());
+        assert_eq!(document.extraction_mode, "fallback");
+    }
+
+    #[test]
+    fn collect_structured_summary_documents_accepts_schema_valid_json_without_filename_marker() {
+        let workspace = tempdir().expect("workspace");
+        let conversations = workspace.path().join(".agents").join("Conversations");
+        std::fs::create_dir_all(&conversations).expect("conversations dir");
+        let summary_path = conversations.join("custom-summary.json");
+
+        write_structured_summary_document(
+            &summary_path,
+            &StructuredSummaryDocument {
+                schema_version: 1,
+                thread_id: "thread-1".to_string(),
+                connector: "codex".to_string(),
+                source_kind: "app-server-thread-read".to_string(),
+                completeness: "complete".to_string(),
+                generated_at: "2026-04-21T12:00:00Z".to_string(),
+                profile_id: "handoff".to_string(),
+                runtime_profile: None,
+                runtime_model: None,
+                runtime_provider: None,
+                family_key: summary_family_key("thread-1"),
+                title: "custom summary".to_string(),
+                overview: "overview".to_string(),
+                share_safe_summary: "share safe".to_string(),
+                goals: vec!["ship".to_string()],
+                files_touched: vec!["src/workbench.rs".to_string()],
+                tests_run: vec!["cargo test".to_string()],
+                risks: vec!["drift".to_string()],
+                blockers: vec![],
+                next_steps: vec!["pin it".to_string()],
+                citations: vec!["summary".to_string()],
+                extraction_mode: "fallback".to_string(),
+                output_files: StructuredSummaryOutputFiles {
+                    markdown: "custom-summary.md".to_string(),
+                    html: "custom-summary.html".to_string(),
+                    json: "custom-summary.json".to_string(),
+                },
+            },
+        )
+        .expect("write summary");
+
+        let summaries =
+            collect_structured_summary_documents(workspace.path()).expect("collect summaries");
+        assert_eq!(summaries.len(), 1);
+        assert_eq!(summaries[0].document.title, "custom summary");
     }
 }

@@ -317,19 +317,61 @@ fn preferences_path(codex_home: &Path) -> PathBuf {
 }
 
 fn load_preferences_file(codex_home: &Path) -> Result<CockpitPreferences> {
+    let mut preferences = load_codex_global_workspace_labels(codex_home)?;
     let path = preferences_path(codex_home);
+    if !path.exists() {
+        return Ok(preferences);
+    }
+
+    let content = fs::read_to_string(&path)
+        .with_context(|| format!("failed to read cockpit preferences `{}`", path.display()))?;
+    let file_preferences: CockpitPreferences = serde_json::from_str(&content)
+        .with_context(|| format!("failed to parse cockpit preferences `{}`", path.display()))?;
+    preferences.locale = file_preferences.locale;
+    preferences
+        .workspace_labels
+        .extend(file_preferences.workspace_labels);
+    preferences
+        .workspace_labels
+        .retain(|_, value| !value.trim().is_empty());
+    Ok(preferences)
+}
+
+fn codex_global_state_path(codex_home: &Path) -> PathBuf {
+    codex_home.join(".codex-global-state.json")
+}
+
+fn load_codex_global_workspace_labels(codex_home: &Path) -> Result<CockpitPreferences> {
+    let path = codex_global_state_path(codex_home);
     if !path.exists() {
         return Ok(CockpitPreferences::default());
     }
 
     let content = fs::read_to_string(&path)
-        .with_context(|| format!("failed to read cockpit preferences `{}`", path.display()))?;
-    let mut preferences: CockpitPreferences = serde_json::from_str(&content)
-        .with_context(|| format!("failed to parse cockpit preferences `{}`", path.display()))?;
-    preferences
-        .workspace_labels
-        .retain(|_, value| !value.trim().is_empty());
-    Ok(preferences)
+        .with_context(|| format!("failed to read codex global state `{}`", path.display()))?;
+    let value: Value = serde_json::from_str(&content)
+        .with_context(|| format!("failed to parse codex global state `{}`", path.display()))?;
+    let labels = value
+        .get("electron-workspace-root-labels")
+        .and_then(Value::as_object)
+        .map(|object| {
+            object
+                .iter()
+                .filter_map(|(key, value)| {
+                    value
+                        .as_str()
+                        .map(str::trim)
+                        .filter(|label| !label.is_empty())
+                        .map(|label| (key.clone(), label.to_string()))
+                })
+                .collect::<BTreeMap<_, _>>()
+        })
+        .unwrap_or_default();
+
+    Ok(CockpitPreferences {
+        locale: None,
+        workspace_labels: labels,
+    })
 }
 
 fn save_preferences_file(codex_home: &Path, preferences: &CockpitPreferences) -> Result<()> {
@@ -423,6 +465,15 @@ fn discover_threads(
     preferences: &CockpitPreferences,
 ) -> Result<(String, Vec<DiscoveryThread>)> {
     let entries = list_primary_thread_metadata(codex_home)?;
+    let persisted_titles = entries
+        .iter()
+        .filter_map(|entry| {
+            custom_title(entry)
+                .map(single_line_text)
+                .filter(|value| !value.is_empty())
+                .map(|title| (entry.thread_id.clone(), title))
+        })
+        .collect::<BTreeMap<_, _>>();
     let mut local_threads = entries
         .into_iter()
         .filter_map(|entry| build_local_discovery_thread(codex_home, preferences, entry))
@@ -436,7 +487,7 @@ fn discover_threads(
     local_threads.extend(claude_threads);
 
     if should_use_live_discovery(state, codex_home)
-        && let Ok(live_threads) = discover_live_threads(preferences)
+        && let Ok(live_threads) = discover_live_threads(preferences, &persisted_titles)
     {
         let mut merged = BTreeMap::new();
         for thread in local_threads {
@@ -485,7 +536,10 @@ fn normalize_path(path: &Path) -> String {
         .to_string()
 }
 
-fn discover_live_threads(preferences: &CockpitPreferences) -> Result<Vec<DiscoveryThread>> {
+fn discover_live_threads(
+    preferences: &CockpitPreferences,
+    persisted_titles: &BTreeMap<String, String>,
+) -> Result<Vec<DiscoveryThread>> {
     let mut client = AppServerClient::spawn(&AppServerLaunchConfig::default())
         .context("failed to launch codex app-server for cockpit discovery")?;
     client
@@ -502,7 +556,7 @@ fn discover_live_threads(preferences: &CockpitPreferences) -> Result<Vec<Discove
 
     let mut threads = data
         .iter()
-        .filter_map(|value| build_live_discovery_thread(preferences, value).ok())
+        .filter_map(|value| build_live_discovery_thread(preferences, persisted_titles, value).ok())
         .collect::<Vec<_>>();
     threads.sort_by(|left, right| {
         right
@@ -525,6 +579,7 @@ fn discovery_identity(thread: &DiscoveryThread) -> String {
 
 fn build_live_discovery_thread(
     preferences: &CockpitPreferences,
+    persisted_titles: &BTreeMap<String, String>,
     value: &Value,
 ) -> Result<DiscoveryThread> {
     let record = value
@@ -560,11 +615,14 @@ fn build_live_discovery_thread(
         .and_then(Value::as_str)
         .map(single_line_text)
         .filter(|value| !value.is_empty());
-    let display_name = record
-        .get("name")
-        .and_then(Value::as_str)
-        .map(single_line_text)
-        .filter(|value| !value.is_empty())
+    let display_name = persisted_titles
+        .get(&thread_id)
+        .cloned()
+        .or(record
+            .get("name")
+            .and_then(Value::as_str)
+            .map(single_line_text)
+            .filter(|value| !value.is_empty()))
         .or(preview.clone())
         .unwrap_or_else(|| format!("Untitled thread {}", short_thread_id(&thread_id)));
 
@@ -1508,6 +1566,69 @@ mod tests {
     }
 
     #[test]
+    fn load_preferences_file_merges_codex_global_workspace_labels() {
+        let codex_home = tempdir().expect("codex home");
+        std::fs::write(
+            codex_home.path().join(".codex-global-state.json"),
+            serde_json::json!({
+                "electron-workspace-root-labels": {
+                    "/tmp/sourceharbor": "🎬 SourceHarbor",
+                    "/tmp/switchyard": "🥷 Switchyard"
+                }
+            })
+            .to_string(),
+        )
+        .expect("write global state");
+
+        let preferences =
+            super::load_preferences_file(codex_home.path()).expect("load cockpit preferences");
+        assert_eq!(
+            preferences
+                .workspace_labels
+                .get("/tmp/sourceharbor")
+                .map(String::as_str),
+            Some("🎬 SourceHarbor")
+        );
+        assert_eq!(
+            preferences
+                .workspace_labels
+                .get("/tmp/switchyard")
+                .map(String::as_str),
+            Some("🥷 Switchyard")
+        );
+    }
+
+    #[test]
+    fn build_live_discovery_thread_prefers_persisted_custom_title() {
+        let workspace = tempdir().expect("workspace");
+        let rollout_path = workspace.path().join("thread-live.jsonl");
+        std::fs::write(&rollout_path, "{\"type\":\"noop\"}\n").expect("write rollout");
+
+        let value = serde_json::json!({
+            "id": "thread-live",
+            "cwd": workspace.path().display().to_string(),
+            "path": rollout_path.display().to_string(),
+            "source": "vscode",
+            "name": "preview title from app-server",
+            "preview": "preview title from app-server",
+            "updatedAt": 1001_i64,
+            "createdAt": 1000_i64,
+            "modelProvider": "openai"
+        });
+        let mut persisted_titles = std::collections::BTreeMap::new();
+        persisted_titles.insert("thread-live".to_string(), "功能性".to_string());
+
+        let thread = super::build_live_discovery_thread(
+            &super::CockpitPreferences::default(),
+            &persisted_titles,
+            &value,
+        )
+        .expect("live thread");
+
+        assert_eq!(thread.display_name, "功能性");
+    }
+
+    #[test]
     fn cockpit_assets_include_search_and_command_preview_surfaces() {
         assert!(COCKPIT_HTML.contains("thread-search"));
         assert!(COCKPIT_HTML.contains("command-preview"));
@@ -1515,6 +1636,9 @@ mod tests {
         assert!(COCKPIT_JS.contains("threadSearchStatusEl"));
         assert!(COCKPIT_JS.contains("groupThreadsByWorkspace"));
         assert!(COCKPIT_HTML.contains("workspace-group"));
+        assert!(!COCKPIT_JS.contains("state.selectedThreadIds.add(state.focusedThreadId);"));
+        assert!(COCKPIT_JS.contains("exportButtonEl.disabled = true;"));
+        assert!(COCKPIT_JS.contains("state.focusedThreadId = null;"));
     }
 
     #[test]

@@ -34,6 +34,36 @@ fn state_db_path(codex_home: &Path) -> PathBuf {
     codex_home.join("state_5.sqlite")
 }
 
+fn runtime_cache_state_db_path(codex_home: &Path) -> PathBuf {
+    codex_home
+        .join(".runtime-cache")
+        .join("sqlite-home")
+        .join("state_5.sqlite")
+}
+
+fn resolved_state_db_path(codex_home: &Path) -> Result<PathBuf> {
+    let candidates = if codex_home
+        .file_name()
+        .and_then(|value| value.to_str())
+        .is_some_and(|value| value == "sqlite-home")
+    {
+        vec![state_db_path(codex_home)]
+    } else {
+        vec![
+            runtime_cache_state_db_path(codex_home),
+            state_db_path(codex_home),
+        ]
+    };
+
+    candidates.into_iter().find(|path| path.exists()).with_context(|| {
+        format!(
+            "local source could not find a Codex state db under `{}` or `{}`; pass `--codex-home <PATH>` or ensure the Codex app/runtime cache exists",
+            runtime_cache_state_db_path(codex_home).display(),
+            state_db_path(codex_home).display()
+        )
+    })
+}
+
 fn non_empty_string(value: Option<String>) -> Option<String> {
     value.and_then(|text| {
         let trimmed = text.trim();
@@ -42,13 +72,7 @@ fn non_empty_string(value: Option<String>) -> Option<String> {
 }
 
 pub fn lookup_thread_metadata(codex_home: &Path, thread_id: &str) -> Result<CodexThreadMetadata> {
-    let state_db = state_db_path(codex_home);
-    if !state_db.exists() {
-        bail!(
-            "local source could not find `{}`; pass `--codex-home <PATH>` or ensure the default Codex home exists",
-            state_db.display()
-        );
-    }
+    let state_db = resolved_state_db_path(codex_home)?;
 
     let connection = Connection::open_with_flags(&state_db, OpenFlags::SQLITE_OPEN_READ_ONLY)
         .with_context(|| format!("failed to open local state db `{}`", state_db.display()))?;
@@ -93,13 +117,7 @@ pub fn lookup_thread_metadata(codex_home: &Path, thread_id: &str) -> Result<Code
 }
 
 pub fn list_primary_thread_metadata(codex_home: &Path) -> Result<Vec<CodexThreadMetadata>> {
-    let state_db = state_db_path(codex_home);
-    if !state_db.exists() {
-        bail!(
-            "local source could not find `{}`; pass `--codex-home <PATH>` or ensure the default Codex home exists",
-            state_db.display()
-        );
-    }
+    let state_db = resolved_state_db_path(codex_home)?;
 
     let connection = Connection::open_with_flags(&state_db, OpenFlags::SQLITE_OPEN_READ_ONLY)
         .with_context(|| format!("failed to open local state db `{}`", state_db.display()))?;

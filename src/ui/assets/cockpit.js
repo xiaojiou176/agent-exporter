@@ -441,10 +441,12 @@ async function persistPreferences() {
 function toggleThreadSelection(threadId) {
   if (state.selectedThreadIds.has(threadId)) {
     state.selectedThreadIds.delete(threadId);
+    state.focusedThreadId =
+      state.threads.find((thread) => state.selectedThreadIds.has(thread.threadId))?.threadId ?? null;
   } else {
     state.selectedThreadIds.add(threadId);
+    state.focusedThreadId = threadId;
   }
-  state.focusedThreadId = threadId;
 }
 
 function setAllThreadsInGroup(group, shouldSelect) {
@@ -455,8 +457,11 @@ function setAllThreadsInGroup(group, shouldSelect) {
       state.selectedThreadIds.delete(thread.threadId);
     }
   }
-  if (group.threads[0]) {
+  if (shouldSelect && group.threads[0]) {
     state.focusedThreadId = group.threads[0].threadId;
+  } else {
+    state.focusedThreadId =
+      state.threads.find((thread) => state.selectedThreadIds.has(thread.threadId))?.threadId ?? null;
   }
 }
 
@@ -512,16 +517,19 @@ function renderThreads() {
     return;
   }
 
-  if (!state.focusedThreadId || !visibleThreads.some((thread) => thread.threadId === state.focusedThreadId)) {
-    state.focusedThreadId = visibleThreads[0].threadId;
-  }
-  if (state.selectedThreadIds.size === 0) {
-    state.selectedThreadIds.add(state.focusedThreadId);
+  if (
+    state.focusedThreadId &&
+    !visibleThreads.some((thread) => thread.threadId === state.focusedThreadId)
+  ) {
+    state.focusedThreadId =
+      visibleThreads.find((thread) => state.selectedThreadIds.has(thread.threadId))?.threadId ?? null;
   }
 
-  const focusedGroupKey =
-    visibleThreads.find((thread) => thread.threadId === state.focusedThreadId)?.workspaceKey ??
-    visibleGroups[0]?.workspaceKey;
+  const focusedGroupKey = state.focusedThreadId
+    ? visibleThreads.find((thread) => thread.threadId === state.focusedThreadId)?.workspaceKey
+    : visibleGroups.find((group) =>
+        group.threads.some((thread) => state.selectedThreadIds.has(thread.threadId)),
+      )?.workspaceKey;
   if (focusedGroupKey) {
     state.expandedWorkspaceKeys.add(focusedGroupKey);
   }
@@ -1125,6 +1133,7 @@ aiSummaryProviderEl?.addEventListener("input", () => {
 
 clearSelectionButtonEl?.addEventListener("click", () => {
   state.selectedThreadIds.clear();
+  state.focusedThreadId = null;
   renderThreads();
   renderSelection();
 });

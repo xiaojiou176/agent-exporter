@@ -950,6 +950,12 @@ fn publish_pin_answer(args: PublishPinAnswerArgs) -> Result<()> {
     println!("- Artifact  : {}", record.artifact_json_path);
     println!("- Relation  : {}", record.relation_key);
     println!("- Status    : {}", record.status);
+    let workbench = refresh_workspace_workbench(&args.workspace_root)?;
+    println!("- Workbench : {}", workbench.archive_index_path.display());
+    println!(
+        "- JSON      : {}",
+        workbench.archive_index_json_path.display()
+    );
     Ok(())
 }
 
@@ -961,6 +967,12 @@ fn publish_unpin_answer(args: PublishUnpinAnswerArgs) -> Result<()> {
     println!("Official answer removed");
     println!("- Workspace : {}", args.workspace_root.display());
     println!("- Label     : {}", args.label);
+    let workbench = refresh_workspace_workbench(&args.workspace_root)?;
+    println!("- Workbench : {}", workbench.archive_index_path.display());
+    println!(
+        "- JSON      : {}",
+        workbench.archive_index_json_path.display()
+    );
     Ok(())
 }
 
@@ -974,6 +986,12 @@ fn publish_resolve_answer(args: PublishResolveAnswerArgs) -> Result<()> {
     if let Some(note) = record.note {
         println!("- Note      : {}", note);
     }
+    let workbench = refresh_workspace_workbench(&args.workspace_root)?;
+    println!("- Workbench : {}", workbench.archive_index_path.display());
+    println!(
+        "- JSON      : {}",
+        workbench.archive_index_json_path.display()
+    );
     Ok(())
 }
 
@@ -1414,10 +1432,8 @@ fn export_request(request: ExportRequest) -> Result<()> {
         println!("  - JSON    : {}", ai_summary.json_output_path.display());
     }
 
-    if request.connector == ConnectorKind::Codex
-        && request.source == ExportSource::AppServer
-        && request.format == OutputFormat::Html
-        && let OutputTarget::WorkspaceConversations { workspace_root } = &request.output_target
+    if let OutputTarget::WorkspaceConversations { workspace_root } = &request.output_target
+        && (request.format == OutputFormat::Html || ai_summary_outcome.is_some())
     {
         let workbench = refresh_workspace_workbench(workspace_root)?;
         println!("- Workbench");
