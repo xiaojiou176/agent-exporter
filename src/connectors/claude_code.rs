@@ -95,8 +95,21 @@ pub fn inspect_session_path(session_path: &Path) -> Result<ArchiveTranscript> {
 }
 
 pub fn discover_workspace_sessions(workspace_root: &Path) -> Result<Vec<ClaudeSessionMetadata>> {
+    let canonical_root = workspace_root.canonicalize().with_context(|| {
+        format!(
+            "failed to canonicalize workspace root `{}` for Claude session discovery",
+            workspace_root.display()
+        )
+    })?;
+    if !canonical_root.is_dir() {
+        bail!(
+            "workspace root is not a directory for Claude session discovery: {}",
+            canonical_root.display()
+        );
+    }
+
     let mut files = Vec::new();
-    collect_session_candidates(workspace_root, &mut files)?;
+    collect_session_candidates(&canonical_root, &canonical_root, &mut files)?;
 
     let mut sessions = files
         .into_iter()
@@ -132,9 +145,13 @@ pub fn discover_workspace_sessions(workspace_root: &Path) -> Result<Vec<ClaudeSe
     Ok(sessions)
 }
 
-fn collect_session_candidates(root: &Path, files: &mut Vec<PathBuf>) -> Result<()> {
-    for entry in fs::read_dir(root)
-        .with_context(|| format!("failed to read directory `{}`", root.display()))?
+fn collect_session_candidates(
+    workspace_root: &Path,
+    current_dir: &Path,
+    files: &mut Vec<PathBuf>,
+) -> Result<()> {
+    for entry in fs::read_dir(current_dir)
+        .with_context(|| format!("failed to read directory `{}`", current_dir.display()))?
     {
         let entry = entry?;
         let path = entry.path();
@@ -149,7 +166,16 @@ fn collect_session_candidates(root: &Path, files: &mut Vec<PathBuf>) -> Result<(
             ) {
                 continue;
             }
-            collect_session_candidates(&path, files)?;
+            let canonical_child = path.canonicalize().with_context(|| {
+                format!(
+                    "failed to canonicalize Claude session candidate directory `{}`",
+                    path.display()
+                )
+            })?;
+            if !canonical_child.starts_with(workspace_root) {
+                continue;
+            }
+            collect_session_candidates(workspace_root, &canonical_child, files)?;
             continue;
         }
 
@@ -674,4 +700,44 @@ fn stringify_json(value: &Value) -> String {
 
 fn code_fence(language: &str, content: &str) -> String {
     format!("```{language}\n{content}\n```")
+}
+
+#[cfg(test)]
+mod tests {
+    use std::fs;
+    use std::path::PathBuf;
+
+    use tempfile::tempdir;
+
+    use super::discover_workspace_sessions;
+
+    #[cfg(unix)]
+    #[test]
+    fn discover_workspace_sessions_does_not_follow_symlinked_dirs_outside_workspace() {
+        let workspace = tempdir().expect("workspace");
+        let outside = tempdir().expect("outside");
+
+        let workspace_session = workspace.path().join("session-inside.jsonl");
+        let outside_session = outside.path().join("session-outside.jsonl");
+        let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("tests")
+            .join("fixtures")
+            .join("claude_session_minimal.jsonl");
+
+        fs::copy(&fixture, &workspace_session).expect("copy inside fixture");
+        fs::copy(&fixture, &outside_session).expect("copy outside fixture");
+
+        std::os::unix::fs::symlink(outside.path(), workspace.path().join("outside-link"))
+            .expect("create outside symlink");
+
+        let sessions = discover_workspace_sessions(workspace.path()).expect("discover sessions");
+        assert_eq!(sessions.len(), 1);
+        assert_eq!(
+            sessions[0]
+                .session_path
+                .file_name()
+                .and_then(|name| name.to_str()),
+            Some("session-inside.jsonl")
+        );
+    }
 }

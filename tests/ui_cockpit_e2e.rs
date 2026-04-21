@@ -451,10 +451,13 @@ fn cockpit_discovery_and_export_support_workspace_local_claude_sessions() -> Res
         .iter()
         .find(|entry| entry["connectorKind"] == "claude-code")
         .expect("claude discovery entry");
+    let canonical_claude_session_path = claude_session_path
+        .canonicalize()
+        .expect("canonical claude session path");
     assert_eq!(claude_entry["sourceKind"], "claude-session-path");
     assert_eq!(
         claude_entry["sessionPath"].as_str(),
-        Some(claude_session_path.display().to_string().as_str())
+        Some(canonical_claude_session_path.display().to_string().as_str())
     );
 
     let export = post_json(
