@@ -47,9 +47,25 @@ fn exported_paths_with_extension(workspace_root: &Path, extension: &str) -> Vec<
                 .and_then(|value| value.to_str())
                 .is_some_and(|value| value == extension)
         })
+        .filter(|path| {
+            path.file_name()
+                .and_then(|value| value.to_str())
+                .is_none_or(|value| {
+                    value != "index.html"
+                        && value != "index.json"
+                        && value != "fleet-view.html"
+                        && value != "fleet-view.json"
+                        && value != "memory-lane.html"
+                        && value != "memory-lane.json"
+                })
+        })
         .collect::<Vec<_>>();
     paths.sort();
     paths
+}
+
+fn transcript_html_paths(workspace_root: &Path) -> Vec<PathBuf> {
+    exported_paths_with_extension(workspace_root, "html")
 }
 
 #[test]
@@ -145,7 +161,7 @@ fn export_codex_writes_workspace_conversations_html() {
             "Source       : app-server-thread-read",
         ));
 
-    let paths = exported_paths_with_extension(workspace.path(), "html");
+    let paths = transcript_html_paths(workspace.path());
     assert_eq!(paths.len(), 1);
     let content = fs::read_to_string(&paths[0]).expect("html content");
     assert!(content.contains("<!DOCTYPE html>"));
@@ -172,7 +188,7 @@ fn export_codex_html_marks_incomplete_when_resume_fallback_is_used() {
             "Source       : app-server-resume-fallback",
         ));
 
-    let paths = exported_paths_with_extension(workspace.path(), "html");
+    let paths = transcript_html_paths(workspace.path());
     assert_eq!(paths.len(), 1);
     let content = fs::read_to_string(&paths[0]).expect("html content");
     assert!(content.contains("Preview recovered through resume fallback"));

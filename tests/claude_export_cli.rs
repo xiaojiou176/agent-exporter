@@ -25,6 +25,18 @@ fn exported_paths_with_extension(workspace_root: &Path, extension: &str) -> Vec<
                 .and_then(|value| value.to_str())
                 .is_some_and(|value| value == extension)
         })
+        .filter(|path| {
+            path.file_name()
+                .and_then(|value| value.to_str())
+                .is_none_or(|value| {
+                    value != "index.html"
+                        && value != "index.json"
+                        && value != "fleet-view.html"
+                        && value != "fleet-view.json"
+                        && value != "memory-lane.html"
+                        && value != "memory-lane.json"
+                })
+        })
         .collect::<Vec<_>>();
     paths.sort();
     paths

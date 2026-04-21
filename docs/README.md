@@ -140,7 +140,7 @@ permalink: /docs-index.html
   <li>If you want the structure of the workbench, open the <a href="./repo-map.html">repo map</a>.</li>
   <li>If you want registry or packet/listing truth, open the <a href="./distribution-packet-ledger.html">distribution packet ledger</a>.</li>
   <li>If you want host-native packet lanes, open the <a href="https://github.com/xiaojiou176-open/agent-exporter/blob/main/public-skills/README.md">public skills packet</a>.</li>
-  <li>If you want a local browser cockpit for Codex export after the CLI path is already clear, run <code>agent-exporter ui cockpit --workspace-root /absolute/path/to/repo</code>.</li>
+  <li>If you want a local browser cockpit for Codex export or workspace-local Claude session export after the CLI path is already clear, run <code>agent-exporter ui cockpit --workspace-root /absolute/path/to/repo</code>.</li>
 </ul>
 
 </section>
@@ -182,7 +182,7 @@ permalink: /docs-index.html
   </div>
   <p class="ae-note">
     After that succeeds, you should see the scaffolded workbench shape, <code>.agents/Conversations/*.html</code> transcript receipts,
-    <code>.agents/Conversations/index.html</code>, and a local-only HTML proof path rather than a hosted page.
+    <code>.agents/Conversations/index.html</code>, <code>index.json</code>, and share-safe packet tiers for teammate / reviewer / public forwarding rather than a hosted page.
   </p>
 </section>
 
@@ -294,7 +294,7 @@ permalink: /docs-index.html
   <article class="ae-proof-card">
     <p class="ae-mini-label">archive shell proof</p>
     <h3>Transcript browser and backlinks</h3>
-    <p><code>publish archive-index</code> generates the transcript browser, workspace backlinks, and the archive shell entrypoint.</p>
+    <p><code>publish archive-index</code> generates the transcript browser, workspace backlinks, family case views, latest-vs-pinned answer summaries, and the archive shell entrypoint.</p>
   </article>
   <article class="ae-proof-card">
     <p class="ae-mini-label">reports shell</p>
@@ -314,7 +314,7 @@ permalink: /docs-index.html
   <article class="ae-proof-card">
     <p class="ae-mini-label">governance lane</p>
     <h3>Decision Desk and evidence</h3>
-    <p>Evidence, baselines, policy packs, and remediation live in the local workbench via the archive shell Decision Desk and integration evidence reports.</p>
+    <p>Evidence, baselines, policy packs, remediation, and official-answer lifecycle actions live in the local workbench via the archive shell Decision Desk and integration evidence reports.</p>
   </article>
 </div>
 

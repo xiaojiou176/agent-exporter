@@ -20,8 +20,7 @@ use crate::core::integration_report::{
     build_integration_evidence_explain, build_integration_evidence_remediation_bundle,
     canonical_report_json_path, collect_integration_report_entries,
     collect_integration_report_json_documents, collect_repo_owned_integration_policy_packs,
-    diff_integration_reports, effective_gate_policy_for_platform,
-    find_integration_baseline_for_identity, find_integration_baseline_record,
+    diff_integration_reports, effective_gate_policy_for_platform, find_integration_baseline_record,
     gate_integration_reports, integration_target_identity,
     latest_integration_decision_for_candidate, read_integration_baseline_registry_document,
     read_integration_decision_history_document, read_integration_report_json_document,
@@ -33,10 +32,7 @@ use crate::core::integration_report::{
     write_integration_report_json_document, write_integration_reports_index_document,
     write_integration_reports_index_json_document,
 };
-use crate::core::search_report::{
-    collect_search_report_entries, write_search_report_document,
-    write_search_reports_index_document,
-};
+use crate::core::search_report::{collect_search_report_entries, write_search_report_document};
 use crate::core::semantic_search::{
     FastEmbedSemanticEmbedder, SemanticEmbedder, hybrid_search_with_persistent_index,
     semantic_search_with_persistent_index,
@@ -48,7 +44,7 @@ use crate::integrations::{
 };
 use crate::model::{ConnectorKind, OutputFormat, SupportStage};
 use crate::output::{
-    archive_index as archive_index_output, html as html_output,
+    html as html_output,
     integration_report::{
         IntegrationReportDocument, IntegrationReportKind, build_integration_report_json_document,
         build_integration_reports_index_json_document, render_integration_report_document,
@@ -58,10 +54,13 @@ use crate::output::{
     markdown::{self, DEFAULT_MAX_LINES_PER_PART},
     search_report::{
         SearchReportDocument, SearchReportHit, SearchReportKind, render_search_report_document,
-        render_search_reports_index_document,
     },
 };
 use crate::ui;
+use crate::workbench::{
+    pin_official_answer, refresh_workspace_workbench, resolve_pinned_official_answer,
+    unpin_official_answer,
+};
 
 #[derive(Debug, Parser)]
 #[command(
@@ -143,6 +142,12 @@ enum ExportCommands {
 enum PublishCommands {
     /// Generate a static index for HTML transcript exports inside workspace conversations.
     ArchiveIndex(PublishArchiveIndexArgs),
+    /// Pin one structured summary or integration report as an official answer in the local workbench.
+    PinAnswer(PublishPinAnswerArgs),
+    /// Remove one official answer label from the local workbench registry.
+    UnpinAnswer(PublishUnpinAnswerArgs),
+    /// Mark one pinned official answer as resolved and optionally attach a note.
+    ResolveAnswer(PublishResolveAnswerArgs),
 }
 
 #[derive(Debug, Subcommand)]
@@ -262,6 +267,9 @@ struct CodexExportArgs {
     /// Optional Codex profile passed through to `codex exec --profile` for the AI summary sidecar.
     #[arg(long)]
     ai_summary_profile: Option<String>,
+    /// Optional summary preset that shapes the AI summary content contract.
+    #[arg(long)]
+    ai_summary_preset: Option<String>,
     /// Optional Codex model passed through to `codex exec --model` for the AI summary sidecar.
     #[arg(long)]
     ai_summary_model: Option<String>,
@@ -305,6 +313,9 @@ struct ClaudeCodeExportArgs {
     /// Optional Codex profile passed through to `codex exec --profile` for the AI summary sidecar.
     #[arg(long)]
     ai_summary_profile: Option<String>,
+    /// Optional summary preset that shapes the AI summary content contract.
+    #[arg(long)]
+    ai_summary_preset: Option<String>,
     /// Optional Codex model passed through to `codex exec --model` for the AI summary sidecar.
     #[arg(long)]
     ai_summary_model: Option<String>,
@@ -331,6 +342,48 @@ struct PublishArchiveIndexArgs {
     /// Workspace root whose `.agents/Conversations` directory should be indexed.
     #[arg(long)]
     workspace_root: PathBuf,
+}
+
+#[derive(Debug, clap::Args)]
+struct PublishPinAnswerArgs {
+    /// Workspace root that owns the local workbench.
+    #[arg(long)]
+    workspace_root: PathBuf,
+    /// Structured summary JSON or integration report JSON to pin.
+    #[arg(long)]
+    artifact: PathBuf,
+    /// Human-facing label rendered in the archive shell.
+    #[arg(long)]
+    label: String,
+    /// Optional note recorded alongside the pin.
+    #[arg(long)]
+    note: Option<String>,
+    /// Optional previous label that this pin should supersede.
+    #[arg(long)]
+    supersedes: Option<String>,
+}
+
+#[derive(Debug, clap::Args)]
+struct PublishUnpinAnswerArgs {
+    /// Workspace root that owns the local workbench.
+    #[arg(long)]
+    workspace_root: PathBuf,
+    /// Human-facing label rendered in the archive shell.
+    #[arg(long)]
+    label: String,
+}
+
+#[derive(Debug, clap::Args)]
+struct PublishResolveAnswerArgs {
+    /// Workspace root that owns the local workbench.
+    #[arg(long)]
+    workspace_root: PathBuf,
+    /// Human-facing label rendered in the archive shell.
+    #[arg(long)]
+    label: String,
+    /// Optional resolution note recorded alongside the pin.
+    #[arg(long)]
+    note: Option<String>,
 }
 
 #[derive(Debug, clap::Args)]
@@ -619,6 +672,7 @@ impl CodexExportArgs {
                 instructions: self.ai_summary_instructions,
                 timeout_seconds: self.ai_summary_timeout_seconds,
                 profile: self.ai_summary_profile,
+                preset: self.ai_summary_preset,
                 model: self.ai_summary_model,
                 provider: self.ai_summary_provider,
             },
@@ -641,6 +695,7 @@ impl ClaudeCodeExportArgs {
                 instructions: self.ai_summary_instructions,
                 timeout_seconds: self.ai_summary_timeout_seconds,
                 profile: self.ai_summary_profile,
+                preset: self.ai_summary_preset,
                 model: self.ai_summary_model,
                 provider: self.ai_summary_provider,
             },
@@ -659,6 +714,9 @@ pub fn run() -> Result<()> {
         },
         Commands::Publish { command } => match command {
             PublishCommands::ArchiveIndex(args) => publish_archive_index(args)?,
+            PublishCommands::PinAnswer(args) => publish_pin_answer(args)?,
+            PublishCommands::UnpinAnswer(args) => publish_unpin_answer(args)?,
+            PublishCommands::ResolveAnswer(args) => publish_resolve_answer(args)?,
         },
         Commands::Search { command } => match command {
             SearchCommands::Semantic(args) => search_semantic(args)?,
@@ -733,7 +791,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + optional AI export synthesis sidecars + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + local export cockpit webui + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails + integration evidence pack reports + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff + evidence gate/explain + baseline registry + policy packs + promotion engine/history + remediation bundle studio + read-only governance MCP surface + current-decision automation + local governance workbench + promo reel public packet + launch kit distribution prep + social card sharing surface + voiceover pack + bilingual caption pack + repo-owned public surface smoke + docs index route publish fix + final public-surface copy/IA polish + favicon-backed live Pages hygiene + Official MCP Registry publication."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + structured AI summary sidecars + summary presets + optional AI export synthesis controls + local archive index + workspace timeline / thread families / family case view + official answer lifecycle workflow + share-safe packet tiers + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + local export cockpit webui + workspace-local Claude cockpit discovery + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails + integration evidence pack reports + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff + evidence gate/explain + baseline registry + policy packs + promotion engine/history + remediation bundle studio + read-only governance MCP surface + current-decision automation + local governance workbench + promo reel public packet + launch kit distribution prep + social card sharing surface + voiceover pack + bilingual caption pack + repo-owned public surface smoke + docs index route publish fix + final public-surface copy/IA polish + favicon-backed live Pages hygiene + Official MCP Registry publication."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -743,12 +801,17 @@ fn print_scaffold_status() {
     println!("- Real JSON export path: add `--format json` to the existing export commands.");
     println!("- Real HTML export path: add `--format html` to the existing export commands.");
     println!(
-        "- Real AI export summary path: add `--ai-summary` to export commands to generate one extra Markdown summary via a local Codex agent beside the raw export files, with optional `--ai-summary-profile/--ai-summary-model/--ai-summary-provider` controls."
+        "- Real AI export summary path: add `--ai-summary` to export commands to generate Markdown + HTML + JSON summary sidecars via a local Codex agent, with optional `--ai-summary-profile/--ai-summary-preset/--ai-summary-model/--ai-summary-provider` controls; current presets include `handoff`, `bug-rca`, `decision`, `review-digest`, `release`, `release-note`, `incident-brief`, `team-update`, and `share-safe-issue-draft`."
     );
     println!(
-        "- Real archive index path: `agent-exporter publish archive-index --workspace-root <repo>`."
+        "- Real archive index path: `agent-exporter publish archive-index --workspace-root <repo>`; this now also writes `index.json`, workspace timeline, family case views, official answer lifecycle state, and share-safe packet tiers (`share-safe-packet.md`, `.teammate`, `.reviewer`, `.public`)."
     );
-    println!("- Real export cockpit path: `agent-exporter ui cockpit --workspace-root <repo>`.");
+    println!(
+        "- Real export cockpit path: `agent-exporter ui cockpit --workspace-root <repo>`; it now supports Codex threads plus workspace-local Claude session discovery."
+    );
+    println!(
+        "- Real official answer workflow path: `agent-exporter publish pin-answer --workspace-root <repo> --artifact <summary-or-report.json> --label <name>` plus `resolve-answer` / `unpin-answer` for lifecycle closure."
+    );
     println!(
         "- Real reports shell path: generated by `agent-exporter publish archive-index --workspace-root <repo>` into `.agents/Search/Reports/index.html`."
     );
@@ -817,53 +880,11 @@ fn export_claude_code(args: ClaudeCodeExportArgs) -> Result<()> {
 }
 
 fn publish_archive_index(args: PublishArchiveIndexArgs) -> Result<()> {
+    let archive_dir = archive_index::resolve_workspace_conversations_dir(&args.workspace_root)?;
+    let outcome = refresh_workspace_workbench(&args.workspace_root)?;
     let entries = archive_index::collect_html_archive_entries(&args.workspace_root)?;
     let reports = collect_search_report_entries(&args.workspace_root)?;
     let integration_reports = collect_integration_report_entries(&args.workspace_root)?;
-    let integration_json_reports = collect_integration_report_json_documents(&args.workspace_root)?;
-    let archive_title = args
-        .workspace_root
-        .file_name()
-        .and_then(|name| name.to_str())
-        .map(|name| format!("{name} archive index"))
-        .filter(|value| !value.trim().is_empty())
-        .unwrap_or_else(|| "agent-exporter archive index".to_string());
-    let generated_at = Utc::now().to_rfc3339();
-    let document = archive_index_output::render_archive_index_document(
-        &archive_title,
-        &generated_at,
-        &entries,
-        &reports,
-        &integration_reports,
-        build_decision_desk_summary(&args.workspace_root, &integration_json_reports).as_ref(),
-    );
-    let reports_document = render_search_reports_index_document(
-        &format!("{archive_title} search reports"),
-        &generated_at,
-        &reports,
-    );
-    let integration_index_document = render_integration_reports_index_document(
-        &format!("{archive_title} integration reports"),
-        &generated_at,
-        &integration_reports,
-    );
-    let integration_index_json_document = build_integration_reports_index_json_document(
-        &format!("{archive_title} integration reports"),
-        &generated_at,
-        &integration_json_reports,
-    );
-    let archive_dir = archive_index::resolve_workspace_conversations_dir(&args.workspace_root)?;
-    let index_path = archive_index::write_archive_index_document(&args.workspace_root, &document)?;
-    let reports_index_path =
-        write_search_reports_index_document(&args.workspace_root, &reports_document)?;
-    let integration_reports_index_path = write_integration_reports_index_document(
-        &args.workspace_root,
-        &integration_index_document,
-    )?;
-    let integration_reports_index_json_path = write_integration_reports_index_json_document(
-        &args.workspace_root,
-        &integration_index_json_document,
-    )?;
 
     println!("Archive index published");
     println!("- Workspace    : {}", args.workspace_root.display());
@@ -871,17 +892,88 @@ fn publish_archive_index(args: PublishArchiveIndexArgs) -> Result<()> {
     println!("- Entries      : {}", entries.len());
     println!("- Reports      : {}", reports.len());
     println!("- Evidence     : {}", integration_reports.len());
-    println!("- Index        : {}", index_path.display());
-    println!("- Reports Index: {}", reports_index_path.display());
+    println!("- Refresh Mode : {}", outcome.refresh_mode);
+    println!("- Changed Families: {}", outcome.changed_families);
+    println!("- Index        : {}", outcome.archive_index_path.display());
+    println!(
+        "- Index JSON   : {}",
+        outcome.archive_index_json_path.display()
+    );
+    println!("- Reports Index: {}", outcome.reports_index_path.display());
     println!(
         "- Evidence Index: {}",
-        integration_reports_index_path.display()
+        outcome.integration_index_path.display()
     );
     println!(
         "- Evidence JSON : {}",
-        integration_reports_index_json_path.display()
+        outcome.integration_index_json_path.display()
+    );
+    println!(
+        "- Share-safe Packet: {}",
+        outcome.share_safe_packet_path.display()
+    );
+    println!(
+        "- Refresh Manifest: {}",
+        outcome.refresh_manifest_path.display()
+    );
+    println!("- Fleet View  : {}", outcome.fleet_view_path.display());
+    println!("- Fleet JSON  : {}", outcome.fleet_view_json_path.display());
+    println!(
+        "- Action Packs: {}",
+        outcome.action_packs_index_path.display()
+    );
+    println!(
+        "- Action JSON : {}",
+        outcome.action_packs_index_json_path.display()
+    );
+    println!("- Memory Lane : {}", outcome.memory_lane_path.display());
+    println!(
+        "- Memory JSON : {}",
+        outcome.memory_lane_json_path.display()
     );
 
+    Ok(())
+}
+
+fn publish_pin_answer(args: PublishPinAnswerArgs) -> Result<()> {
+    let record = pin_official_answer(
+        &args.workspace_root,
+        &args.artifact,
+        &args.label,
+        args.note.clone(),
+        args.supersedes.as_deref(),
+    )?;
+    println!("Official answer pinned");
+    println!("- Workspace : {}", args.workspace_root.display());
+    println!("- Label     : {}", record.label);
+    println!("- Kind      : {}", record.artifact_kind);
+    println!("- Artifact  : {}", record.artifact_json_path);
+    println!("- Relation  : {}", record.relation_key);
+    println!("- Status    : {}", record.status);
+    Ok(())
+}
+
+fn publish_unpin_answer(args: PublishUnpinAnswerArgs) -> Result<()> {
+    let removed = unpin_official_answer(&args.workspace_root, &args.label)?;
+    if !removed {
+        bail!("official answer `{}` was not found", args.label);
+    }
+    println!("Official answer removed");
+    println!("- Workspace : {}", args.workspace_root.display());
+    println!("- Label     : {}", args.label);
+    Ok(())
+}
+
+fn publish_resolve_answer(args: PublishResolveAnswerArgs) -> Result<()> {
+    let record =
+        resolve_pinned_official_answer(&args.workspace_root, &args.label, args.note.clone())?;
+    println!("Official answer resolved");
+    println!("- Workspace : {}", args.workspace_root.display());
+    println!("- Label     : {}", record.label);
+    println!("- Status    : {}", record.status);
+    if let Some(note) = record.note {
+        println!("- Note      : {}", note);
+    }
     Ok(())
 }
 
@@ -1319,6 +1411,25 @@ fn export_request(request: ExportRequest) -> Result<()> {
             ai_summary.markdown_output_path.display()
         );
         println!("  - HTML    : {}", ai_summary.html_output_path.display());
+        println!("  - JSON    : {}", ai_summary.json_output_path.display());
+    }
+
+    if request.connector == ConnectorKind::Codex
+        && request.source == ExportSource::AppServer
+        && request.format == OutputFormat::Html
+        && let OutputTarget::WorkspaceConversations { workspace_root } = &request.output_target
+    {
+        let workbench = refresh_workspace_workbench(workspace_root)?;
+        println!("- Workbench");
+        println!("  - Archive : {}", workbench.archive_index_path.display());
+        println!(
+            "  - JSON    : {}",
+            workbench.archive_index_json_path.display()
+        );
+        println!(
+            "  - Packet  : {}",
+            workbench.share_safe_packet_path.display()
+        );
     }
 
     Ok(())
@@ -1409,116 +1520,6 @@ fn decision_desk_report_json_path(
     report: &IntegrationReportJsonDocument,
 ) -> PathBuf {
     resolve_integration_reports_dir(workspace_root).join(&report.artifact_links.json_report)
-}
-
-fn build_decision_desk_summary(
-    workspace_root: &std::path::Path,
-    reports: &[IntegrationReportJsonDocument],
-) -> Option<archive_index_output::DecisionDeskSummary> {
-    let candidate = reports.first()?;
-    let registry = read_integration_baseline_registry_document(workspace_root).ok()?;
-    let history = read_integration_decision_history_document(workspace_root).ok()?;
-    let baseline_record =
-        find_integration_baseline_for_identity(&registry, &candidate.platform, &candidate.target);
-    let baseline = baseline_record.and_then(|record| {
-        read_integration_report_json_document(PathBuf::from(&record.report_json_path).as_path())
-            .ok()
-    });
-    let policy_reference = baseline_record.map(|record| record.policy_name.clone());
-    let (_, policy_pack) =
-        resolve_integration_evidence_policy_pack(policy_reference.as_deref()).ok()?;
-    let gate_policy = effective_gate_policy_for_platform(&policy_pack, &candidate.platform);
-    let gate = baseline
-        .as_ref()
-        .and_then(|baseline| gate_integration_reports(baseline, candidate, &gate_policy).ok());
-    let promotion = if let Some(outcome) = gate.as_ref() {
-        let candidate_path = decision_desk_report_json_path(workspace_root, candidate)
-            .canonicalize()
-            .ok()
-            .map(|path| path.display().to_string());
-        if let Some(candidate_path) = candidate_path.as_deref() {
-            if let Some(record) =
-                latest_integration_decision_for_candidate(&history, candidate_path)
-            {
-                archive_index_output::DecisionDeskPromotionSummary {
-                    state: if record.promoted {
-                        "promoted".to_string()
-                    } else {
-                        "not-promoted".to_string()
-                    },
-                    summary: record.summary.clone(),
-                }
-            } else {
-                let assessment = assess_promotion_eligibility(outcome, candidate, &policy_pack);
-                archive_index_output::DecisionDeskPromotionSummary {
-                    state: if assessment.eligible {
-                        "not-promoted".to_string()
-                    } else {
-                        "ineligible".to_string()
-                    },
-                    summary: assessment.summary,
-                }
-            }
-        } else {
-            archive_index_output::DecisionDeskPromotionSummary {
-                state: "insufficient".to_string(),
-                summary:
-                    "candidate report path could not be resolved for decision-history matching"
-                        .to_string(),
-            }
-        }
-    } else {
-        archive_index_output::DecisionDeskPromotionSummary {
-            state: "insufficient".to_string(),
-            summary: "save an official baseline for this platform/target before expecting promotion status".to_string(),
-        }
-    };
-    let recent_history = history
-        .decisions
-        .iter()
-        .filter(|entry| entry.platform == candidate.platform && entry.target == candidate.target)
-        .take(5)
-        .map(|entry| archive_index_output::DecisionDeskHistoryEntry {
-            decided_at: entry.decided_at.clone(),
-            baseline_name: entry.baseline_name.clone(),
-            verdict: entry.verdict.clone(),
-            promoted: entry.promoted,
-            summary: entry.summary.clone(),
-        })
-        .collect::<Vec<_>>();
-
-    Some(archive_index_output::DecisionDeskSummary {
-        evidence_report_count: reports.len(),
-        evidence_shell_href: "../Integration/Reports/index.html".to_string(),
-        baseline_name: baseline_record.map(|record| record.name.clone()),
-        baseline: baseline.as_ref().map(decision_desk_snapshot_from_report),
-        candidate: Some(decision_desk_snapshot_from_report(candidate)),
-        active_policy: archive_index_output::DecisionDeskPolicySummary {
-            name: policy_pack.name.clone(),
-            version: policy_pack.version.clone(),
-        },
-        promotion,
-        history: recent_history,
-        remediation_bundle: Some(build_integration_evidence_remediation_bundle(candidate)),
-        gate,
-    })
-}
-
-fn decision_desk_snapshot_from_report(
-    report: &IntegrationReportJsonDocument,
-) -> archive_index_output::DecisionDeskSnapshot {
-    archive_index_output::DecisionDeskSnapshot {
-        title: report.title.clone(),
-        kind: report.kind.clone(),
-        platform: report.platform.clone(),
-        readiness: report.readiness.clone(),
-        target: report.target.clone(),
-        generated_at: report.generated_at.clone(),
-        html_href: format!(
-            "../Integration/Reports/{}",
-            report.artifact_links.html_report
-        ),
-    }
 }
 
 fn write_doctor_integration_report(

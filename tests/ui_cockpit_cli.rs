@@ -23,15 +23,21 @@ fn cockpit_assets_expose_ai_summary_profile_model_provider_controls() {
     let js = fs::read_to_string("src/ui/assets/cockpit.js").expect("read cockpit.js");
 
     assert_eq!(html.matches("id=\"ai-summary-profile\"").count(), 1);
+    assert_eq!(html.matches("id=\"ai-summary-preset\"").count(), 1);
     assert_eq!(html.matches("id=\"ai-summary-model\"").count(), 1);
     assert_eq!(html.matches("id=\"ai-summary-provider\"").count(), 1);
     assert!(js.contains("aiSummaryProfile"));
+    assert!(js.contains("aiSummaryPreset"));
     assert!(js.contains("aiSummaryModel"));
     assert!(js.contains("aiSummaryProvider"));
     assert!(js.contains("aiSummaryProfile:"));
+    assert!(js.contains("aiSummaryPreset:"));
     assert!(js.contains("aiSummaryModel:"));
     assert!(js.contains("aiSummaryProvider:"));
     assert!(js.contains("--ai-summary-profile"));
+    assert!(js.contains("--ai-summary-preset"));
     assert!(js.contains("--ai-summary-model"));
     assert!(js.contains("--ai-summary-provider"));
+    assert!(js.contains("connectorKind"));
+    assert!(js.contains("sessionPath"));
 }

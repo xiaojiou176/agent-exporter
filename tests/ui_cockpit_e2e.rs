@@ -235,6 +235,22 @@ with open(output_path, "w", encoding="utf-8") as handle:
     }
 }
 
+fn seed_workspace_claude_session(workspace_root: &Path) -> PathBuf {
+    let session_path = workspace_root
+        .join(".agents")
+        .join("fixtures")
+        .join("claude")
+        .join("session-demo.jsonl");
+    fs::create_dir_all(session_path.parent().expect("claude session parent"))
+        .expect("create claude session dir");
+    let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("fixtures")
+        .join("claude_session_minimal.jsonl");
+    fs::copy(fixture, &session_path).expect("copy claude fixture");
+    session_path
+}
+
 #[test]
 fn cockpit_discovery_and_export_work_end_to_end() -> Result<()> {
     let workspace = tempdir().context("workspace tempdir")?;
@@ -408,6 +424,74 @@ fn cockpit_ai_summary_controls_reach_backend_summary_command() -> Result<()> {
 
     let prompt = fs::read_to_string(&fake_stdin_log).context("read fake codex prompt")?;
     assert!(prompt.contains("请特别关注 blocker。"));
+
+    Ok(())
+}
+
+#[test]
+fn cockpit_discovery_and_export_support_workspace_local_claude_sessions() -> Result<()> {
+    let workspace = tempdir().context("workspace tempdir")?;
+    let codex_home = tempdir().context("codex tempdir")?;
+    seed_codex_state(codex_home.path(), workspace.path());
+    let claude_session_path = seed_workspace_claude_session(workspace.path());
+
+    let log_path = workspace.path().join("cockpit-claude.log");
+    let _child = ChildGuard(spawn_cockpit(
+        workspace.path(),
+        codex_home.path(),
+        &log_path,
+        None,
+        &[],
+    ));
+    let url = wait_for_url(&log_path)?.trim_end_matches('/').to_string();
+
+    let discovery = get_json(&format!("{url}/api/discovery"));
+    let threads = discovery["threads"].as_array().expect("threads array");
+    let claude_entry = threads
+        .iter()
+        .find(|entry| entry["connectorKind"] == "claude-code")
+        .expect("claude discovery entry");
+    assert_eq!(claude_entry["sourceKind"], "claude-session-path");
+    assert_eq!(
+        claude_entry["sessionPath"].as_str(),
+        Some(claude_session_path.display().to_string().as_str())
+    );
+
+    let export = post_json(
+        &format!("{url}/api/export"),
+        &serde_json::json!({
+            "selections": [{
+                "connectorKind": "claude-code",
+                "threadId": claude_entry["threadId"].as_str().expect("thread id"),
+                "workspacePath": workspace.path().display().to_string(),
+                "workspaceLabel": "workspace",
+                "sessionPath": claude_session_path.display().to_string()
+            }]
+        }),
+    );
+
+    assert_eq!(export["status"], "started");
+    let job = wait_for_job(&url, export["jobId"].as_str().expect("job id"));
+    assert_eq!(job["status"], "completed");
+
+    let transcript_paths = job["workspaces"][0]["threads"][0]["transcriptPaths"]
+        .as_array()
+        .expect("transcript paths array");
+    assert!(
+        transcript_paths
+            .iter()
+            .any(|value| value.as_str().is_some_and(|path| path.ends_with(".html"))),
+        "claude cockpit export should produce html transcript output"
+    );
+    assert!(
+        workspace
+            .path()
+            .join(".agents")
+            .join("Conversations")
+            .join("index.html")
+            .exists(),
+        "cockpit should publish archive shell after claude export"
+    );
 
     Ok(())
 }

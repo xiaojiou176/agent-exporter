@@ -227,6 +227,7 @@ pub struct AiSummaryOptions {
     pub instructions: Option<String>,
     pub timeout_seconds: Option<u64>,
     pub profile: Option<String>,
+    pub preset: Option<String>,
     pub model: Option<String>,
     pub provider: Option<String>,
 }

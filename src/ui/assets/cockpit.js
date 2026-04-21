@@ -15,9 +15,9 @@ const state = {
 const STRINGS = {
   en: {
     "hero.eyebrow": "local-first export cockpit",
-    "hero.title": "Export one or more Codex threads into local archive workbenches.",
+    "hero.title": "Export Codex threads or workspace-local Claude sessions into local archive workbenches.",
     "hero.lead":
-      "The cockpit prefers live active-thread discovery, groups sessions by workspace, and exports each selected session back into its own workspace shell.",
+      "The cockpit prefers live Codex thread discovery, augments it with workspace-local Claude sessions, groups them by workspace, and exports each selected session back into its own workspace shell.",
     "hero.note":
       "This is still a local helper after the CLI path. The public front door remains the CLI quickstart.",
     "meta.launchRoot": "launch root",
@@ -43,6 +43,8 @@ const STRINGS = {
     "action.aiPlaceholder": "Extra instructions for the AI synthesis, if needed.",
     "action.aiProfile": "Optional AI summary profile",
     "action.aiProfilePlaceholder": "Codex profile for the AI synthesis",
+    "action.aiPreset": "Optional AI summary preset",
+    "action.aiPresetPlaceholder": "handoff, bug-rca, decision, release...",
     "action.aiModel": "Optional AI summary model",
     "action.aiModelPlaceholder": "Model override for the AI synthesis",
     "action.aiProvider": "Optional AI summary provider",
@@ -93,10 +95,11 @@ const STRINGS = {
     "thread.workspace": "Workspace",
     "thread.workspacePath": "Workspace path",
     "thread.model": "Model",
+    "thread.connector": "Connector",
     "thread.updatedAt": "Updated",
     "thread.createdAt": "Created",
     "thread.cwd": "CWD",
-    "thread.rollout": "Rollout",
+    "thread.artifactPath": "Artifact",
     "thread.discovery": "Discovery",
     "thread.select": "Select thread",
     "workspace.threads": "{count} thread(s)",
@@ -119,9 +122,9 @@ const STRINGS = {
   },
   zh: {
     "hero.eyebrow": "本地优先导出驾驶舱",
-    "hero.title": "把一个或多个 Codex 对话导出到本地归档工作台。",
+    "hero.title": "把 Codex 对话或工作区内的 Claude session 导出到本地归档工作台。",
     "hero.lead":
-      "这个 cockpit 会优先使用 live active-thread discovery，按 workspace 分组，并把每个选中的 session 导回它自己的 workspace shell。",
+      "这个 cockpit 会优先使用 live Codex thread discovery，再补上 workspace-local Claude session，按 workspace 分组，并把每个选中的 session 导回它自己的 workspace shell。",
     "hero.note":
       "它仍然是 CLI 之后的本地辅助面，不是隐藏执行层。公开 front door 依然是 CLI quickstart。",
     "meta.launchRoot": "启动根目录",
@@ -147,6 +150,8 @@ const STRINGS = {
     "action.aiPlaceholder": "如有需要，可追加摘要说明。",
     "action.aiProfile": "可选 AI 摘要 Profile",
     "action.aiProfilePlaceholder": "用于 AI 摘要的 Codex profile",
+    "action.aiPreset": "可选 AI 摘要 Preset",
+    "action.aiPresetPlaceholder": "handoff、bug-rca、decision、release 等",
     "action.aiModel": "可选 AI 摘要模型",
     "action.aiModelPlaceholder": "用于 AI 摘要的模型覆盖",
     "action.aiProvider": "可选 AI 摘要 Provider",
@@ -197,10 +202,11 @@ const STRINGS = {
     "thread.workspace": "工作区",
     "thread.workspacePath": "工作区路径",
     "thread.model": "模型",
+    "thread.connector": "连接器",
     "thread.updatedAt": "最近更新",
     "thread.createdAt": "创建时间",
     "thread.cwd": "CWD",
-    "thread.rollout": "Rollout",
+    "thread.artifactPath": "工件路径",
     "thread.discovery": "发现来源",
     "thread.select": "选择会话",
     "workspace.threads": "{count} 个会话",
@@ -234,6 +240,7 @@ const aiSummaryToggleEl = document.getElementById("ai-summary-toggle");
 const aiSummaryPanelEl = document.getElementById("ai-summary-panel");
 const aiSummaryInstructionsEl = document.getElementById("ai-summary-instructions");
 const aiSummaryProfileEl = document.getElementById("ai-summary-profile");
+const aiSummaryPresetEl = document.getElementById("ai-summary-preset");
 const aiSummaryModelEl = document.getElementById("ai-summary-model");
 const aiSummaryProviderEl = document.getElementById("ai-summary-provider");
 const threadSearchEl = document.getElementById("thread-search");
@@ -286,6 +293,7 @@ function filteredThreads() {
       thread.workspaceLabel,
       thread.workspacePath,
       thread.cwd,
+      thread.connectorKind,
       thread.threadId,
     ]
       .filter(Boolean)
@@ -393,6 +401,10 @@ function applyStaticText() {
   aiSummaryInstructionsEl.placeholder = t("action.aiPlaceholder");
   document.getElementById("ai-summary-profile-label").textContent = t("action.aiProfile");
   aiSummaryProfileEl.placeholder = t("action.aiProfilePlaceholder");
+  if (aiSummaryPresetEl) {
+    document.getElementById("ai-summary-preset-label").textContent = t("action.aiPreset");
+    aiSummaryPresetEl.placeholder = t("action.aiPresetPlaceholder");
+  }
   document.getElementById("ai-summary-model-label").textContent = t("action.aiModel");
   aiSummaryModelEl.placeholder = t("action.aiModelPlaceholder");
   document.getElementById("ai-summary-provider-label").textContent = t("action.aiProvider");
@@ -597,7 +609,7 @@ function renderThreads() {
       meta.className = "thread-row-meta";
       meta.textContent = `${thread.modelProvider ?? t("thread.modelUnknown")} · ${t("thread.updated", {
         time: formatRelativeTime(thread.updatedAt),
-      })} · ${thread.threadId}`;
+      })} · ${thread.connectorKind ?? "codex"} · ${thread.threadId}`;
 
       body.append(threadTitle, meta);
       row.append(check, body);
@@ -630,6 +642,7 @@ function renderCommandPreview() {
 
   const aiSummaryEnabled = Boolean(aiSummaryToggleEl?.checked);
   const aiSummaryProfile = trimmedValue(aiSummaryProfileEl);
+  const aiSummaryPreset = trimmedValue(aiSummaryPresetEl);
   const aiSummaryModel = trimmedValue(aiSummaryModelEl);
   const aiSummaryProvider = trimmedValue(aiSummaryProviderEl);
   const aiSummaryInstructions = trimmedValue(aiSummaryInstructionsEl);
@@ -645,14 +658,22 @@ function renderCommandPreview() {
   for (const group of byWorkspace) {
     lines.push(`# ${group.workspaceLabel}`);
     for (const thread of group.threads.slice(0, 6)) {
-      lines.push("cargo run -- export codex \\");
-      lines.push(`  --thread-id ${previewArg(thread.threadId)} \\`);
+      if (thread.connectorKind === "claude-code" && thread.sessionPath) {
+        lines.push("cargo run -- export claude-code \\");
+        lines.push(`  --session-path ${previewArg(thread.sessionPath)} \\`);
+      } else {
+        lines.push("cargo run -- export codex \\");
+        lines.push(`  --thread-id ${previewArg(thread.threadId)} \\`);
+      }
       lines.push("  --format markdown \\");
       lines.push("  --destination workspace-conversations \\");
       if (aiSummaryEnabled) {
         lines.push("  --ai-summary \\");
         if (aiSummaryProfile) {
           lines.push(`  --ai-summary-profile ${previewArg(aiSummaryProfile)} \\`);
+        }
+        if (aiSummaryPreset) {
+          lines.push(`  --ai-summary-preset ${previewArg(aiSummaryPreset)} \\`);
         }
         if (aiSummaryModel) {
           lines.push(`  --ai-summary-model ${previewArg(aiSummaryModel)} \\`);
@@ -682,6 +703,7 @@ function renderSelection() {
   aiSummaryPanelEl.hidden = !aiSummaryToggleEl?.checked;
   aiSummaryInstructionsEl.disabled = !aiSummaryToggleEl?.checked;
   aiSummaryProfileEl.disabled = !aiSummaryToggleEl?.checked;
+  if (aiSummaryPresetEl) aiSummaryPresetEl.disabled = !aiSummaryToggleEl?.checked;
   aiSummaryModelEl.disabled = !aiSummaryToggleEl?.checked;
   aiSummaryProviderEl.disabled = !aiSummaryToggleEl?.checked;
 
@@ -717,6 +739,10 @@ function renderSelection() {
           <dd>${thread.displayName}</dd>
         </div>
         <div class="detail-row">
+          <dt>${t("thread.connector")}</dt>
+          <dd>${thread.connectorKind ?? "codex"}</dd>
+        </div>
+        <div class="detail-row">
           <dt>${t("thread.id")}</dt>
           <dd>${thread.threadId}</dd>
         </div>
@@ -745,8 +771,8 @@ function renderSelection() {
           <dd>${thread.cwd ?? "(none)"}</dd>
         </div>
         <div class="detail-row">
-          <dt>${t("thread.rollout")}</dt>
-          <dd>${thread.rolloutPath}</dd>
+          <dt>${t("thread.artifactPath")}</dt>
+          <dd>${thread.sessionPath ?? thread.rolloutPath ?? "(none)"}</dd>
         </div>
         <div class="detail-row">
           <dt>${t("thread.discovery")}</dt>
@@ -1021,6 +1047,7 @@ async function exportSelected() {
   if (selected.length === 0) return;
   const aiSummaryEnabled = Boolean(aiSummaryToggleEl?.checked);
   const aiSummaryProfile = trimmedValue(aiSummaryProfileEl);
+  const aiSummaryPreset = trimmedValue(aiSummaryPresetEl);
   const aiSummaryModel = trimmedValue(aiSummaryModelEl);
   const aiSummaryProvider = trimmedValue(aiSummaryProviderEl);
   const aiSummaryInstructions = trimmedValue(aiSummaryInstructionsEl);
@@ -1036,12 +1063,15 @@ async function exportSelected() {
       body: JSON.stringify({
         selections: selected.map((thread) => ({
           threadId: thread.threadId,
+          connectorKind: thread.connectorKind || "codex",
           workspacePath: thread.workspacePath,
           workspaceLabel: thread.workspaceLabel,
+          sessionPath: thread.sessionPath || null,
         })),
         aiSummary: aiSummaryEnabled,
         aiSummaryInstructions: aiSummaryInstructions || null,
         aiSummaryProfile: aiSummaryProfile || null,
+        aiSummaryPreset: aiSummaryPreset || null,
         aiSummaryModel: aiSummaryModel || null,
         aiSummaryProvider: aiSummaryProvider || null,
       }),
@@ -1078,6 +1108,10 @@ aiSummaryInstructionsEl?.addEventListener("input", () => {
 });
 
 aiSummaryProfileEl?.addEventListener("input", () => {
+  renderCommandPreview();
+});
+
+aiSummaryPresetEl?.addEventListener("input", () => {
   renderCommandPreview();
 });
 

@@ -20,6 +20,16 @@ pub const DEFINITION: ConnectorDefinition = ConnectorDefinition {
     source_of_truth: "Claude local session artifacts (`--session-path`) mapped into the shared archive core",
 };
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ClaudeSessionMetadata {
+    pub thread_id: String,
+    pub display_name: String,
+    pub session_path: PathBuf,
+    pub cwd: Option<PathBuf>,
+    pub created_at: Option<i64>,
+    pub updated_at: Option<i64>,
+}
+
 pub fn load_transcript(request: &ExportRequest) -> Result<ArchiveTranscript> {
     if request.source != ExportSource::SessionPath {
         bail!("claude-code export only supports `--session-path <PATH>`");
@@ -32,6 +42,10 @@ pub fn load_transcript(request: &ExportRequest) -> Result<ArchiveTranscript> {
         }
     };
 
+    inspect_session_path(&session_path)
+}
+
+pub fn inspect_session_path(session_path: &Path) -> Result<ArchiveTranscript> {
     if !session_path.exists() {
         bail!(
             "Claude session file does not exist: {}",
@@ -39,7 +53,7 @@ pub fn load_transcript(request: &ExportRequest) -> Result<ArchiveTranscript> {
         );
     }
 
-    let entries = load_entries(&session_path)?;
+    let entries = load_entries(session_path)?;
     let mut replay = ClaudeReplay::new();
     for entry in &entries {
         replay.handle_entry(entry);
@@ -72,12 +86,82 @@ pub fn load_transcript(request: &ExportRequest) -> Result<ArchiveTranscript> {
         source_kind: ConnectorSourceKind::ClaudeSessionPath,
         thread_status: ArchiveThreadStatus::Unknown("archival-only".to_string()),
         cwd: result.cwd,
-        path: Some(session_path),
+        path: Some(session_path.to_path_buf()),
         model_provider: None,
         created_at: result.created_at,
         updated_at: result.updated_at,
         rounds: result.rounds,
     })
+}
+
+pub fn discover_workspace_sessions(workspace_root: &Path) -> Result<Vec<ClaudeSessionMetadata>> {
+    let mut files = Vec::new();
+    collect_session_candidates(workspace_root, &mut files)?;
+
+    let mut sessions = files
+        .into_iter()
+        .filter_map(|path| {
+            let transcript = inspect_session_path(&path).ok()?;
+            let display_name = transcript
+                .preview
+                .clone()
+                .filter(|value| !value.trim().is_empty())
+                .unwrap_or_else(|| {
+                    path.file_stem()
+                        .map(|value| value.to_string_lossy().to_string())
+                        .unwrap_or_else(|| transcript.thread_id.clone())
+                });
+            Some(ClaudeSessionMetadata {
+                thread_id: transcript.thread_id,
+                display_name,
+                session_path: path,
+                cwd: transcript.cwd,
+                created_at: transcript.created_at,
+                updated_at: transcript.updated_at,
+            })
+        })
+        .collect::<Vec<_>>();
+
+    sessions.sort_by(|left, right| {
+        right
+            .updated_at
+            .cmp(&left.updated_at)
+            .then_with(|| left.display_name.cmp(&right.display_name))
+            .then_with(|| left.thread_id.cmp(&right.thread_id))
+    });
+    Ok(sessions)
+}
+
+fn collect_session_candidates(root: &Path, files: &mut Vec<PathBuf>) -> Result<()> {
+    for entry in fs::read_dir(root)
+        .with_context(|| format!("failed to read directory `{}`", root.display()))?
+    {
+        let entry = entry?;
+        let path = entry.path();
+        let file_type = entry.file_type()?;
+        if file_type.is_dir() {
+            let Some(name) = path.file_name().and_then(|value| value.to_str()) else {
+                continue;
+            };
+            if matches!(
+                name,
+                ".git" | ".svn" | "node_modules" | "target" | ".venv" | "dist" | "build"
+            ) {
+                continue;
+            }
+            collect_session_candidates(&path, files)?;
+            continue;
+        }
+
+        let Some(extension) = path.extension().and_then(|value| value.to_str()) else {
+            continue;
+        };
+        if !matches!(extension, "json" | "jsonl") {
+            continue;
+        }
+        files.push(path);
+    }
+    Ok(())
 }
 
 fn load_entries(session_path: &Path) -> Result<Vec<Value>> {
