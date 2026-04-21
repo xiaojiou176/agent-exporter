@@ -1,4 +1,6 @@
 use std::fs;
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 use std::path::{Path, PathBuf};
 
 use assert_cmd::Command;
@@ -11,10 +13,14 @@ fn python_command() -> String {
 }
 
 fn app_server_fixture_path() -> PathBuf {
+    fixture_path("mock_codex_app_server.py")
+}
+
+fn fixture_path(name: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
         .join("tests")
         .join("fixtures")
-        .join("mock_codex_app_server.py")
+        .join(name)
 }
 
 fn conversations_dir(workspace_root: &Path) -> PathBuf {
@@ -67,6 +73,76 @@ fn build_app_server_command(thread_id: &str, workspace_root: &Path) -> Command {
     command
 }
 
+fn build_claude_command(session_path: &Path, workspace_root: &Path) -> Command {
+    let mut command = Command::cargo_bin("agent-exporter").expect("binary should build");
+    command
+        .arg("export")
+        .arg("claude-code")
+        .arg("--session-path")
+        .arg(session_path)
+        .arg("--destination")
+        .arg("workspace-conversations")
+        .arg("--workspace-root")
+        .arg(workspace_root);
+    command
+}
+
+fn install_fake_codex(fake_bin_dir: &Path, log_path: &Path) -> PathBuf {
+    let script_path = fake_bin_dir.join("codex");
+    fs::create_dir_all(fake_bin_dir).expect("fake codex dir");
+    fs::write(
+        &script_path,
+        r##"#!/usr/bin/env python3
+import json
+import os
+import pathlib
+import sys
+
+args = sys.argv[1:]
+prompt = sys.stdin.read()
+output_path = None
+for index, value in enumerate(args):
+    if value == "-o" and index + 1 < len(args):
+        output_path = pathlib.Path(args[index + 1])
+        break
+
+if output_path is None:
+    print("missing -o output path", file=sys.stderr)
+    sys.exit(2)
+
+pathlib.Path(os.environ["AGENT_EXPORTER_FAKE_CODEX_LOG"]).write_text(
+    json.dumps({"args": args, "prompt": prompt}),
+    encoding="utf-8",
+)
+output_path.write_text("# AI 梳理\n\nfake summary\n", encoding="utf-8")
+"##,
+    )
+    .expect("fake codex script");
+    #[cfg(unix)]
+    {
+        let mut permissions = fs::metadata(&script_path)
+            .expect("fake codex metadata")
+            .permissions();
+        permissions.set_mode(0o755);
+        fs::set_permissions(&script_path, permissions).expect("fake codex chmod");
+    }
+    assert!(
+        log_path.is_absolute(),
+        "fake codex log path should be absolute for subprocess access"
+    );
+    script_path
+}
+
+fn prepend_path(fake_bin_dir: &Path) -> String {
+    let current_path = std::env::var_os("PATH").unwrap_or_default();
+    let mut paths = vec![fake_bin_dir.to_path_buf()];
+    paths.extend(std::env::split_paths(&current_path));
+    std::env::join_paths(paths)
+        .expect("join PATH")
+        .to_string_lossy()
+        .to_string()
+}
+
 fn create_local_fixture(codex_home: &Path, thread_id: &str, rollout_rel: &str) -> PathBuf {
     let rollout_path = codex_home.join(rollout_rel);
     fs::create_dir_all(rollout_path.parent().expect("rollout parent")).expect("mkdirs");
@@ -101,14 +177,15 @@ fn create_local_fixture(codex_home: &Path, thread_id: &str, rollout_rel: &str) -
                 updated_at INTEGER,
                 source TEXT,
                 cli_version TEXT,
+                title TEXT,
                 first_user_message TEXT
             );",
         )
         .expect("schema");
     connection
         .execute(
-            "INSERT INTO threads (id, rollout_path, cwd, model_provider, created_at, updated_at, source, cli_version, first_user_message)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            "INSERT INTO threads (id, rollout_path, cwd, model_provider, created_at, updated_at, source, cli_version, title, first_user_message)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
             params![
                 thread_id,
                 rollout_rel,
@@ -118,6 +195,7 @@ fn create_local_fixture(codex_home: &Path, thread_id: &str, rollout_rel: &str) -
                 1_712_198_460_i64,
                 "cli",
                 "0.1.0",
+                "Renamed local thread",
                 "hello from user"
             ],
         )
@@ -363,6 +441,7 @@ fn local_source_errors_when_thread_is_missing_from_state_db() {
                 updated_at INTEGER,
                 source TEXT,
                 cli_version TEXT,
+                title TEXT,
                 first_user_message TEXT
             );",
         )
@@ -397,14 +476,15 @@ fn local_source_errors_when_rollout_file_is_missing() {
                 updated_at INTEGER,
                 source TEXT,
                 cli_version TEXT,
+                title TEXT,
                 first_user_message TEXT
             );",
         )
         .expect("schema");
     connection
         .execute(
-            "INSERT INTO threads (id, rollout_path, cwd, model_provider, created_at, updated_at, source, cli_version, first_user_message)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
+            "INSERT INTO threads (id, rollout_path, cwd, model_provider, created_at, updated_at, source, cli_version, title, first_user_message)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
             params![
                 "missing-rollout",
                 "sessions/does-not-exist.jsonl",
@@ -414,6 +494,7 @@ fn local_source_errors_when_rollout_file_is_missing() {
                 1_712_198_460_i64,
                 "cli",
                 "0.1.0",
+                "Missing rollout",
                 "preview"
             ],
         )
@@ -427,4 +508,100 @@ fn local_source_errors_when_rollout_file_is_missing() {
         .assert()
         .failure()
         .stderr(predicate::str::contains("rollout file does not exist:"));
+}
+
+#[test]
+fn codex_export_ai_summary_accepts_profile_model_provider_controls() {
+    let workspace = tempdir().expect("workspace");
+    let codex_home = tempdir().expect("codex home");
+    let fake_bin = tempdir().expect("fake bin");
+    let log_path = workspace.path().join("fake-codex-log.json");
+    create_local_fixture(
+        codex_home.path(),
+        "ai-summary-controls-thread",
+        "sessions/ai-summary-controls-thread.jsonl",
+    );
+    install_fake_codex(fake_bin.path(), &log_path);
+
+    build_local_command(workspace.path())
+        .env("PATH", prepend_path(fake_bin.path()))
+        .env("AGENT_EXPORTER_FAKE_CODEX_LOG", &log_path)
+        .arg("--codex-home")
+        .arg(codex_home.path())
+        .arg("--thread-id")
+        .arg("ai-summary-controls-thread")
+        .arg("--ai-summary")
+        .arg("--ai-summary-profile")
+        .arg("summary-fast")
+        .arg("--ai-summary-model")
+        .arg("o3")
+        .arg("--ai-summary-provider")
+        .arg("cliproxyapi")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("- AI Summary"));
+
+    let payload: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(&log_path).expect("fake codex log"))
+            .expect("fake codex json");
+    let args = payload["args"]
+        .as_array()
+        .expect("args array")
+        .iter()
+        .filter_map(|value| value.as_str())
+        .collect::<Vec<_>>();
+    assert!(
+        args.windows(2)
+            .any(|pair| pair == ["--profile", "summary-fast"])
+    );
+    assert!(args.windows(2).any(|pair| pair == ["--model", "o3"]));
+    assert!(
+        args.windows(2)
+            .any(|pair| pair == ["-c", "model_provider=\"cliproxyapi\""])
+    );
+}
+
+#[test]
+fn claude_export_ai_summary_accepts_profile_model_provider_controls() {
+    let workspace = tempdir().expect("workspace");
+    let fake_bin = tempdir().expect("fake bin");
+    let log_path = workspace.path().join("fake-codex-log.json");
+    install_fake_codex(fake_bin.path(), &log_path);
+
+    build_claude_command(
+        &fixture_path("claude_session_minimal.jsonl"),
+        workspace.path(),
+    )
+    .env("PATH", prepend_path(fake_bin.path()))
+    .env("AGENT_EXPORTER_FAKE_CODEX_LOG", &log_path)
+    .arg("--ai-summary")
+    .arg("--ai-summary-profile")
+    .arg("claude-summary")
+    .arg("--ai-summary-model")
+    .arg("gpt-5")
+    .arg("--ai-summary-provider")
+    .arg("openai")
+    .assert()
+    .success()
+    .stdout(predicate::str::contains("Connector    : claude-code"))
+    .stdout(predicate::str::contains("- AI Summary"));
+
+    let payload: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(&log_path).expect("fake codex log"))
+            .expect("fake codex json");
+    let args = payload["args"]
+        .as_array()
+        .expect("args array")
+        .iter()
+        .filter_map(|value| value.as_str())
+        .collect::<Vec<_>>();
+    assert!(
+        args.windows(2)
+            .any(|pair| pair == ["--profile", "claude-summary"])
+    );
+    assert!(args.windows(2).any(|pair| pair == ["--model", "gpt-5"]));
+    assert!(
+        args.windows(2)
+            .any(|pair| pair == ["-c", "model_provider=\"openai\""])
+    );
 }

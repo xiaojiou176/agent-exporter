@@ -4,6 +4,7 @@ use crate::core::archive::{
     ArchiveToolCall, ArchiveTranscript, ArchiveTurnItem, CommandExecutionRecord,
     DynamicToolCallRecord, FileChangeRecord, McpToolCallRecord,
 };
+use crate::output::{summarize_optional_tool_text, summarize_tool_items};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct RenderedRound {
@@ -377,8 +378,8 @@ fn render_tool_call(tool_call: &ArchiveToolCall) -> String {
                     escape_html(query)
                 ));
             }
-            if let Some(action) = action.as_deref().filter(|value| !value.trim().is_empty()) {
-                parts.push(render_code_block("json", action));
+            if let Some(action) = summarize_optional_tool_text(action.as_deref()) {
+                parts.push(render_code_block("json", &action));
             }
             wrap_tool_card(&parts.join("\n"))
         }
@@ -423,12 +424,8 @@ fn render_command_execution(record: &CommandExecutionRecord) -> String {
             "<p class=\"mono-inline\">exit code: <code>{exit_code}</code></p>"
         ));
     }
-    if let Some(output) = record
-        .aggregated_output
-        .as_deref()
-        .filter(|value| !value.trim().is_empty())
-    {
-        parts.push(render_code_block("text", output));
+    if let Some(output) = summarize_optional_tool_text(record.aggregated_output.as_deref()) {
+        parts.push(render_code_block("text", &output));
     }
     wrap_tool_card(&parts.join("\n"))
 }
@@ -449,12 +446,8 @@ fn render_file_change(changes: &[FileChangeRecord], status: &Option<String>) -> 
                         .map(|value| format!(" <span class=\"chip\">{}</span>", escape_html(value)))
                         .unwrap_or_default()
                 );
-                if let Some(diff) = change
-                    .diff
-                    .as_deref()
-                    .filter(|value| !value.trim().is_empty())
-                {
-                    row.push_str(&render_code_block("diff", diff));
+                if let Some(diff) = summarize_optional_tool_text(change.diff.as_deref()) {
+                    row.push_str(&render_code_block("diff", &diff));
                 }
                 row.push_str("</li>");
                 row
@@ -473,19 +466,11 @@ fn render_mcp_tool_call(record: &McpToolCallRecord) -> String {
         record.status.as_deref(),
         "",
     )];
-    if let Some(result) = record
-        .result
-        .as_deref()
-        .filter(|value| !value.trim().is_empty())
-    {
-        parts.push(render_code_block("json", result));
+    if let Some(result) = summarize_optional_tool_text(record.result.as_deref()) {
+        parts.push(render_code_block("json", &result));
     }
-    if let Some(error) = record
-        .error
-        .as_deref()
-        .filter(|value| !value.trim().is_empty())
-    {
-        parts.push(render_code_block("json", error));
+    if let Some(error) = summarize_optional_tool_text(record.error.as_deref()) {
+        parts.push(render_code_block("json", &error));
     }
     wrap_tool_card(&parts.join("\n"))
 }
@@ -502,8 +487,9 @@ fn render_dynamic_tool_call(record: &DynamicToolCallRecord) -> String {
             "<p class=\"mono-inline\">success: <code>{success}</code></p>"
         ));
     }
-    if !record.content_items.is_empty() {
-        parts.push(render_text_content(&record.content_items.join("\n")));
+    let summarized_items = summarize_tool_items(&record.content_items);
+    if !summarized_items.is_empty() {
+        parts.push(render_text_content(&summarized_items.join("\n")));
     }
     wrap_tool_card(&parts.join("\n"))
 }
@@ -981,5 +967,31 @@ mod tests {
         assert!(document.contains("agent-exporter:workspace-integration-shell-href"));
         assert!(document.contains("../Search/Reports/index.html"));
         assert!(document.contains("../Integration/Reports/index.html"));
+    }
+
+    #[test]
+    fn render_html_document_omits_long_tool_results() {
+        let mut transcript = sample_transcript();
+        transcript.rounds[0].items = vec![ArchiveTurnItem::ToolCall(
+            ArchiveToolCall::CommandExecution(CommandExecutionRecord {
+                id: "cmd-1".to_string(),
+                command: "long-command".to_string(),
+                cwd: None,
+                status: Some("completed".to_string()),
+                aggregated_output: Some(
+                    (1..=21)
+                        .map(|index| format!("line {index}"))
+                        .collect::<Vec<_>>()
+                        .join("\n"),
+                ),
+                exit_code: Some(0),
+            }),
+        )];
+
+        let document =
+            render_html_document(&transcript, "agent-exporter", "2026-04-05T00:00:00Z", None);
+
+        assert!(document.contains("该工具结果过长，已省略"));
+        assert!(!document.contains("line 21"));
     }
 }

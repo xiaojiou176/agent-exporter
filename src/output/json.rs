@@ -4,6 +4,7 @@ use crate::core::archive::{
     ArchiveRound, ArchiveToolCall, ArchiveTranscript, ArchiveTurnItem, CommandExecutionRecord,
     DynamicToolCallRecord, FileChangeRecord, McpToolCallRecord,
 };
+use crate::output::{summarize_optional_tool_text, summarize_tool_items};
 
 pub fn render_json_document(
     transcript: &ArchiveTranscript,
@@ -132,7 +133,7 @@ fn render_tool_call(tool_call: &ArchiveToolCall) -> Value {
             "kind": "web_search",
             "id": id,
             "query": query,
-            "action": action,
+            "action": summarize_optional_tool_text(action.as_deref()),
         }),
         ArchiveToolCall::ImageView { id, path } => json!({
             "kind": "image_view",
@@ -160,7 +161,7 @@ fn render_command_execution(record: &CommandExecutionRecord) -> Value {
         "command": record.command,
         "cwd": record.cwd.as_ref().map(|path| path.display().to_string()),
         "status": record.status,
-        "aggregated_output": record.aggregated_output,
+        "aggregated_output": summarize_optional_tool_text(record.aggregated_output.as_deref()),
         "exit_code": record.exit_code,
     })
 }
@@ -169,7 +170,7 @@ fn render_file_change(change: &FileChangeRecord) -> Value {
     json!({
         "path": change.path,
         "kind": change.kind,
-        "diff": change.diff,
+        "diff": summarize_optional_tool_text(change.diff.as_deref()),
     })
 }
 
@@ -180,8 +181,8 @@ fn render_mcp_tool_call(record: &McpToolCallRecord) -> Value {
         "server": record.server,
         "tool": record.tool,
         "status": record.status,
-        "result": record.result,
-        "error": record.error,
+        "result": summarize_optional_tool_text(record.result.as_deref()),
+        "error": summarize_optional_tool_text(record.error.as_deref()),
     })
 }
 
@@ -191,7 +192,7 @@ fn render_dynamic_tool_call(record: &DynamicToolCallRecord) -> Value {
         "id": record.id,
         "tool": record.tool,
         "status": record.status,
-        "content_items": record.content_items,
+        "content_items": summarize_tool_items(&record.content_items),
         "success": record.success,
     })
 }
@@ -280,6 +281,32 @@ mod tests {
         assert_eq!(
             document["transcript"]["rounds"][0]["items"][1]["tool_call"]["command"],
             "pwd"
+        );
+    }
+
+    #[test]
+    fn render_json_document_omits_long_tool_results() {
+        let mut transcript = sample_transcript();
+        transcript.rounds[0].items[1] =
+            ArchiveTurnItem::ToolCall(ArchiveToolCall::CommandExecution(CommandExecutionRecord {
+                id: "cmd-1".to_string(),
+                command: "long-command".to_string(),
+                cwd: None,
+                status: Some("completed".to_string()),
+                aggregated_output: Some(
+                    (1..=21)
+                        .map(|index| format!("line {index}"))
+                        .collect::<Vec<_>>()
+                        .join("\n"),
+                ),
+                exit_code: Some(0),
+            }));
+
+        let document = render_json_document(&transcript, "agent-exporter", "2026-04-05T00:00:00Z");
+
+        assert_eq!(
+            document["transcript"]["rounds"][0]["items"][1]["tool_call"]["aggregated_output"],
+            "该工具结果过长，已省略"
         );
     }
 }

@@ -2,7 +2,7 @@
 
 `agent-exporter` helps you export one AI agent transcript into a local HTML receipt, then turn that receipt, reports, and governance evidence into an **archive and governance workbench**.
 
-[Try It In 3 Steps](#first-success-path) · [Watch 20s Reel](https://xiaojiou176-open.github.io/agent-exporter/promo-reel.html) · [launch kit](https://xiaojiou176-open.github.io/agent-exporter/launch-kit.html) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) · [Docs Landing](https://xiaojiou176-open.github.io/agent-exporter/) · [Latest Release](https://github.com/xiaojiou176-open/agent-exporter/releases/latest)
+[Try It In 3 Steps](#first-success-path) · [Archive Shell Proof](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html) · [Watch 20s Reel](https://xiaojiou176-open.github.io/agent-exporter/promo-reel.html) · [launch kit](https://xiaojiou176-open.github.io/agent-exporter/launch-kit.html)
 
 ![agent-exporter proof map showing CLI quickstart, transcript export, archive shell proof, reports shell, and integration evidence as one inspectable workbench](./docs/assets/archive-shell-proof.svg)
 
@@ -142,6 +142,27 @@ Use this route map instead:
 | "What does the MCP bridge packet include?" | [`llms-install.md`](./llms-install.md) + [`server.json`](./server.json) | these are the honest bridge packet surfaces |
 | "What is the current packet/listing status?" | [`docs/distribution-packet-ledger.md`](./docs/distribution-packet-ledger.md) | packet status belongs in the second ring, not the first screen |
 
+## Optional Local Export Cockpit
+
+If you want a browser front door for **local Codex export** without manually finding a `thread-id`, open the local cockpit:
+
+```bash
+agent-exporter ui cockpit --workspace-root /absolute/path/to/repo
+```
+
+What it does:
+
+- auto-discovers persisted Codex threads whose `cwd` belongs to the current workspace
+- lets you trigger one-click canonical export
+- publishes the archive shell after success
+- opens the local workbench result
+
+What it does **not** do:
+
+- it does not replace the CLI quickstart as the primary public front door
+- it does not do Claude auto-discovery
+- it does not act like a hosted dashboard or browser-side executor
+
 ## Public Entry Points
 
 - **GitHub repo front door:** the current primary onboarding path with the CLI quickstart
@@ -239,6 +260,29 @@ Treat first success as: confirm the connector surface, export one transcript, an
      --format html \
      --destination workspace-conversations \
      --workspace-root /absolute/path/to/repo
+   ```
+
+   If you also want one AI-written synthesis after the raw export completes, append:
+
+   ```bash
+   --ai-summary
+   ```
+
+   The raw export files stay in place, and one extra Markdown summary file is written beside them.
+   If you need the AI sidecar to use an explicit Codex profile, model, or provider, append:
+
+   ```bash
+   --ai-summary-profile <profile> \
+   --ai-summary-model <model> \
+   --ai-summary-provider <provider>
+   ```
+
+   The same three controls also work on `export claude-code`.
+
+   If you want a stricter upper bound for the AI step, also append:
+
+   ```bash
+   --ai-summary-timeout-seconds 30
    ```
 
 3. **Publish the archive shell proof**
@@ -407,6 +451,9 @@ cargo run -- export codex --thread-id <thread-id>
 cargo run -- export codex --source local --thread-id <thread-id>
 cargo run -- export codex --source local --rollout-path /absolute/path/to/rollout.jsonl
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl
+cargo run -- export codex --thread-id <thread-id> --ai-summary
+cargo run -- export codex --thread-id <thread-id> --ai-summary --ai-summary-profile summary-fast --ai-summary-model o3 --ai-summary-provider cliproxyapi
+cargo run -- export codex --thread-id <thread-id> --ai-summary --ai-summary-timeout-seconds 30
 cargo run -- export codex --thread-id <thread-id> --format json
 cargo run -- export claude-code --session-path /absolute/path/to/session.jsonl --format json
 cargo run -- export codex --thread-id <thread-id> --format html

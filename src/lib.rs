@@ -4,3 +4,4 @@ pub mod core;
 pub mod integrations;
 pub mod model;
 pub mod output;
+pub mod ui;

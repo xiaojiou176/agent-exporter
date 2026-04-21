@@ -101,6 +101,10 @@ impl AppServerClient {
         self.request("thread/resume", json!({ "threadId": thread_id }))
     }
 
+    pub fn list_threads(&mut self) -> std::result::Result<Value, AppServerResponseError> {
+        self.request("thread/list", json!({}))
+    }
+
     fn request(
         &mut self,
         method: &str,

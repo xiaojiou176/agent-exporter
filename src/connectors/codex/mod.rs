@@ -1,5 +1,6 @@
 mod app_server;
 mod local;
+pub mod state_index;
 
 use std::path::PathBuf;
 
@@ -14,7 +15,7 @@ use crate::core::archive::{
 };
 use crate::model::{ConnectorDefinition, ConnectorKind, SupportStage};
 
-use self::app_server::{AppServerClient, AppServerResponseError};
+pub use self::app_server::{AppServerClient, AppServerResponseError};
 
 pub const DEFINITION: ConnectorDefinition = ConnectorDefinition {
     kind: ConnectorKind::Codex,

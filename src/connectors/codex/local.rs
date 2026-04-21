@@ -5,30 +5,21 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
 use chrono::DateTime;
-use rusqlite::{Connection, OpenFlags, OptionalExtension, params};
 use serde_json::{Map, Value};
 
+use crate::connectors::codex::state_index::{
+    CodexThreadMetadata, lookup_thread_metadata, resolve_codex_home,
+};
 use crate::core::archive::{
     ArchiveCompleteness, ArchiveRound, ArchiveThreadStatus, ArchiveToolCall, ArchiveTranscript,
     ArchiveTurnError, ArchiveTurnItem, ArchiveTurnStatus, CommandExecutionRecord,
     ConnectorSourceKind, ExportRequest, ExportSelector, FileChangeRecord,
 };
 
-#[derive(Debug)]
-struct LocalThreadMetadata {
-    thread_id: String,
-    rollout_path: PathBuf,
-    cwd: Option<PathBuf>,
-    model_provider: Option<String>,
-    created_at: Option<i64>,
-    updated_at: Option<i64>,
-    first_user_message: Option<String>,
-}
-
 pub fn load_transcript(request: &ExportRequest) -> Result<ArchiveTranscript> {
     match &request.selector {
         ExportSelector::ThreadId(thread_id) => {
-            let codex_home = resolve_codex_home(request.codex_home.as_ref())?;
+            let codex_home = resolve_codex_home(request.codex_home.as_deref())?;
             let metadata = lookup_thread_metadata(&codex_home, thread_id)?;
             let rollout_path = resolve_rollout_path(&metadata.rollout_path, Some(&codex_home))?;
             load_rollout_transcript(
@@ -47,74 +38,6 @@ pub fn load_transcript(request: &ExportRequest) -> Result<ArchiveTranscript> {
             )
         }
     }
-}
-
-fn resolve_codex_home(explicit: Option<&PathBuf>) -> Result<PathBuf> {
-    if let Some(path) = explicit {
-        return Ok(path.clone());
-    }
-    if let Ok(path) = env::var("CODEX_HOME") {
-        let trimmed = path.trim();
-        if !trimmed.is_empty() {
-            return Ok(PathBuf::from(trimmed));
-        }
-    }
-    let home_dir = dirs::home_dir().context("Failed to resolve the current home directory.")?;
-    Ok(home_dir.join(".codex"))
-}
-
-fn state_db_path(codex_home: &Path) -> PathBuf {
-    codex_home.join("state_5.sqlite")
-}
-
-fn lookup_thread_metadata(codex_home: &Path, thread_id: &str) -> Result<LocalThreadMetadata> {
-    let state_db = state_db_path(codex_home);
-    if !state_db.exists() {
-        bail!(
-            "local source could not find `{}`; pass `--codex-home <PATH>` or ensure the default Codex home exists",
-            state_db.display()
-        );
-    }
-
-    let connection = Connection::open_with_flags(&state_db, OpenFlags::SQLITE_OPEN_READ_ONLY)
-        .with_context(|| format!("failed to open local state db `{}`", state_db.display()))?;
-    let mut statement = connection.prepare(
-        "SELECT id, rollout_path, cwd, model_provider, created_at, updated_at, source, cli_version, first_user_message
-         FROM threads
-         WHERE id = ?1
-         LIMIT 1",
-    )?;
-
-    let row = statement
-        .query_row(params![thread_id], |row| {
-            let rollout_path = row.get::<_, Option<String>>(1)?;
-            Ok(LocalThreadMetadata {
-                thread_id: row.get(0)?,
-                rollout_path: PathBuf::from(rollout_path.unwrap_or_default()),
-                cwd: row.get::<_, Option<String>>(2)?.map(PathBuf::from),
-                model_provider: row.get(3)?,
-                created_at: row.get(4)?,
-                updated_at: row.get(5)?,
-                first_user_message: row.get(8)?,
-            })
-        })
-        .optional()?;
-
-    let Some(metadata) = row else {
-        bail!(
-            "local source could not find thread `{thread_id}` in `{}`",
-            state_db.display()
-        );
-    };
-
-    if metadata.rollout_path.as_os_str().is_empty() {
-        bail!(
-            "thread `{thread_id}` exists in `{}`, but sqlite does not contain a rollout_path",
-            state_db.display()
-        );
-    }
-
-    Ok(metadata)
 }
 
 fn resolve_rollout_path(path: &Path, codex_home: Option<&Path>) -> Result<PathBuf> {
@@ -136,7 +59,7 @@ fn resolve_rollout_path(path: &Path, codex_home: Option<&Path>) -> Result<PathBu
 
 fn load_rollout_transcript(
     rollout_path: &Path,
-    metadata: Option<&LocalThreadMetadata>,
+    metadata: Option<&CodexThreadMetadata>,
     source_kind: ConnectorSourceKind,
 ) -> Result<ArchiveTranscript> {
     let file = File::open(rollout_path)
@@ -510,69 +433,11 @@ fn i32_field(record: &Map<String, Value>, field: &str) -> Option<i32> {
 #[cfg(test)]
 mod tests {
     use std::fs;
-    use std::path::{Path, PathBuf};
+    use std::path::Path;
 
-    use rusqlite::{Connection, params};
     use tempfile::tempdir;
 
-    use super::{lookup_thread_metadata, resolve_codex_home, resolve_rollout_path};
-
-    #[test]
-    fn resolve_codex_home_prefers_explicit_then_env_then_default() {
-        let explicit_dir = tempdir().expect("explicit");
-        let explicit = explicit_dir.path().to_path_buf();
-        assert_eq!(
-            resolve_codex_home(Some(&explicit)).expect("explicit codex home"),
-            explicit
-        );
-    }
-
-    #[test]
-    fn lookup_thread_metadata_reads_rollout_path_from_state_db() {
-        let codex_home = tempdir().expect("codex home");
-        let db_path = codex_home.path().join("state_5.sqlite");
-        let connection = Connection::open(&db_path).expect("sqlite db");
-        connection
-            .execute_batch(
-                "CREATE TABLE threads (
-                    id TEXT PRIMARY KEY,
-                    rollout_path TEXT,
-                    cwd TEXT,
-                    model_provider TEXT,
-                    created_at INTEGER,
-                    updated_at INTEGER,
-                    source TEXT,
-                    cli_version TEXT,
-                    first_user_message TEXT
-                );",
-            )
-            .expect("schema");
-        connection
-            .execute(
-                "INSERT INTO threads (id, rollout_path, cwd, model_provider, created_at, updated_at, source, cli_version, first_user_message)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)",
-                params![
-                    "thread-1",
-                    "sessions/rollout-thread-1.jsonl",
-                    "/tmp/workspace",
-                    "openai",
-                    1000_i64,
-                    1001_i64,
-                    "cli",
-                    "0.1.0",
-                    "preview"
-                ],
-            )
-            .expect("insert");
-
-        let metadata = lookup_thread_metadata(codex_home.path(), "thread-1").expect("metadata");
-        assert_eq!(metadata.thread_id, "thread-1");
-        assert_eq!(
-            metadata.rollout_path,
-            PathBuf::from("sessions/rollout-thread-1.jsonl")
-        );
-        assert_eq!(metadata.first_user_message.as_deref(), Some("preview"));
-    }
+    use super::resolve_rollout_path;
 
     #[test]
     fn resolve_rollout_path_joins_relative_paths_under_codex_home() {

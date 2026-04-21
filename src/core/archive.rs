@@ -218,6 +218,17 @@ pub struct ExportRequest {
     pub output_target: OutputTarget,
     pub app_server: AppServerLaunchConfig,
     pub codex_home: Option<PathBuf>,
+    pub ai_summary: AiSummaryOptions,
+}
+
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct AiSummaryOptions {
+    pub enabled: bool,
+    pub instructions: Option<String>,
+    pub timeout_seconds: Option<u64>,
+    pub profile: Option<String>,
+    pub model: Option<String>,
+    pub provider: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -686,6 +697,52 @@ fn write_html_document_at(
     bail!("Failed to allocate unique archive export filenames.")
 }
 
+pub fn allocate_ai_summary_document_path(
+    transcript: &ArchiveTranscript,
+    output_target: &OutputTarget,
+) -> Result<PathBuf> {
+    allocate_ai_summary_document_path_at(transcript, output_target, Local::now())
+}
+
+fn allocate_ai_summary_document_path_at(
+    transcript: &ArchiveTranscript,
+    output_target: &OutputTarget,
+    now: DateTime<Local>,
+) -> Result<PathBuf> {
+    let output_dir = output_target.resolve_output_dir()?;
+    fs::create_dir_all(&output_dir).with_context(|| {
+        format!(
+            "Failed to prepare export directory `{}`",
+            output_dir.display()
+        )
+    })?;
+
+    let filename_stem = build_thread_archive_filename_stem(
+        output_target.workspace_display_name().as_deref(),
+        transcript.thread_display_name(),
+        &transcript.thread_id,
+    );
+    let timestamp = now.format("%Y-%m-%d_%H-%M-%S").to_string();
+    let start_round = usize::from(transcript.round_count() > 0);
+    let end_round = transcript.round_count();
+
+    for attempt in 0..1000usize {
+        let path = output_dir.join(build_archive_ai_summary_filename(
+            &filename_stem,
+            &timestamp,
+            start_round,
+            end_round,
+            attempt,
+        ));
+        if path.exists() {
+            continue;
+        }
+        return Ok(path);
+    }
+
+    bail!("Failed to allocate unique AI summary filenames.")
+}
+
 fn sanitize_filename_component(value: &str) -> String {
     let sanitized: String = value
         .chars()
@@ -734,7 +791,7 @@ fn normalize_optional_filename_component(value: Option<&str>) -> Option<String> 
     Some(sanitized)
 }
 
-fn build_thread_archive_filename_stem(
+pub(crate) fn build_thread_archive_filename_stem(
     workspace_name: Option<&str>,
     thread_display_name: Option<&str>,
     thread_id: &str,
@@ -752,6 +809,21 @@ fn build_thread_archive_filename_stem(
             format!("{safe_workspace_name}-thread-{thread_name}-{safe_thread_id}")
         }
         None => format!("{safe_workspace_name}-thread-{safe_thread_id}"),
+    }
+}
+
+fn build_archive_ai_summary_filename(
+    stem: &str,
+    timestamp: &str,
+    start_round: usize,
+    end_round: usize,
+    attempt: usize,
+) -> String {
+    let base = format!("{stem}-ai-summary-rounds-{start_round}-{end_round}-{timestamp}");
+    if attempt == 0 {
+        format!("{base}.md")
+    } else {
+        format!("{base}-{}.md", attempt + 1)
     }
 }
 

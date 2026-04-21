@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>agent-exporter Export Cockpit</title>
+    <link rel="stylesheet" href="/assets/cockpit.css" />
+  </head>
+  <body>
+    <main class="cockpit-shell">
+      <header class="hero">
+        <div class="hero-top">
+          <div>
+            <p class="eyebrow" id="hero-eyebrow">local-first export cockpit</p>
+            <h1 id="hero-title">Export one Codex thread into your local archive workbench.</h1>
+            <p class="lead" id="hero-lead">
+              The cockpit auto-discovers your active top-level Codex threads across local
+              workspaces, then exports the selected thread back into its own workspace archive
+              shell.
+            </p>
+            <p class="hero-note" id="hero-note">
+              Optional local helper after the CLI quickstart is already clear. The primary public
+              front door remains the CLI quickstart.
+            </p>
+          </div>
+          <button id="locale-toggle" class="ghost-button" type="button">中文</button>
+        </div>
+        <div class="hero-meta" id="hero-meta">
+          <div class="hero-meta-card">
+            <span class="hero-meta-label" id="launch-root-label">launch root</span>
+            <span class="hero-meta-value" id="workspace-root-value">Loading…</span>
+          </div>
+          <div class="hero-meta-card">
+            <span class="hero-meta-label" id="codex-home-label">codex home</span>
+            <span class="hero-meta-value" id="codex-home-value">Loading…</span>
+          </div>
+          <div class="hero-meta-card">
+            <span class="hero-meta-label" id="discovery-mode-label">discovery mode</span>
+            <span class="hero-meta-value" id="discovery-mode-value">Loading…</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="panel">
+        <div class="panel-head">
+          <div>
+            <p class="eyebrow" id="detection-eyebrow">detection</p>
+            <h2 id="detection-title">Detected workspaces and threads</h2>
+          </div>
+          <button id="refresh-button" type="button">Refresh</button>
+        </div>
+        <p id="detection-status" class="muted">Loading persisted Codex threads…</p>
+        <div class="search-stack">
+          <label class="input-stack" for="thread-search">
+            <span class="muted" id="thread-search-label">Search detected threads</span>
+            <input
+              id="thread-search"
+              type="search"
+              placeholder="Search by title, workspace, model, or thread id"
+            />
+          </label>
+          <p id="thread-search-status" class="muted">No threads loaded yet.</p>
+        </div>
+        <div id="thread-list" class="thread-list workspace-groups"></div>
+      </section>
+
+      <section class="grid">
+        <section class="panel">
+          <p class="eyebrow" id="selected-thread-eyebrow">selected thread</p>
+          <div id="thread-detail" class="detail-empty">
+            Choose one thread to see export details.
+          </div>
+        </section>
+
+        <section class="panel">
+          <p class="eyebrow" id="action-eyebrow">action</p>
+          <p id="selection-summary" class="muted">No threads selected.</p>
+          <div class="action-toolbar">
+            <button id="clear-selection-button" class="ghost-button" type="button">Clear selection</button>
+          </div>
+          <label class="toggle-row">
+            <input id="ai-summary-toggle" type="checkbox" />
+            <span id="ai-summary-label">Add optional AI summary</span>
+          </label>
+          <div id="ai-summary-panel" hidden>
+            <div class="ai-summary-control-grid">
+              <label class="input-stack" for="ai-summary-profile">
+                <span class="muted" id="ai-summary-profile-label">Optional AI summary profile</span>
+                <input
+                  id="ai-summary-profile"
+                  type="text"
+                  placeholder="Use a Codex config profile, if needed."
+                />
+              </label>
+              <label class="input-stack" for="ai-summary-model">
+                <span class="muted" id="ai-summary-model-label">Optional AI summary model</span>
+                <input
+                  id="ai-summary-model"
+                  type="text"
+                  placeholder="Override the model for this summary."
+                />
+              </label>
+              <label class="input-stack" for="ai-summary-provider">
+                <span class="muted" id="ai-summary-provider-label">Optional AI summary provider</span>
+                <input
+                  id="ai-summary-provider"
+                  type="text"
+                  placeholder="Override the model provider for this summary."
+                />
+              </label>
+            </div>
+            <label class="input-stack" for="ai-summary-instructions">
+              <span class="muted" id="ai-summary-instructions-label">Optional AI summary instructions</span>
+              <textarea
+                id="ai-summary-instructions"
+                rows="4"
+                placeholder="Extra instructions for the AI synthesis, if needed."
+              ></textarea>
+            </label>
+          </div>
+          <button id="export-button" class="primary" type="button" disabled>
+            Export to workbench
+          </button>
+          <p class="muted" id="action-note">
+            Uses the canonical Codex export path, then publishes the selected thread's workspace
+            shell.
+          </p>
+        </section>
+      </section>
+
+      <section class="panel">
+        <p class="eyebrow" id="result-eyebrow">result</p>
+        <p id="result-status" class="muted">No export has run yet.</p>
+        <div id="result-links" class="result-links"></div>
+      </section>
+
+      <section class="panel">
+        <p class="eyebrow" id="cli-eyebrow">cli equivalent</p>
+        <p class="muted" id="cli-note">
+          This cockpit is a local helper, not a hidden execution layer. The command below shows the
+          closest CLI path for the current selection.
+        </p>
+        <pre class="command-preview"><code id="command-preview">Select one thread to preview the equivalent CLI command.</code></pre>
+      </section>
+    </main>
+    <script src="/assets/cockpit.js"></script>
+  </body>
+</html>

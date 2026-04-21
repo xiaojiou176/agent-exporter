@@ -811,6 +811,7 @@ mod tests {
                 completeness: Some("complete".to_string()),
                 source_kind: Some("app-server-thread-read".to_string()),
                 exported_at: Some("2026-04-05T00:00:00Z".to_string()),
+                ai_summary_href: None,
             },
             primary_score: 0.88,
             semantic_score: Some(0.81),

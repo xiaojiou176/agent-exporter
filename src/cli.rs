@@ -5,8 +5,10 @@ use chrono::Utc;
 use clap::{Parser, Subcommand, ValueEnum};
 
 use crate::connectors;
+use crate::core::ai_summary::{AiSummaryRequest, generate_ai_summary_with_options};
 use crate::core::archive::{
-    AppServerLaunchConfig, ExportRequest, ExportSelector, ExportSource, OutputTarget,
+    AiSummaryOptions, AppServerLaunchConfig, ExportRequest, ExportSelector, ExportSource,
+    OutputTarget,
 };
 use crate::core::archive_index;
 use crate::core::integration_report::{
@@ -59,6 +61,7 @@ use crate::output::{
         render_search_reports_index_document,
     },
 };
+use crate::ui;
 
 #[derive(Debug, Parser)]
 #[command(
@@ -115,6 +118,17 @@ enum Commands {
         #[command(subcommand)]
         command: EvidenceCommands,
     },
+    /// Start the local Export Cockpit WebUI.
+    Ui {
+        #[command(subcommand)]
+        command: UiCommands,
+    },
+}
+
+#[derive(Debug, Subcommand)]
+enum UiCommands {
+    /// Start the local Export Cockpit WebUI.
+    Cockpit(UiCockpitArgs),
 }
 
 #[derive(Debug, Subcommand)]
@@ -236,6 +250,24 @@ struct CodexExportArgs {
     /// Workspace root required when destination is workspace-conversations.
     #[arg(long)]
     workspace_root: Option<PathBuf>,
+    /// Generate an additional AI-written post-export summary alongside the raw transcript export.
+    #[arg(long, default_value_t = false)]
+    ai_summary: bool,
+    /// Optional extra instructions appended to the default AI summary prompt.
+    #[arg(long)]
+    ai_summary_instructions: Option<String>,
+    /// Maximum seconds to wait for the AI summary sidecar before failing the AI step.
+    #[arg(long)]
+    ai_summary_timeout_seconds: Option<u64>,
+    /// Optional Codex profile passed through to `codex exec --profile` for the AI summary sidecar.
+    #[arg(long)]
+    ai_summary_profile: Option<String>,
+    /// Optional Codex model passed through to `codex exec --model` for the AI summary sidecar.
+    #[arg(long)]
+    ai_summary_model: Option<String>,
+    /// Optional Codex model provider override passed through as `codex exec -c model_provider=...`.
+    #[arg(long)]
+    ai_summary_provider: Option<String>,
     /// Override the direct executable used to launch the local Codex app-server.
     /// Host-control utilities and shell-style launchers are rejected.
     #[arg(long, default_value = "codex")]
@@ -261,6 +293,37 @@ struct ClaudeCodeExportArgs {
     /// Workspace root required when destination is workspace-conversations.
     #[arg(long)]
     workspace_root: Option<PathBuf>,
+    /// Generate an additional AI-written post-export summary alongside the raw transcript export.
+    #[arg(long, default_value_t = false)]
+    ai_summary: bool,
+    /// Optional extra instructions appended to the default AI summary prompt.
+    #[arg(long)]
+    ai_summary_instructions: Option<String>,
+    /// Maximum seconds to wait for the AI summary sidecar before failing the AI step.
+    #[arg(long)]
+    ai_summary_timeout_seconds: Option<u64>,
+    /// Optional Codex profile passed through to `codex exec --profile` for the AI summary sidecar.
+    #[arg(long)]
+    ai_summary_profile: Option<String>,
+    /// Optional Codex model passed through to `codex exec --model` for the AI summary sidecar.
+    #[arg(long)]
+    ai_summary_model: Option<String>,
+    /// Optional Codex model provider override passed through as `codex exec -c model_provider=...`.
+    #[arg(long)]
+    ai_summary_provider: Option<String>,
+}
+
+#[derive(Debug, clap::Args)]
+struct UiCockpitArgs {
+    /// Workspace root whose Codex threads should be auto-discovered.
+    #[arg(long)]
+    workspace_root: Option<PathBuf>,
+    /// Override `CODEX_HOME` for persisted Codex thread discovery.
+    #[arg(long)]
+    codex_home: Option<PathBuf>,
+    /// Automatically open the cockpit URL in the default browser.
+    #[arg(long, default_value_t = true, action = clap::ArgAction::Set)]
+    open_browser: bool,
 }
 
 #[derive(Debug, clap::Args)]
@@ -551,6 +614,14 @@ impl CodexExportArgs {
             output_target: self.destination.into_output_target(self.workspace_root)?,
             app_server,
             codex_home: self.codex_home,
+            ai_summary: AiSummaryOptions {
+                enabled: self.ai_summary,
+                instructions: self.ai_summary_instructions,
+                timeout_seconds: self.ai_summary_timeout_seconds,
+                profile: self.ai_summary_profile,
+                model: self.ai_summary_model,
+                provider: self.ai_summary_provider,
+            },
         })
     }
 }
@@ -565,6 +636,14 @@ impl ClaudeCodeExportArgs {
             output_target: self.destination.into_output_target(self.workspace_root)?,
             app_server: AppServerLaunchConfig::default(),
             codex_home: None,
+            ai_summary: AiSummaryOptions {
+                enabled: self.ai_summary,
+                instructions: self.ai_summary_instructions,
+                timeout_seconds: self.ai_summary_timeout_seconds,
+                profile: self.ai_summary_profile,
+                model: self.ai_summary_model,
+                provider: self.ai_summary_provider,
+            },
         })
     }
 }
@@ -624,8 +703,15 @@ pub fn run() -> Result<()> {
             EvidenceCommands::Current(args) => evidence_current(args)?,
             EvidenceCommands::History(args) => evidence_history(args)?,
         },
+        Commands::Ui { command } => match command {
+            UiCommands::Cockpit(args) => start_ui_cockpit(args)?,
+        },
     }
     Ok(())
+}
+
+fn start_ui_cockpit(args: UiCockpitArgs) -> Result<()> {
+    ui::cockpit::run(args.workspace_root, args.codex_home, args.open_browser)
 }
 
 fn print_connectors() {
@@ -647,7 +733,7 @@ fn print_connectors() {
 fn print_scaffold_status() {
     println!("agent-exporter scaffold status");
     println!(
-        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails + integration evidence pack reports + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff + evidence gate/explain + baseline registry + policy packs + promotion engine/history + remediation bundle studio + read-only governance MCP surface + current-decision automation + local governance workbench + promo reel public packet + launch kit distribution prep + social card sharing surface + voiceover pack + bilingual caption pack + repo-owned public surface smoke + docs index route publish fix + final public-surface copy/IA polish + favicon-backed live Pages hygiene + Official MCP Registry publication."
+        "- Current scope: Codex dual-source + Claude session-path second connector + shared Markdown/JSON/HTML export + optional AI export synthesis sidecars + local archive index + semantic retrieval + persistent local semantic index + hybrid retrieval + local multi-agent archive shell + retrieval report artifacts + workspace-local transcript backlinks + local reports shell + reports-shell metadata search + local export cockpit webui + integration pack + minimal stdio MCP bridge + repo-owned integration materializer + integration doctor + platform-aware integration doctor diagnostics + integration pack-shape hardening + integration onboarding experience + forbidden-target onboarding guardrails + integration evidence pack reports + integration evidence shell search + machine-readable integration evidence + integration evidence timeline/diff + evidence gate/explain + baseline registry + policy packs + promotion engine/history + remediation bundle studio + read-only governance MCP surface + current-decision automation + local governance workbench + promo reel public packet + launch kit distribution prep + social card sharing surface + voiceover pack + bilingual caption pack + repo-owned public surface smoke + docs index route publish fix + final public-surface copy/IA polish + favicon-backed live Pages hygiene + Official MCP Registry publication."
     );
     println!("- Repository shape: source/core/output split with room for future connectors.");
     println!("- Real Codex export path: `agent-exporter export codex --thread-id <id>`.");
@@ -657,8 +743,12 @@ fn print_scaffold_status() {
     println!("- Real JSON export path: add `--format json` to the existing export commands.");
     println!("- Real HTML export path: add `--format html` to the existing export commands.");
     println!(
+        "- Real AI export summary path: add `--ai-summary` to export commands to generate one extra Markdown summary via a local Codex agent beside the raw export files, with optional `--ai-summary-profile/--ai-summary-model/--ai-summary-provider` controls."
+    );
+    println!(
         "- Real archive index path: `agent-exporter publish archive-index --workspace-root <repo>`."
     );
+    println!("- Real export cockpit path: `agent-exporter ui cockpit --workspace-root <repo>`.");
     println!(
         "- Real reports shell path: generated by `agent-exporter publish archive-index --workspace-root <repo>` into `.agents/Search/Reports/index.html`."
     );
@@ -752,10 +842,28 @@ fn publish_archive_index(args: PublishArchiveIndexArgs) -> Result<()> {
         &generated_at,
         &reports,
     );
+    let integration_index_document = render_integration_reports_index_document(
+        &format!("{archive_title} integration reports"),
+        &generated_at,
+        &integration_reports,
+    );
+    let integration_index_json_document = build_integration_reports_index_json_document(
+        &format!("{archive_title} integration reports"),
+        &generated_at,
+        &integration_json_reports,
+    );
     let archive_dir = archive_index::resolve_workspace_conversations_dir(&args.workspace_root)?;
     let index_path = archive_index::write_archive_index_document(&args.workspace_root, &document)?;
     let reports_index_path =
         write_search_reports_index_document(&args.workspace_root, &reports_document)?;
+    let integration_reports_index_path = write_integration_reports_index_document(
+        &args.workspace_root,
+        &integration_index_document,
+    )?;
+    let integration_reports_index_json_path = write_integration_reports_index_json_document(
+        &args.workspace_root,
+        &integration_index_json_document,
+    )?;
 
     println!("Archive index published");
     println!("- Workspace    : {}", args.workspace_root.display());
@@ -765,6 +873,14 @@ fn publish_archive_index(args: PublishArchiveIndexArgs) -> Result<()> {
     println!("- Evidence     : {}", integration_reports.len());
     println!("- Index        : {}", index_path.display());
     println!("- Reports Index: {}", reports_index_path.display());
+    println!(
+        "- Evidence Index: {}",
+        integration_reports_index_path.display()
+    );
+    println!(
+        "- Evidence JSON : {}",
+        integration_reports_index_json_path.display()
+    );
 
     Ok(())
 }
@@ -1164,6 +1280,23 @@ fn export_request(request: ExportRequest) -> Result<()> {
             )?
         }
     };
+    let ai_summary_outcome = if request.ai_summary.enabled {
+        Some(generate_ai_summary_with_options(
+            &AiSummaryRequest {
+                transcript: &transcript,
+                output_target: &request.output_target,
+                export_source: request.source,
+                export_format: request.format,
+                exported_at: &exported_at,
+                exported_paths: &outcome.output_paths,
+                extra_instructions: request.ai_summary.instructions.as_deref(),
+                timeout_seconds: request.ai_summary.timeout_seconds,
+            },
+            &request.ai_summary,
+        )?)
+    } else {
+        None
+    };
 
     println!("Export completed");
     println!("- Connector    : {}", request.connector.as_str());
@@ -1178,6 +1311,14 @@ fn export_request(request: ExportRequest) -> Result<()> {
     println!("- Output");
     for path in &outcome.output_paths {
         println!("  - {}", path.display());
+    }
+    if let Some(ai_summary) = &ai_summary_outcome {
+        println!("- AI Summary");
+        println!(
+            "  - Markdown: {}",
+            ai_summary.markdown_output_path.display()
+        );
+        println!("  - HTML    : {}", ai_summary.html_output_path.display());
     }
 
     Ok(())
