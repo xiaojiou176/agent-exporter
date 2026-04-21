@@ -140,6 +140,7 @@ permalink: /docs-index.html
   <li>If you want the structure of the workbench, open the <a href="./repo-map.html">repo map</a>.</li>
   <li>If you want registry or packet/listing truth, open the <a href="./distribution-packet-ledger.html">distribution packet ledger</a>.</li>
   <li>If you want host-native packet lanes, open the <a href="https://github.com/xiaojiou176-open/agent-exporter/blob/main/public-skills/README.md">public skills packet</a>.</li>
+  <li>If you want a local browser cockpit for Codex export after the CLI path is already clear, run <code>agent-exporter ui cockpit --workspace-root /absolute/path/to/repo</code>.</li>
 </ul>
 
 </section>

@@ -52,16 +52,16 @@ host-native side lanes.
 
 Current packet:
 
-- `agent-exporter-archive-governance-workbench/`
+- [`agent-exporter-archive-governance-workbench/`](./agent-exporter-archive-governance-workbench/)
 
 ## Current Lane Map
 
 | If you need to know... | Open this |
 | --- | --- |
-| the flagship public packet | `../README.md` |
-| what the proof page means | `../docs/archive-shell-proof.md` |
-| the full packet/listing ledger | `../docs/distribution-packet-ledger.md` |
-| the current host-native skill packet | `./agent-exporter-archive-governance-workbench/` |
+| the flagship public packet | [`../README.md`](../README.md) |
+| what the proof page means | [`../docs/archive-shell-proof.md`](../docs/archive-shell-proof.md) |
+| the full packet/listing ledger | [`../docs/distribution-packet-ledger.md`](../docs/distribution-packet-ledger.md) |
+| the current host-native skill packet | [`./agent-exporter-archive-governance-workbench/`](./agent-exporter-archive-governance-workbench/) |
 
 Current lane truth:
 

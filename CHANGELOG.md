@@ -6,6 +6,19 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-04-21
+
+### Added
+- a local `agent-exporter ui cockpit` WebUI that auto-discovers workspace-relevant Codex threads and exports them through the canonical backend path
+- optional AI export summary sidecars for both `export codex` and `export claude-code`
+- explicit `--ai-summary-profile`, `--ai-summary-model`, and `--ai-summary-provider` controls for AI summary generation
+- `ui_cockpit_cli` and `ui_cockpit_e2e` coverage for the cockpit command and AI summary control surface
+
+### Changed
+- cockpit results now prioritize concrete transcript file paths and keep Markdown outputs first for agent-facing consumption
+- cockpit action controls now expose AI summary profile/model/provider directly and thread them into the live export job path
+- CLI and scaffold truth now describe the optional AI synthesis sidecar and cockpit surface as current product capabilities
+
 ## [0.1.4] - 2026-04-20
 
 ### Changed

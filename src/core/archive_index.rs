@@ -16,6 +16,7 @@ pub struct ArchiveIndexEntry {
     pub completeness: Option<String>,
     pub source_kind: Option<String>,
     pub exported_at: Option<String>,
+    pub ai_summary_href: Option<String>,
 }
 
 pub fn collect_html_archive_entries(workspace_root: &Path) -> Result<Vec<ArchiveIndexEntry>> {
@@ -24,7 +25,7 @@ pub fn collect_html_archive_entries(workspace_root: &Path) -> Result<Vec<Archive
         return Ok(Vec::new());
     }
 
-    let mut entries = fs::read_dir(&archive_dir)
+    let archive_paths = fs::read_dir(&archive_dir)
         .with_context(|| {
             format!(
                 "failed to read archive directory `{}`",
@@ -33,6 +34,12 @@ pub fn collect_html_archive_entries(workspace_root: &Path) -> Result<Vec<Archive
         })?
         .filter_map(|entry| entry.ok())
         .map(|entry| entry.path())
+        .collect::<Vec<_>>();
+
+    let ai_summary_hrefs = collect_ai_summary_hrefs(&archive_paths);
+
+    let mut entries = archive_paths
+        .into_iter()
         .filter(|path| {
             path.extension()
                 .and_then(|value| value.to_str())
@@ -41,9 +48,14 @@ pub fn collect_html_archive_entries(workspace_root: &Path) -> Result<Vec<Archive
         .filter(|path| {
             path.file_name()
                 .and_then(|name| name.to_str())
+                .is_none_or(|name| !name.contains("ai-summary"))
+        })
+        .filter(|path| {
+            path.file_name()
+                .and_then(|name| name.to_str())
                 .is_none_or(|name| name != "index.html")
         })
-        .map(read_html_archive_entry)
+        .map(|path| read_html_archive_entry(path, &ai_summary_hrefs))
         .collect::<Result<Vec<_>>>()?;
 
     entries.sort_by(|left, right| {
@@ -78,7 +90,10 @@ pub fn resolve_workspace_conversations_dir(workspace_root: &Path) -> Result<Path
     .resolve_output_dir()
 }
 
-fn read_html_archive_entry(path: PathBuf) -> Result<ArchiveIndexEntry> {
+fn read_html_archive_entry(
+    path: PathBuf,
+    ai_summary_hrefs: &std::collections::BTreeMap<String, String>,
+) -> Result<ArchiveIndexEntry> {
     let file_name = path
         .file_name()
         .and_then(|name| name.to_str())
@@ -86,6 +101,12 @@ fn read_html_archive_entry(path: PathBuf) -> Result<ArchiveIndexEntry> {
         .unwrap_or_else(|| path.display().to_string());
     let content = fs::read_to_string(&path)
         .with_context(|| format!("failed to read archive file `{}`", path.display()))?;
+    let thread_id = extract_meta_value(&content, "thread-id");
+    let ai_summary_href = thread_id
+        .as_deref()
+        .and_then(|value| value.get(..8))
+        .and_then(|prefix| ai_summary_hrefs.get(prefix))
+        .cloned();
 
     Ok(ArchiveIndexEntry {
         file_name: file_name.clone(),
@@ -95,11 +116,46 @@ fn read_html_archive_entry(path: PathBuf) -> Result<ArchiveIndexEntry> {
             .or_else(|| extract_title(&content))
             .unwrap_or_else(|| "Untitled transcript".to_string()),
         connector: extract_meta_value(&content, "connector"),
-        thread_id: extract_meta_value(&content, "thread-id"),
+        thread_id,
         completeness: extract_meta_value(&content, "completeness"),
         source_kind: extract_meta_value(&content, "source-kind"),
         exported_at: extract_meta_value(&content, "exported-at"),
+        ai_summary_href,
     })
+}
+
+fn collect_ai_summary_hrefs(paths: &[PathBuf]) -> std::collections::BTreeMap<String, String> {
+    let mut map: std::collections::BTreeMap<String, String> = std::collections::BTreeMap::new();
+    for path in paths {
+        let Some(file_name) = path.file_name().and_then(|name| name.to_str()) else {
+            continue;
+        };
+        let extension = path.extension().and_then(|value| value.to_str());
+        if !matches!(extension, Some("md" | "html")) || !file_name.contains("-ai-summary-rounds-") {
+            continue;
+        }
+        let Some(marker_index) = file_name.find("-ai-summary-rounds-") else {
+            continue;
+        };
+        if marker_index < 8 {
+            continue;
+        }
+        let prefix = &file_name[marker_index - 8..marker_index];
+        if !prefix.chars().all(|ch| ch.is_ascii_hexdigit()) {
+            continue;
+        }
+        let key = prefix.to_string();
+        match (map.get(&key), extension) {
+            (Some(existing), Some("html")) if existing.ends_with(".md") => {
+                map.insert(key, file_name.to_string());
+            }
+            (None, _) => {
+                map.insert(key, file_name.to_string());
+            }
+            _ => {}
+        }
+    }
+    map
 }
 
 fn extract_meta_value(content: &str, key: &str) -> Option<String> {
@@ -167,6 +223,7 @@ mod tests {
                 completeness: Some("complete".to_string()),
                 source_kind: Some("app-server-thread-read".to_string()),
                 exported_at: Some("2026-04-05T00:00:00Z".to_string()),
+                ai_summary_href: None,
             }]
         );
     }
@@ -262,5 +319,42 @@ mod tests {
         let entries = collect_html_archive_entries(workspace.path()).expect("collect entries");
         assert_eq!(entries.len(), 1);
         assert_eq!(entries[0].file_name, "demo.html");
+    }
+
+    #[test]
+    fn collect_html_archive_entries_links_ai_summary_companion() {
+        let workspace = tempdir().expect("workspace");
+        let archive_dir = workspace.path().join(".agents").join("Conversations");
+        std::fs::create_dir_all(&archive_dir).expect("mkdirs");
+        std::fs::write(
+            archive_dir.join("demo.html"),
+            concat!(
+                "<!DOCTYPE html><html><head>",
+                "<meta name=\"agent-exporter:thread-display-name\" content=\"Demo transcript\">",
+                "<meta name=\"agent-exporter:connector\" content=\"codex\">",
+                "<meta name=\"agent-exporter:thread-id\" content=\"019d9a9d-extra\">",
+                "<meta name=\"agent-exporter:completeness\" content=\"complete\">",
+                "<meta name=\"agent-exporter:source-kind\" content=\"app-server-thread-read\">",
+                "<meta name=\"agent-exporter:exported-at\" content=\"2026-04-05T00:00:00Z\">",
+                "</head><body></body></html>"
+            ),
+        )
+        .expect("write transcript");
+        std::fs::write(
+            archive_dir.join("demo-thread-019d9a9d-ai-summary-rounds-1-4-2026-04-05_00-00-00.md"),
+            "# AI 梳理\n",
+        )
+        .expect("write ai summary");
+        std::fs::write(
+            archive_dir.join("demo-thread-019d9a9d-ai-summary-rounds-1-4-2026-04-05_00-00-00.html"),
+            "<!DOCTYPE html><html><head><meta name=\"agent-exporter:summary-kind\" content=\"ai-summary\"></head><body></body></html>",
+        )
+        .expect("write ai summary html");
+
+        let entries = collect_html_archive_entries(workspace.path()).expect("collect entries");
+        assert_eq!(
+            entries[0].ai_summary_href.as_deref(),
+            Some("demo-thread-019d9a9d-ai-summary-rounds-1-4-2026-04-05_00-00-00.html")
+        );
     }
 }

@@ -61,39 +61,39 @@ This packet teaches an agent how to:
 
 ## What this packet includes
 
-- `SKILL.md`
-- `manifest.yaml`
-- `references/README.md`
-- `references/INSTALL.md`
-- `references/OPENHANDS_MCP_CONFIG.json`
-- `references/OPENCLAW_MCP_CONFIG.json`
-- `references/CAPABILITIES.md`
-- `references/DEMO.md`
-- `references/TROUBLESHOOTING.md`
+- [`SKILL.md`](./SKILL.md)
+- [`manifest.yaml`](./manifest.yaml)
+- [`references/README.md`](./references/README.md)
+- [`references/INSTALL.md`](./references/INSTALL.md)
+- [`references/OPENHANDS_MCP_CONFIG.json`](./references/OPENHANDS_MCP_CONFIG.json)
+- [`references/OPENCLAW_MCP_CONFIG.json`](./references/OPENCLAW_MCP_CONFIG.json)
+- [`references/CAPABILITIES.md`](./references/CAPABILITIES.md)
+- [`references/DEMO.md`](./references/DEMO.md)
+- [`references/TROUBLESHOOTING.md`](./references/TROUBLESHOOTING.md)
 
 ## First-success path
 
-1. read `SKILL.md`
-2. wire the bridge from `references/INSTALL.md`
-3. run the safe attach/proof flow in `references/DEMO.md`
+1. read [`SKILL.md`](./SKILL.md)
+2. wire the bridge from [`references/INSTALL.md`](./references/INSTALL.md)
+3. run the safe attach/proof flow in [`references/DEMO.md`](./references/DEMO.md)
 4. inspect the proof links before claiming host-side listing or acceptance
 
 ## Packet Map
 
 | If you need to know... | Open this |
 | --- | --- |
-| how to use the packet at all | `SKILL.md` |
-| how to wire the bridge | `references/INSTALL.md` |
-| how to prove it safely | `references/DEMO.md` |
-| what the bridge can do | `references/CAPABILITIES.md` |
-| what to do when it breaks | `references/TROUBLESHOOTING.md` |
+| how to use the packet at all | [`SKILL.md`](./SKILL.md) |
+| how to wire the bridge | [`references/INSTALL.md`](./references/INSTALL.md) |
+| how to prove it safely | [`references/DEMO.md`](./references/DEMO.md) |
+| what the bridge can do | [`references/CAPABILITIES.md`](./references/CAPABILITIES.md) |
+| what to do when it breaks | [`references/TROUBLESHOOTING.md`](./references/TROUBLESHOOTING.md) |
 
 ## Proof links
 
-- Landing: https://xiaojiou176-open.github.io/agent-exporter/
-- Archive shell proof: https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html
-- Repo map: https://xiaojiou176-open.github.io/agent-exporter/repo-map.html
-- Releases: https://github.com/xiaojiou176-open/agent-exporter/releases
+- Landing: [xiaojiou176-open.github.io/agent-exporter](https://xiaojiou176-open.github.io/agent-exporter/)
+- Archive shell proof: [archive-shell-proof.html](https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html)
+- Repo map: [repo-map.html](https://xiaojiou176-open.github.io/agent-exporter/repo-map.html)
+- Releases: [GitHub releases](https://github.com/xiaojiou176-open/agent-exporter/releases)
 
 ## Current registry truth
 
@@ -165,6 +165,6 @@ It should never be allowed to silently replace the repo's main product story.
 This is a public-facing derived packet.
 Canonical product truth still lives in:
 
-- `README.md`
-- `AGENTS.md`
-- `docs/integrations/`
+- [`README.md`](../README.md)
+- [`AGENTS.md`](../AGENTS.md)
+- [`docs/integrations/`](../docs/integrations/)

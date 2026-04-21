@@ -132,6 +132,11 @@ description: Public repo map for the agent-exporter workbench, with clear routin
       <p>The CLI entrypoint and command routing. This is still the operational front door.</p>
     </article>
     <article class="ae-surface-card">
+      <p class="ae-mini-label">Local execution UI</p>
+      <h3><code>src/ui/</code></h3>
+      <p>The local Export Cockpit WebUI. It auto-discovers workspace-relevant Codex threads, runs canonical export, then opens the archive shell.</p>
+    </article>
+    <article class="ae-surface-card">
       <p class="ae-mini-label">Source adapters</p>
       <h3><code>src/connectors/</code></h3>
       <p>Codex and Claude Code source boundaries. This is where transcript intake rules live.</p>

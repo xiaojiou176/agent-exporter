@@ -270,6 +270,16 @@ fn render_entry(entry: &ArchiveIndexEntry) -> String {
             )
         })
         .unwrap_or_default();
+    let ai_summary_line = entry
+        .ai_summary_href
+        .as_deref()
+        .map(|href| {
+            format!(
+                "<p><a class=\"open-link\" href=\"{href}\">Open AI summary</a></p>",
+                href = escape_html(href)
+            )
+        })
+        .unwrap_or_default();
     let searchable_text = [
         entry.title.as_str(),
         entry.connector.as_deref().unwrap_or(""),
@@ -277,6 +287,11 @@ fn render_entry(entry: &ArchiveIndexEntry) -> String {
         entry.completeness.as_deref().unwrap_or(""),
         entry.source_kind.as_deref().unwrap_or(""),
         entry.file_name.as_str(),
+        if entry.ai_summary_href.is_some() {
+            "ai summary"
+        } else {
+            ""
+        },
     ]
     .join(" ")
     .to_lowercase();
@@ -291,6 +306,7 @@ fn render_entry(entry: &ArchiveIndexEntry) -> String {
             "{exported_line}",
             "<p class=\"mono-inline\">file: <code>{file_name}</code></p>",
             "<p><a class=\"open-link\" href=\"{href}\">Open transcript</a></p>",
+            "{ai_summary_line}",
             "</article>"
         ),
         title = escape_html(&entry.title),
@@ -299,6 +315,7 @@ fn render_entry(entry: &ArchiveIndexEntry) -> String {
         exported_line = exported_line,
         file_name = escape_html(&entry.file_name),
         href = escape_html(&entry.relative_href),
+        ai_summary_line = ai_summary_line,
         searchable_text = escape_html(&searchable_text),
         connector = escape_html(entry.connector.as_deref().unwrap_or("unknown")),
         completeness = escape_html(entry.completeness.as_deref().unwrap_or("unknown")),
@@ -1218,6 +1235,7 @@ mod tests {
                 completeness: Some("complete".to_string()),
                 source_kind: Some("app-server-thread-read".to_string()),
                 exported_at: Some("2026-04-05T00:00:00Z".to_string()),
+                ai_summary_href: Some("demo-ai-summary.md".to_string()),
             }],
             &[],
             &[],
@@ -1228,6 +1246,7 @@ mod tests {
         assert!(html.contains("Demo archive"));
         assert!(html.contains("demo.html"));
         assert!(html.contains("Open transcript"));
+        assert!(html.contains("Open AI summary"));
     }
 
     #[test]
@@ -1272,6 +1291,7 @@ mod tests {
                 completeness: Some("complete".to_string()),
                 source_kind: Some("app-server-thread-read".to_string()),
                 exported_at: Some("2026-04-05T00:00:00Z".to_string()),
+                ai_summary_href: None,
             }],
             &[],
             &[],

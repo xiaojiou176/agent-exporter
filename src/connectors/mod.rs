@@ -1,5 +1,7 @@
 mod claude_code;
 mod codex;
+pub use codex::AppServerClient;
+pub use codex::state_index;
 
 use anyhow::Result;
 

@@ -4,6 +4,7 @@ use crate::core::archive::{
     ArchiveToolCall, ArchiveTranscript, ArchiveTurnItem, CommandExecutionRecord,
     DynamicToolCallRecord, FileChangeRecord, McpToolCallRecord,
 };
+use crate::output::{summarize_optional_tool_text, summarize_tool_items};
 
 pub const DEFAULT_MAX_LINES_PER_PART: usize = 4000;
 
@@ -283,8 +284,8 @@ fn render_tool_call(tool_call: &ArchiveToolCall) -> String {
             if !query.trim().is_empty() {
                 parts.push(format!("Query: `{query}`"));
             }
-            if let Some(action) = action.as_deref().filter(|value| !value.trim().is_empty()) {
-                parts.push(code_fence("json", action));
+            if let Some(action) = summarize_optional_tool_text(action.as_deref()) {
+                parts.push(code_fence("json", &action));
             }
             parts.join("\n\n")
         }
@@ -324,12 +325,8 @@ fn render_command_execution(record: &CommandExecutionRecord) -> String {
     if let Some(exit_code) = record.exit_code {
         parts.push(format!("exit code: `{exit_code}`"));
     }
-    if let Some(output) = record
-        .aggregated_output
-        .as_deref()
-        .filter(|value| !value.trim().is_empty())
-    {
-        parts.push(code_fence("text", output));
+    if let Some(output) = summarize_optional_tool_text(record.aggregated_output.as_deref()) {
+        parts.push(code_fence("text", &output));
     }
     parts.join("\n\n")
 }
@@ -359,13 +356,9 @@ fn render_file_change(changes: &[FileChangeRecord], status: &Option<String>) -> 
                             .map(|value| format!(" [{value}]"))
                             .unwrap_or_default()
                     );
-                    if let Some(diff) = change
-                        .diff
-                        .as_deref()
-                        .filter(|value| !value.trim().is_empty())
-                    {
+                    if let Some(diff) = summarize_optional_tool_text(change.diff.as_deref()) {
                         line.push('\n');
-                        line.push_str(&code_fence("diff", diff));
+                        line.push_str(&code_fence("diff", &diff));
                     }
                     line
                 })
@@ -389,19 +382,11 @@ fn render_mcp_tool_call(record: &McpToolCallRecord) -> String {
             .map(|value| format!(" ({value})"))
             .unwrap_or_default()
     )];
-    if let Some(result) = record
-        .result
-        .as_deref()
-        .filter(|value| !value.trim().is_empty())
-    {
-        parts.push(code_fence("json", result));
+    if let Some(result) = summarize_optional_tool_text(record.result.as_deref()) {
+        parts.push(code_fence("json", &result));
     }
-    if let Some(error) = record
-        .error
-        .as_deref()
-        .filter(|value| !value.trim().is_empty())
-    {
-        parts.push(code_fence("json", error));
+    if let Some(error) = summarize_optional_tool_text(record.error.as_deref()) {
+        parts.push(code_fence("json", &error));
     }
     parts.join("\n\n")
 }
@@ -420,8 +405,9 @@ fn render_dynamic_tool_call(record: &DynamicToolCallRecord) -> String {
     if let Some(success) = record.success {
         parts.push(format!("success: `{success}`"));
     }
-    if !record.content_items.is_empty() {
-        parts.push(record.content_items.join("\n"));
+    let summarized_items = summarize_tool_items(&record.content_items);
+    if !summarized_items.is_empty() {
+        parts.push(summarized_items.join("\n"));
     }
     parts.join("\n\n")
 }
@@ -499,8 +485,8 @@ fn pretty_json(value: &Value) -> String {
 mod tests {
     use super::render_markdown_parts;
     use crate::core::archive::{
-        ArchiveCompleteness, ArchiveRound, ArchiveThreadStatus, ArchiveTranscript, ArchiveTurnItem,
-        ArchiveTurnStatus, ConnectorSourceKind,
+        ArchiveCompleteness, ArchiveRound, ArchiveThreadStatus, ArchiveToolCall, ArchiveTranscript,
+        ArchiveTurnItem, ArchiveTurnStatus, CommandExecutionRecord, ConnectorSourceKind,
     };
     use crate::model::ConnectorKind;
 
@@ -609,5 +595,49 @@ mod tests {
             render_markdown_parts(&transcript, "agent-exporter", "2026-04-04T00:00:00Z", 4000);
 
         assert!(parts[0].content.contains("synthetic opening"));
+    }
+
+    #[test]
+    fn render_markdown_omits_long_tool_results() {
+        let transcript = ArchiveTranscript {
+            connector: ConnectorKind::Codex,
+            thread_id: "thread-tools".to_string(),
+            thread_name: Some("Tool Output".to_string()),
+            preview: None,
+            completeness: ArchiveCompleteness::Complete,
+            source_kind: ConnectorSourceKind::AppServerThreadRead,
+            thread_status: ArchiveThreadStatus::NotLoaded,
+            cwd: None,
+            path: None,
+            model_provider: None,
+            created_at: None,
+            updated_at: None,
+            rounds: vec![ArchiveRound {
+                turn_id: "turn-1".to_string(),
+                status: ArchiveTurnStatus::Completed,
+                error: None,
+                items: vec![ArchiveTurnItem::ToolCall(
+                    ArchiveToolCall::CommandExecution(CommandExecutionRecord {
+                        id: "cmd-1".to_string(),
+                        command: "long-command".to_string(),
+                        cwd: None,
+                        status: Some("completed".to_string()),
+                        aggregated_output: Some(
+                            (1..=21)
+                                .map(|index| format!("line {index}"))
+                                .collect::<Vec<_>>()
+                                .join("\n"),
+                        ),
+                        exit_code: Some(0),
+                    }),
+                )],
+            }],
+        };
+
+        let parts =
+            render_markdown_parts(&transcript, "agent-exporter", "2026-04-04T00:00:00Z", 4000);
+
+        assert!(parts[0].content.contains("该工具结果过长，已省略"));
+        assert!(!parts[0].content.contains("line 21"));
     }
 }

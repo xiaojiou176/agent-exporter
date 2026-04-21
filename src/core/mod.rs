@@ -1,3 +1,4 @@
+pub mod ai_summary;
 pub mod archive;
 pub mod archive_index;
 pub mod integration_report;
