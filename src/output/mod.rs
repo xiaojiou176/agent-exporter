@@ -4,6 +4,7 @@ pub mod integration_report;
 pub mod json;
 pub mod markdown;
 pub mod search_report;
+pub mod workbench;
 
 pub(crate) const MAX_TOOL_RESULT_LINES: usize = 20;
 pub(crate) const OMITTED_TOOL_RESULT_TEXT: &str = "该工具结果过长，已省略";

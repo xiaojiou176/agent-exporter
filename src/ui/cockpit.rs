@@ -53,6 +53,7 @@ struct CockpitState {
 #[serde(rename_all = "camelCase")]
 struct DiscoveryThread {
     thread_id: String,
+    connector_kind: String,
     display_name: String,
     updated_at: Option<i64>,
     created_at: Option<i64>,
@@ -61,7 +62,8 @@ struct DiscoveryThread {
     workspace_key: String,
     workspace_label: String,
     workspace_path: String,
-    rollout_path: String,
+    rollout_path: Option<String>,
+    session_path: Option<String>,
     workspace_match_kind: String,
     source_kind: String,
 }
@@ -79,8 +81,10 @@ struct DiscoveryResponse {
 #[serde(rename_all = "camelCase")]
 struct ExportSelectionInput {
     thread_id: String,
+    connector_kind: Option<String>,
     workspace_path: String,
     workspace_label: Option<String>,
+    session_path: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -95,6 +99,7 @@ struct ExportRequestBody {
     ai_summary: Option<bool>,
     ai_summary_instructions: Option<String>,
     ai_summary_profile: Option<String>,
+    ai_summary_preset: Option<String>,
     ai_summary_model: Option<String>,
     ai_summary_provider: Option<String>,
 }
@@ -104,6 +109,7 @@ struct AiSummaryJobOptions {
     enabled: bool,
     instructions: Option<String>,
     profile: Option<String>,
+    preset: Option<String>,
     model: Option<String>,
     provider: Option<String>,
 }
@@ -172,6 +178,7 @@ struct ThreadExportResult {
     display_name: String,
     workspace_label: String,
     transcript: crate::core::archive::ArchiveTranscript,
+    export_source: ExportSource,
     exported_at: String,
     output: ExportOutcome,
     ai_summary: Option<AiSummaryOutcome>,
@@ -416,20 +423,27 @@ fn discover_threads(
     preferences: &CockpitPreferences,
 ) -> Result<(String, Vec<DiscoveryThread>)> {
     let entries = list_primary_thread_metadata(codex_home)?;
-    let local_threads = entries
+    let mut local_threads = entries
         .into_iter()
         .filter_map(|entry| build_local_discovery_thread(codex_home, preferences, entry))
         .collect::<Vec<_>>();
+
+    let claude_threads = connectors::discover_workspace_sessions(&state.workspace_root)
+        .unwrap_or_default()
+        .into_iter()
+        .map(|session| build_claude_discovery_thread(&state.workspace_root, preferences, session))
+        .collect::<Vec<_>>();
+    local_threads.extend(claude_threads);
 
     if should_use_live_discovery(state, codex_home)
         && let Ok(live_threads) = discover_live_threads(preferences)
     {
         let mut merged = BTreeMap::new();
         for thread in local_threads {
-            merged.insert(thread.thread_id.clone(), thread);
+            merged.insert(discovery_identity(&thread), thread);
         }
         for thread in live_threads {
-            merged.insert(thread.thread_id.clone(), thread);
+            merged.insert(discovery_identity(&thread), thread);
         }
 
         let mut threads = merged.into_values().collect::<Vec<_>>();
@@ -500,6 +514,15 @@ fn discover_live_threads(preferences: &CockpitPreferences) -> Result<Vec<Discove
     Ok(threads)
 }
 
+fn discovery_identity(thread: &DiscoveryThread) -> String {
+    format!(
+        "{}::{}::{}",
+        thread.connector_kind,
+        thread.thread_id,
+        thread.session_path.as_deref().unwrap_or("")
+    )
+}
+
 fn build_live_discovery_thread(
     preferences: &CockpitPreferences,
     value: &Value,
@@ -547,6 +570,7 @@ fn build_live_discovery_thread(
 
     Ok(DiscoveryThread {
         thread_id,
+        connector_kind: ConnectorKind::Codex.as_str().to_string(),
         display_name,
         updated_at: record.get("updatedAt").and_then(Value::as_i64),
         created_at: record.get("createdAt").and_then(Value::as_i64),
@@ -558,7 +582,8 @@ fn build_live_discovery_thread(
         workspace_key: workspace_path.clone(),
         workspace_label,
         workspace_path,
-        rollout_path,
+        rollout_path: Some(rollout_path),
+        session_path: None,
         workspace_match_kind: "live-cwd".to_string(),
         source_kind: "canonical-app-server-thread-list".to_string(),
     })
@@ -597,6 +622,7 @@ fn build_local_discovery_thread(
 
     Some(DiscoveryThread {
         thread_id: entry.thread_id,
+        connector_kind: ConnectorKind::Codex.as_str().to_string(),
         display_name,
         updated_at: entry.updated_at,
         created_at: entry.created_at,
@@ -605,10 +631,35 @@ fn build_local_discovery_thread(
         workspace_key: workspace_path.clone(),
         workspace_label,
         workspace_path,
-        rollout_path: resolved_rollout_path.display().to_string(),
+        rollout_path: Some(resolved_rollout_path.display().to_string()),
+        session_path: None,
         workspace_match_kind: "persisted-cwd".to_string(),
         source_kind: "persisted-codex-state-vscode".to_string(),
     })
+}
+
+fn build_claude_discovery_thread(
+    workspace_root: &Path,
+    preferences: &CockpitPreferences,
+    session: crate::connectors::ClaudeSessionMetadata,
+) -> DiscoveryThread {
+    let workspace_path = workspace_root.display().to_string();
+    DiscoveryThread {
+        thread_id: format!("claude-session:{}", session.thread_id),
+        connector_kind: ConnectorKind::ClaudeCode.as_str().to_string(),
+        display_name: single_line_text(&session.display_name),
+        updated_at: session.updated_at,
+        created_at: session.created_at,
+        model_provider: None,
+        cwd: session.cwd.map(|path| path.display().to_string()),
+        workspace_key: workspace_path.clone(),
+        workspace_label: renamed_workspace_label(preferences, workspace_root),
+        workspace_path,
+        rollout_path: None,
+        session_path: Some(session.session_path.display().to_string()),
+        workspace_match_kind: "workspace-local-session-path".to_string(),
+        source_kind: "claude-session-path".to_string(),
+    }
 }
 
 fn required_string(record: &serde_json::Map<String, Value>, key: &str) -> Result<String> {
@@ -722,6 +773,7 @@ async fn export(
         enabled: body.ai_summary.unwrap_or(false),
         instructions: body.ai_summary_instructions.clone(),
         profile: body.ai_summary_profile.clone(),
+        preset: body.ai_summary_preset.clone(),
         model: body.ai_summary_model.clone(),
         provider: body.ai_summary_provider.clone(),
     };
@@ -897,7 +949,7 @@ fn execute_export_job(
                     output_target: &OutputTarget::WorkspaceConversations {
                         workspace_root: workspace_root.clone(),
                     },
-                    export_source: ExportSource::AppServer,
+                    export_source: thread_result.export_source,
                     export_format: OutputFormat::Html,
                     exported_at: &thread_result.exported_at,
                     exported_paths: &thread_result.output.output_paths,
@@ -909,6 +961,7 @@ fn execute_export_job(
                     instructions: ai_summary_options.instructions.clone(),
                     timeout_seconds: None,
                     profile: ai_summary_options.profile.clone(),
+                    preset: ai_summary_options.preset.clone(),
                     model: ai_summary_options.model.clone(),
                     provider: ai_summary_options.provider.clone(),
                 },
@@ -1070,8 +1123,10 @@ fn normalize_export_selections(body: ExportRequestBody) -> Result<Vec<ExportSele
     {
         selections.push(ExportSelectionInput {
             thread_id,
+            connector_kind: None,
             workspace_path,
             workspace_label: body.workspace_label,
+            session_path: None,
         });
     }
 
@@ -1081,7 +1136,13 @@ fn normalize_export_selections(body: ExportRequestBody) -> Result<Vec<ExportSele
 
     let mut seen = BTreeSet::new();
     selections.retain(|selection| {
-        let key = format!("{}::{}", selection.thread_id, selection.workspace_path);
+        let key = format!(
+            "{}::{}::{}::{}",
+            selection.connector_kind.as_deref().unwrap_or("codex"),
+            selection.thread_id,
+            selection.workspace_path,
+            selection.session_path.as_deref().unwrap_or("")
+        );
         seen.insert(key)
     });
     Ok(selections)
@@ -1127,19 +1188,42 @@ fn perform_export_selection(
     app_server_command: &str,
     app_server_args: &[String],
 ) -> Result<ThreadExportResult> {
+    let connector = match selection.connector_kind.as_deref() {
+        Some("claude-code") => ConnectorKind::ClaudeCode,
+        _ => ConnectorKind::Codex,
+    };
+    let (source, selector, app_server, codex_home) = match connector {
+        ConnectorKind::Codex => (
+            ExportSource::AppServer,
+            ExportSelector::ThreadId(selection.thread_id.clone()),
+            AppServerLaunchConfig {
+                command: app_server_command.to_string(),
+                args: app_server_args.to_vec(),
+            },
+            Some(codex_home.to_path_buf()),
+        ),
+        ConnectorKind::ClaudeCode => (
+            ExportSource::SessionPath,
+            ExportSelector::SessionPath(PathBuf::from(
+                selection
+                    .session_path
+                    .as_deref()
+                    .context("claude cockpit selection is missing sessionPath")?,
+            )),
+            AppServerLaunchConfig::default(),
+            None,
+        ),
+    };
     let request = ExportRequest {
-        connector: ConnectorKind::Codex,
-        source: ExportSource::AppServer,
-        selector: ExportSelector::ThreadId(selection.thread_id.clone()),
+        connector,
+        source,
+        selector,
         format: OutputFormat::Markdown,
         output_target: OutputTarget::WorkspaceConversations {
             workspace_root: workspace_root.to_path_buf(),
         },
-        app_server: AppServerLaunchConfig {
-            command: app_server_command.to_string(),
-            args: app_server_args.to_vec(),
-        },
-        codex_home: Some(codex_home.to_path_buf()),
+        app_server,
+        codex_home,
         ai_summary: AiSummaryOptions::default(),
     };
 
@@ -1193,6 +1277,7 @@ fn perform_export_selection(
             .filter(|value| !value.trim().is_empty())
             .unwrap_or_else(|| workspace_label(workspace_root)),
         transcript,
+        export_source: source,
         exported_at,
         output,
         ai_summary: None,

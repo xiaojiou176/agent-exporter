@@ -53,7 +53,9 @@ pub fn collect_html_archive_entries(workspace_root: &Path) -> Result<Vec<Archive
         .filter(|path| {
             path.file_name()
                 .and_then(|name| name.to_str())
-                .is_none_or(|name| name != "index.html")
+                .is_none_or(|name| {
+                    name != "index.html" && name != "fleet-view.html" && name != "memory-lane.html"
+                })
         })
         .map(|path| read_html_archive_entry(path, &ai_summary_hrefs))
         .collect::<Result<Vec<_>>>()?;

@@ -36,6 +36,18 @@ fn exported_paths_with_extension(workspace_root: &Path, extension: &str) -> Vec<
                 .and_then(|value| value.to_str())
                 .is_some_and(|value| value == extension)
         })
+        .filter(|path| {
+            path.file_name()
+                .and_then(|value| value.to_str())
+                .is_none_or(|value| {
+                    value != "index.html"
+                        && value != "index.json"
+                        && value != "fleet-view.html"
+                        && value != "fleet-view.json"
+                        && value != "memory-lane.html"
+                        && value != "memory-lane.json"
+                })
+        })
         .collect::<Vec<_>>();
     paths.sort();
     paths
@@ -533,6 +545,8 @@ fn codex_export_ai_summary_accepts_profile_model_provider_controls() {
         .arg("--ai-summary")
         .arg("--ai-summary-profile")
         .arg("summary-fast")
+        .arg("--ai-summary-preset")
+        .arg("handoff")
         .arg("--ai-summary-model")
         .arg("o3")
         .arg("--ai-summary-provider")
@@ -558,6 +572,29 @@ fn codex_export_ai_summary_accepts_profile_model_provider_controls() {
     assert!(
         args.windows(2)
             .any(|pair| pair == ["-c", "model_provider=\"cliproxyapi\""])
+    );
+
+    let json_paths = exported_paths_with_extension(workspace.path(), "json");
+    let summary_json = json_paths
+        .iter()
+        .find(|path| {
+            path.file_name()
+                .and_then(|name| name.to_str())
+                .is_some_and(|name| name.contains("-ai-summary-rounds-"))
+        })
+        .expect("structured summary json");
+    let summary_document: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(summary_json).expect("summary json"))
+            .expect("summary json value");
+    assert_eq!(summary_document["profileId"], "handoff");
+    assert_eq!(summary_document["runtimeProfile"], "summary-fast");
+    assert_eq!(summary_document["threadId"], "ai-summary-controls-thread");
+    assert_eq!(
+        summary_document["outputFiles"]["json"],
+        summary_json
+            .file_name()
+            .and_then(|name| name.to_str())
+            .expect("summary json file name")
     );
 }
 

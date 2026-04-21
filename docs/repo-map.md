@@ -134,23 +134,23 @@ description: Public repo map for the agent-exporter workbench, with clear routin
     <article class="ae-surface-card">
       <p class="ae-mini-label">Local execution UI</p>
       <h3><code>src/ui/</code></h3>
-      <p>The local Export Cockpit WebUI. It auto-discovers workspace-relevant Codex threads, runs canonical export, then opens the archive shell.</p>
+      <p>The local Export Cockpit WebUI. It auto-discovers workspace-relevant Codex threads and workspace-local Claude sessions, runs the matching export path, then opens the archive shell.</p>
     </article>
     <article class="ae-surface-card">
       <p class="ae-mini-label">Source adapters</p>
       <h3><code>src/connectors/</code></h3>
       <p>Codex and Claude Code source boundaries. This is where transcript intake rules live.</p>
     </article>
-    <article class="ae-surface-card">
-      <p class="ae-mini-label">Contracts</p>
-      <h3><code>src/core/</code></h3>
-      <p>Archive, search, evidence, and host-safety rules. This is the product logic shelf.</p>
-    </article>
-    <article class="ae-surface-card">
-      <p class="ae-mini-label">Readable surfaces</p>
-      <h3><code>src/output/</code></h3>
-      <p>Archive shell, search report, and integration evidence rendering. This is the visible workbench layer.</p>
-    </article>
+  <article class="ae-surface-card">
+    <p class="ae-mini-label">Contracts</p>
+    <h3><code>src/core/</code></h3>
+    <p>Archive, search, evidence, workbench case stitching, official-answer lifecycle, and host-safety rules. This is the product logic shelf.</p>
+  </article>
+  <article class="ae-surface-card">
+    <p class="ae-mini-label">Readable surfaces</p>
+    <h3><code>src/output/</code></h3>
+    <p>Archive shell, family case views, official-answer workflow cards, search report, and integration evidence rendering. This is the visible workbench layer.</p>
+  </article>
     <article class="ae-surface-card">
       <p class="ae-mini-label">Public docs</p>
       <h3><code>docs/</code></h3>

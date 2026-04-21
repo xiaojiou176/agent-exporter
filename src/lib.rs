@@ -5,3 +5,4 @@ pub mod integrations;
 pub mod model;
 pub mod output;
 pub mod ui;
+pub mod workbench;

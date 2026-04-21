@@ -5,6 +5,9 @@ use crate::core::integration_report::{
     IntegrationEvidenceGateOutcome, IntegrationEvidenceRemediationBundle, IntegrationReportEntry,
 };
 use crate::core::search_report::SearchReportEntry;
+use crate::core::workbench::{
+    OfficialAnswerPinView, ThreadFamilySummary, WorkbenchIndexJsonDocument, WorkspaceTimelineEvent,
+};
 use crate::output::html::escape_html;
 
 #[derive(Clone, Debug, PartialEq)]
@@ -60,6 +63,7 @@ pub fn render_archive_index_document(
     reports: &[SearchReportEntry],
     integration_reports: &[IntegrationReportEntry],
     decision_desk: Option<&DecisionDeskSummary>,
+    workbench_index: Option<&WorkbenchIndexJsonDocument>,
 ) -> String {
     let distinct_connectors = count_distinct_connectors(entries);
     let connector_facets = render_filter_buttons(
@@ -125,6 +129,7 @@ pub fn render_archive_index_document(
             .join("\n")
     };
     let decision_section = render_decision_desk(decision_desk);
+    let intelligence_section = render_workbench_projection(workbench_index);
 
     format!(
         concat!(
@@ -212,6 +217,7 @@ pub fn render_archive_index_document(
             "{report_summary}\n",
             "{integration_summary}\n",
             "    </section>\n",
+            "{intelligence_section}\n",
             "<div id=\"governance-lane\">{decision_section}</div>\n",
             "  </main>\n",
             "  <script>\n{script}\n  </script>\n",
@@ -231,6 +237,7 @@ pub fn render_archive_index_document(
         source_summary = source_summary,
         report_summary = report_summary,
         integration_summary = integration_summary,
+        intelligence_section = intelligence_section,
         report_cards = report_cards,
         body = body,
         style = archive_index_style(),
@@ -469,6 +476,437 @@ fn render_decision_desk(summary: Option<&DecisionDeskSummary>) -> String {
         candidate_card = candidate_card,
         governance_card = governance_card,
         remediation = remediation,
+    )
+}
+
+fn render_workbench_projection(workbench_index: Option<&WorkbenchIndexJsonDocument>) -> String {
+    let Some(workbench_index) = workbench_index else {
+        return String::new();
+    };
+
+    let timeline = render_workspace_timeline(&workbench_index.timeline);
+    let families = render_thread_families(&workbench_index.families);
+    let official_answers = render_official_answers(&workbench_index.official_answers);
+    let fleet = render_fleet_view(&workbench_index.fleet_view);
+
+    format!(
+        concat!(
+            "<section class=\"decision-desk\" aria-label=\"workspace intelligence\">\n",
+            "  <header class=\"decision-header\">\n",
+            "    <p class=\"eyebrow\">Workspace intelligence</p>\n",
+            "    <h2>See what changed across transcripts, summaries, reports, and pins.</h2>\n",
+            "    <p class=\"hero-copy\">这一层把 transcript export、AI summary、retrieval receipt、integration evidence 和 pinned official answers 收成同一张 workspace intelligence 视图。它不替代 transcript browser，但会帮你更快回答：最近发生了什么、哪些导出属于同一案件、哪些官方答案已经 stale。</p>\n",
+            "    <div class=\"verdict-strip\">\n",
+            "      <span class=\"chip\">timeline <span>{timeline_count}</span></span>\n",
+            "      <span class=\"chip\">families <span>{family_count}</span></span>\n",
+            "      <span class=\"chip\">official answers <span>{pin_count}</span></span>\n",
+            "      <a class=\"open-link\" href=\"share-safe-packet.md\">Open share-safe packet</a>\n",
+            "      <a class=\"open-link\" href=\"share-safe-packet.public.md\">Open public-safe packet</a>\n",
+            "      <a class=\"open-link\" href=\"fleet-view.html\">Open fleet board</a>\n",
+            "      <a class=\"open-link\" href=\"action-packs/index.html\">Open action bridge</a>\n",
+            "      <a class=\"open-link\" href=\"memory-lane.html\">Open memory lane</a>\n",
+            "    </div>\n",
+            "  </header>\n",
+            "  <div class=\"decision-grid\">\n",
+            "{timeline}\n",
+            "{families}\n",
+            "{official_answers}\n",
+            "{fleet}\n",
+            "  </div>\n",
+            "</section>\n"
+        ),
+        timeline_count = workbench_index.timeline.len(),
+        family_count = workbench_index.families.len(),
+        pin_count = workbench_index.official_answers.len(),
+        timeline = timeline,
+        families = families,
+        official_answers = official_answers,
+        fleet = fleet,
+    )
+}
+
+fn render_workspace_timeline(events: &[WorkspaceTimelineEvent]) -> String {
+    let body = if events.is_empty() {
+        "<p class=\"empty-inline\">No workspace activity has been projected yet.</p>".to_string()
+    } else {
+        format!(
+            "<ol class=\"step-list\">{}</ol>",
+            events
+                .iter()
+                .take(8)
+                .map(|event| {
+                    let summary = event
+                        .summary
+                        .as_deref()
+                        .filter(|value| !value.trim().is_empty())
+                        .map(|value| format!("<p>{}</p>", escape_html(value)))
+                        .unwrap_or_default();
+                    let href = event
+                        .href
+                        .as_deref()
+                        .map(|href| {
+                            format!(
+                                "<p><a class=\"open-link\" href=\"{href}\">Open artifact</a></p>",
+                                href = escape_html(href)
+                            )
+                        })
+                        .unwrap_or_default();
+                    format!(
+                        concat!(
+                            "<li>",
+                            "<strong>{title}</strong>",
+                            "<p class=\"mono-inline\">{kind} · <code>{occurred_at}</code></p>",
+                            "{summary}",
+                            "{href}",
+                            "</li>"
+                        ),
+                        title = escape_html(&event.title),
+                        kind = escape_html(&event.kind),
+                        occurred_at = escape_html(&event.occurred_at),
+                        summary = summary,
+                        href = href,
+                    )
+                })
+                .collect::<Vec<_>>()
+                .join("")
+        )
+    };
+
+    format!(
+        concat!(
+            "<article class=\"summary-card decision-card\">",
+            "<p class=\"eyebrow\">Workspace timeline</p>",
+            "<h2>Recent activity across the workbench</h2>",
+            "{body}",
+            "</article>"
+        ),
+        body = body,
+    )
+}
+
+fn render_thread_families(families: &[ThreadFamilySummary]) -> String {
+    let body = if families.is_empty() {
+        "<p class=\"empty-inline\">No stitched thread families yet.</p>".to_string()
+    } else {
+        families
+            .iter()
+            .take(6)
+            .map(|family| {
+                let profiles = if family.profiles.is_empty() {
+                    String::new()
+                } else {
+                    format!(
+                        "<p class=\"mono-inline\">profiles: <code>{}</code></p>",
+                        escape_html(&family.profiles.join(", "))
+                    )
+                };
+                let files = if family.files_touched.is_empty() {
+                    String::new()
+                } else {
+                    format!(
+                        "<p>files: {}</p>",
+                        escape_html(&family.files_touched.join(", "))
+                    )
+                };
+                let tests = if family.tests_run.is_empty() {
+                    String::new()
+                } else {
+                    format!(
+                        "<p>tests: {}</p>",
+                        escape_html(&family.tests_run.join(", "))
+                    )
+                };
+                let risks = if family.risks.is_empty() {
+                    String::new()
+                } else {
+                    format!(
+                        "<p>risks: {}</p>",
+                        escape_html(&family.risks.join(", "))
+                    )
+                };
+                let blockers = if family.blockers.is_empty() {
+                    String::new()
+                } else {
+                    format!(
+                        "<p>blockers: {}</p>",
+                        escape_html(&family.blockers.join(", "))
+                    )
+                };
+                let latest_summary = family
+                    .latest_summary
+                    .as_ref()
+                    .map(|summary| {
+                        format!(
+                            concat!(
+                                "<section class=\"nested-card\">",
+                                "<p class=\"eyebrow\">Case view</p>",
+                                "<h3>{title}</h3>",
+                                "<p>{overview}</p>",
+                                "<p class=\"mono-inline\">profile: <code>{profile}</code> · generated: <code>{generated_at}</code></p>",
+                                "<p><a class=\"open-link\" href=\"{href}\">Open latest summary</a></p>",
+                                "<p class=\"mono-inline\">Pin as official answer: <code>agent-exporter publish pin-answer --workspace-root &lt;repo&gt; --artifact ./{json_href} --label &quot;{label}&quot;</code></p>",
+                                "</section>"
+                            ),
+                            title = escape_html(&summary.title),
+                            overview = escape_html(&summary.overview),
+                            profile = escape_html(&summary.profile_id),
+                            generated_at = escape_html(&summary.generated_at),
+                            href = escape_html(&summary.href),
+                            json_href = escape_html(&summary.json_href),
+                            label = escape_html(&family.label),
+                        )
+                    })
+                    .unwrap_or_default();
+                let official_answer = family
+                    .official_answer
+                    .as_ref()
+                    .map(|official| {
+                        format!(
+                            concat!(
+                                "<section class=\"nested-card\">",
+                                "<p class=\"eyebrow\">Official answer</p>",
+                                "<h3>{label}</h3>",
+                                "<div class=\"chip-row\">",
+                                "<span class=\"chip\">{status}</span>",
+                                "<span class=\"chip\">{stale}</span>",
+                                "</div>",
+                                "<p>{summary}</p>",
+                                "{note}",
+                                "<p><a class=\"open-link\" href=\"{href}\">Open pinned answer</a></p>",
+                                "</section>"
+                            ),
+                            label = escape_html(&official.label),
+                            status = escape_html(&official.status),
+                            stale = escape_html(if official.stale { "stale" } else { "fresh" }),
+                            summary = escape_html(&official.summary),
+                            note = official
+                                .note
+                                .as_deref()
+                                .map(|note| format!("<p>{}</p>", escape_html(note)))
+                                .unwrap_or_default(),
+                            href = escape_html(&official.href),
+                        )
+                    })
+                    .unwrap_or_default();
+                let latest_vs_pinned = family
+                    .latest_vs_pinned
+                    .as_ref()
+                    .map(|diff| {
+                        let new_files = if diff.new_files_touched.is_empty() {
+                            String::new()
+                        } else {
+                            format!(
+                                "<p>new files: {}</p>",
+                                escape_html(&diff.new_files_touched.join(", "))
+                            )
+                        };
+                        format!(
+                            concat!(
+                                "<section class=\"nested-card\">",
+                                "<p class=\"eyebrow\">Latest vs pinned answer</p>",
+                                "<h3>{status}</h3>",
+                                "<p>{summary}</p>",
+                                "{new_files}",
+                                "</section>"
+                            ),
+                            status = escape_html(&diff.status),
+                            summary = escape_html(&diff.summary),
+                            new_files = new_files,
+                        )
+                    })
+                    .unwrap_or_default();
+                let href = family
+                    .latest_href
+                    .as_deref()
+                    .map(|href| {
+                        format!(
+                            "<p><a class=\"open-link\" href=\"{href}\">Open latest artifact</a></p>",
+                            href = escape_html(href)
+                        )
+                    })
+                    .unwrap_or_default();
+                format!(
+                    concat!(
+                        "<article class=\"entry-card\">",
+                        "<p class=\"eyebrow\">Thread family</p>",
+                        "<h2>{label}</h2>",
+                        "<div class=\"chip-row\">",
+                        "<span class=\"chip\">transcripts <span>{transcript_count}</span></span>",
+                        "<span class=\"chip\">summaries <span>{summary_count}</span></span>",
+                        "</div>",
+                        "<p class=\"mono-inline\">latest: <code>{latest_at}</code></p>",
+                        "{profiles}",
+                        "{files}",
+                        "{tests}",
+                        "{risks}",
+                        "{blockers}",
+                        "{latest_summary}",
+                        "{official_answer}",
+                        "{latest_vs_pinned}",
+                        "{href}",
+                        "</article>"
+                    ),
+                    label = escape_html(&family.label),
+                    transcript_count = family.transcript_count,
+                    summary_count = family.summary_count,
+                    latest_at = escape_html(&family.latest_at),
+                    profiles = profiles,
+                    files = files,
+                    tests = tests,
+                    risks = risks,
+                    blockers = blockers,
+                    latest_summary = latest_summary,
+                    official_answer = official_answer,
+                    latest_vs_pinned = latest_vs_pinned,
+                    href = href,
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("")
+    };
+
+    format!(
+        concat!(
+            "<article class=\"summary-card decision-card\">",
+            "<p class=\"eyebrow\">Thread families</p>",
+            "<h2>Stitch repeated exports into cases instead of fragments</h2>",
+            "{body}",
+            "</article>"
+        ),
+        body = body,
+    )
+}
+
+fn render_official_answers(pins: &[OfficialAnswerPinView]) -> String {
+    let body = if pins.is_empty() {
+        "<p class=\"empty-inline\">No official answers pinned yet.</p>".to_string()
+    } else {
+        pins.iter()
+            .take(6)
+            .map(|pin| {
+                let stale = if pin.stale { "stale" } else { "fresh" };
+                let stale_reason = pin
+                    .stale_reason
+                    .as_deref()
+                    .map(|reason| format!("<p>{}</p>", escape_html(reason)))
+                    .unwrap_or_default();
+                let lifecycle_summary = pin
+                    .lifecycle_summary
+                    .as_deref()
+                    .map(|summary| format!("<p>{}</p>", escape_html(summary)))
+                    .unwrap_or_default();
+                let note = pin
+                    .note
+                    .as_deref()
+                    .map(|note| format!("<p>{}</p>", escape_html(note)))
+                    .unwrap_or_default();
+                let artifact_json = std::path::Path::new(&pin.artifact_json_path)
+                    .file_name()
+                    .and_then(|value| value.to_str())
+                    .unwrap_or(pin.artifact_json_path.as_str());
+                format!(
+                    concat!(
+                        "<article class=\"entry-card\">",
+                        "<p class=\"eyebrow\">Official answers</p>",
+                        "<h2>{label}</h2>",
+                        "<div class=\"chip-row\">",
+                        "<span class=\"chip\">{kind}</span>",
+                        "<span class=\"chip\">{status}</span>",
+                        "<span class=\"chip\">{stale}</span>",
+                        "</div>",
+                        "<p>{summary}</p>",
+                        "<p class=\"mono-inline\">generated: <code>{generated_at}</code></p>",
+                        "{lifecycle_summary}",
+                        "{stale_reason}",
+                        "{note}",
+                        "<p><a class=\"open-link\" href=\"{href}\">Open pinned artifact</a></p>",
+                        "<p class=\"mono-inline\">Resolve via CLI: <code>agent-exporter publish resolve-answer --workspace-root &lt;repo&gt; --label &quot;{label}&quot;</code></p>",
+                        "<p class=\"mono-inline\">Unpin via CLI: <code>agent-exporter publish unpin-answer --workspace-root &lt;repo&gt; --label &quot;{label}&quot;</code></p>",
+                        "<p class=\"mono-inline\">Supersede via CLI: <code>agent-exporter publish pin-answer --workspace-root &lt;repo&gt; --artifact ./{artifact_json} --label &quot;next-{label}&quot; --supersedes &quot;{label}&quot;</code></p>",
+                        "</article>"
+                    ),
+                    label = escape_html(&pin.label),
+                    kind = escape_html(&pin.artifact_kind),
+                    status = escape_html(&pin.status),
+                    stale = escape_html(stale),
+                    summary = escape_html(&pin.summary),
+                    generated_at = escape_html(&pin.generated_at),
+                    lifecycle_summary = lifecycle_summary,
+                    stale_reason = stale_reason,
+                    note = note,
+                    href = escape_html(&pin.href),
+                    artifact_json = escape_html(artifact_json),
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("")
+    };
+
+    format!(
+        concat!(
+            "<article class=\"summary-card decision-card\">",
+            "<p class=\"eyebrow\">Official answers</p>",
+            "<h2>Keep the current official answer visible and auditable</h2>",
+            "{body}",
+            "</article>"
+        ),
+        body = body,
+    )
+}
+
+fn render_fleet_view(entries: &[crate::core::workbench::FleetViewEntry]) -> String {
+    let body = if entries.is_empty() {
+        "<p class=\"empty-inline\">No integration fleet snapshot yet.</p>".to_string()
+    } else {
+        entries
+            .iter()
+            .take(6)
+            .map(|entry| {
+                let href = entry
+                    .html_href
+                    .as_deref()
+                    .map(|href| {
+                        format!(
+                            "<p><a class=\"open-link\" href=\"{href}\">Open latest fleet report</a></p>",
+                            href = escape_html(href)
+                        )
+                    })
+                    .unwrap_or_default();
+                format!(
+                    concat!(
+                        "<article class=\"entry-card\">",
+                        "<p class=\"eyebrow\">Fleet view</p>",
+                        "<h2>{platform}</h2>",
+                        "<div class=\"chip-row\">",
+                        "<span class=\"chip\">{readiness}</span>",
+                        "<span class=\"chip\">reports <span>{report_count}</span></span>",
+                        "</div>",
+                        "<p class=\"mono-inline\">target: <code>{target}</code></p>",
+                        "<p class=\"mono-inline\">latest: <code>{latest}</code></p>",
+                        "{href}",
+                        "</article>"
+                    ),
+                    platform = escape_html(&entry.platform),
+                    readiness = escape_html(&entry.latest_readiness),
+                    report_count = entry.report_count,
+                    target = escape_html(&entry.target),
+                    latest = escape_html(&entry.latest_generated_at),
+                    href = href,
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("")
+    };
+
+    format!(
+        concat!(
+            "<article class=\"summary-card decision-card\">",
+            "<p class=\"eyebrow\">Fleet view</p>",
+            "<h2>See the latest readiness snapshot across targets</h2>",
+            "{body}",
+            "</article>"
+        ),
+        body = body,
     )
 }
 
@@ -1240,6 +1678,7 @@ mod tests {
             &[],
             &[],
             None,
+            None,
         );
 
         assert!(html.contains("<!DOCTYPE html>"));
@@ -1258,6 +1697,7 @@ mod tests {
             &[],
             &[],
             None,
+            None,
         );
         assert!(html.contains("还没有 HTML transcript exports"));
     }
@@ -1270,6 +1710,7 @@ mod tests {
             &[],
             &[],
             &[],
+            None,
             None,
         );
         assert!(html.contains("archive-search"));
@@ -1295,6 +1736,7 @@ mod tests {
             }],
             &[],
             &[],
+            None,
             None,
         );
 

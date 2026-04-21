@@ -144,7 +144,7 @@ Use this route map instead:
 
 ## Optional Local Export Cockpit
 
-If you want a browser front door for **local Codex export** without manually finding a `thread-id`, open the local cockpit:
+If you want a browser front door for **local Codex export** or **workspace-local Claude session export** without manually finding every source artifact, open the local cockpit:
 
 ```bash
 agent-exporter ui cockpit --workspace-root /absolute/path/to/repo
@@ -153,6 +153,7 @@ agent-exporter ui cockpit --workspace-root /absolute/path/to/repo
 What it does:
 
 - auto-discovers persisted Codex threads whose `cwd` belongs to the current workspace
+- scans the current workspace for Claude session files that can be exported through `--session-path`
 - lets you trigger one-click canonical export
 - publishes the archive shell after success
 - opens the local workbench result
@@ -160,7 +161,7 @@ What it does:
 What it does **not** do:
 
 - it does not replace the CLI quickstart as the primary public front door
-- it does not do Claude auto-discovery
+- it does not crawl live `~/.claude*` home roots or pretend Claude archival imports are canonical
 - it does not act like a hosted dashboard or browser-side executor
 
 ## Public Entry Points
@@ -279,6 +280,17 @@ Treat first success as: confirm the connector surface, export one transcript, an
 
    The same three controls also work on `export claude-code`.
 
+   Current `--ai-summary-preset` values include:
+
+   - `handoff`
+   - `bug-rca`
+   - `decision`
+   - `review-digest`
+   - `release` / `release-note`
+   - `incident-brief`
+   - `team-update`
+   - `share-safe-issue-draft`
+
    If you want a stricter upper bound for the AI step, also append:
 
    ```bash
@@ -295,6 +307,7 @@ Success signals:
 
 - a `.agents/Conversations/*.html` transcript export
 - a `.agents/Conversations/index.html` archive shell
+- machine-readable `index.json` plus `share-safe-packet.md`, `share-safe-packet.teammate.md`, `share-safe-packet.reviewer.md`, and `share-safe-packet.public.md`
 - an **inspectable HTML receipt**, not a hosted demo and not a GitHub Pages live runtime
 
 ## Open The Right Next Door
@@ -503,10 +516,19 @@ The repo also supports:
   - scans `<repo>/.agents/Conversations` for exported HTML transcripts
   - generates a local multi-agent archive shell `index.html`
   - uses relative links to connect transcript pages
-  - includes local metadata filters, connector/completeness facets, semantic/hybrid retrieval lane notes, and saved retrieval report links
+  - includes local metadata filters, connector/completeness facets, semantic/hybrid retrieval lane notes, saved retrieval report links, family case views, and latest-vs-pinned answer summaries
   - also generates `.agents/Search/Reports/index.html` as a local reports shell
+  - writes `.agents/Conversations/index.json` plus share-safe packet tiers for teammate / reviewer / public forwarding
   - keeps semantic and hybrid retrieval in the CLI instead of moving execution into the browser
   - does not do hosted publish, remote search service, gists, or web publishing
+
+- `publish pin-answer --workspace-root <repo> --artifact <summary-or-report.json> --label <name>`
+  - promotes one structured summary or integration report into the local official-answer lane
+  - supports `--note` and `--supersedes <previous-label>` for honest lifecycle changes
+- `publish resolve-answer --workspace-root <repo> --label <name>`
+  - marks one pinned answer as resolved without deleting its audit trail
+- `publish unpin-answer --workspace-root <repo> --label <name>`
+  - removes one pinned answer label from the local workbench registry
 
 ### Semantic retrieval contract
 
