@@ -206,7 +206,8 @@ with open(stdin_log, "wb") as handle:
     handle.write(b"".join(chunks))
 
 delay_seconds = float(os.environ.get("FAKE_CODEX_DELAY_SECONDS", "0"))
-if delay_seconds:
+delay_before_output = os.environ.get("FAKE_CODEX_DELAY_BEFORE_OUTPUT", "0") == "1"
+if delay_before_output and delay_seconds:
     time.sleep(delay_seconds)
 
 output_path = ""
@@ -224,6 +225,8 @@ if not output_path:
 os.makedirs(os.path.dirname(output_path), exist_ok=True)
 with open(output_path, "w", encoding="utf-8") as handle:
     handle.write("# AI 梳理\n\nfake summary\n")
+if (not delay_before_output) and delay_seconds:
+    time.sleep(delay_seconds)
 "##,
     )
     .expect("write fake codex");
@@ -455,6 +458,7 @@ fn cockpit_ai_summary_timeout_is_configurable() -> Result<()> {
             ("FAKE_CODEX_ARGS_LOG", fake_args_log.as_path()),
             ("FAKE_CODEX_STDIN_LOG", fake_stdin_log.as_path()),
             ("FAKE_CODEX_DELAY_SECONDS", Path::new("2")),
+            ("FAKE_CODEX_DELAY_BEFORE_OUTPUT", Path::new("1")),
         ],
     ));
     let url = wait_for_url(&log_path)?.trim_end_matches('/').to_string();

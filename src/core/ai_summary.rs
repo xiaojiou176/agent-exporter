@@ -112,6 +112,9 @@ pub fn generate_ai_summary_with_options(
             if start.elapsed() >= timeout {
                 child.kill().ok();
                 child.wait().ok();
+                if output_path.exists() {
+                    return finalize_ai_summary_outputs(&output_path, request, options);
+                }
                 let stderr = summarize_ai_summary_capture(&stderr_capture_path);
                 bail!(
                     "AI summary generation timed out after {} seconds; raw transcript export remains on disk, but the AI summary sidecar was not completed{}.{}",
@@ -146,40 +149,55 @@ pub fn generate_ai_summary_with_options(
             );
         }
 
-        let markdown = std::fs::read_to_string(&output_path).with_context(|| {
-            format!(
-                "failed to read AI summary markdown `{}` before generating companions",
-                output_path.display()
-            )
-        })?;
-        let html_output_path = write_html_companion(
-            &output_path,
-            request.transcript,
-            request.exported_at,
-            &markdown,
-        )?;
-        let json_output_path = output_path.with_extension("json");
-        let structured_summary = build_structured_summary_document(
-            request,
-            options,
-            &output_path,
-            &html_output_path,
-            &json_output_path,
-            &markdown,
-        );
-        write_structured_summary_document(&json_output_path, &structured_summary)?;
-
-        Ok(AiSummaryOutcome {
-            markdown_output_path: output_path,
-            html_output_path,
-            json_output_path,
-        })
+        finalize_ai_summary_outputs(&output_path, request, options)
     })();
 
     let _ = std::fs::remove_file(&stdout_capture_path);
     let _ = std::fs::remove_file(&stderr_capture_path);
 
     result
+}
+
+fn finalize_ai_summary_outputs(
+    output_path: &Path,
+    request: &AiSummaryRequest<'_>,
+    options: &AiSummaryOptions,
+) -> Result<AiSummaryOutcome> {
+    let markdown = std::fs::read_to_string(output_path).with_context(|| {
+        format!(
+            "failed to read AI summary markdown `{}` before generating companions",
+            output_path.display()
+        )
+    })?;
+    if markdown.trim().is_empty() {
+        bail!(
+            "AI summary markdown was written but empty: {}",
+            output_path.display()
+        );
+    }
+
+    let html_output_path = write_html_companion(
+        output_path,
+        request.transcript,
+        request.exported_at,
+        &markdown,
+    )?;
+    let json_output_path = output_path.with_extension("json");
+    let structured_summary = build_structured_summary_document(
+        request,
+        options,
+        output_path,
+        &html_output_path,
+        &json_output_path,
+        &markdown,
+    );
+    write_structured_summary_document(&json_output_path, &structured_summary)?;
+
+    Ok(AiSummaryOutcome {
+        markdown_output_path: output_path.to_path_buf(),
+        html_output_path,
+        json_output_path,
+    })
 }
 
 fn effective_ai_summary_timeout(

@@ -32,9 +32,9 @@ body {
 
 .cockpit-shell {
   width: min(1120px, calc(100vw - 32px));
-  margin: 28px auto 72px;
+  margin: 24px auto 60px;
   display: grid;
-  gap: 20px;
+  gap: 16px;
 }
 
 body[data-boot-state="booting"] .thread-list,
@@ -52,7 +52,7 @@ body[data-boot-state="booting"] .result-links {
 }
 
 .hero {
-  padding: 18px 22px;
+  padding: 14px 18px;
 }
 
 .hero-top {
@@ -63,30 +63,30 @@ body[data-boot-state="booting"] .result-links {
 }
 
 .hero h1 {
-  margin: 10px 0 12px;
-  font-size: clamp(1.8rem, 4.2vw, 3.1rem);
-  line-height: 1.06;
+  margin: 8px 0 8px;
+  font-size: clamp(1.55rem, 3.2vw, 2.35rem);
+  line-height: 1.08;
   letter-spacing: -0.04em;
-  max-width: 14ch;
+  max-width: 16ch;
 }
 
 .hero-note {
   margin: 0;
   max-width: 58ch;
   color: var(--muted);
-  font-size: 0.9rem;
-  line-height: 1.55;
+  font-size: 0.88rem;
+  line-height: 1.5;
 }
 
 .hero-meta {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 10px;
-  margin-top: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .hero-meta-card {
-  padding: 12px 14px;
+  padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   background: var(--surface-strong);
@@ -144,10 +144,36 @@ body[data-boot-state="booting"] .result-links {
 
 .rail-stack {
   display: grid;
-  gap: 20px;
+  gap: 16px;
   align-self: start;
   position: sticky;
   top: 24px;
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-gutter: stable;
+}
+
+.rail-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.rail-panel-head {
+  align-items: center;
+}
+
+.rail-control-panel .primary {
+  width: 100%;
+}
+
+.detail-shell {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(248, 250, 252, 0.84);
 }
 
 .panel-head {
@@ -316,7 +342,94 @@ body[data-boot-state="booting"] .result-links {
 
 .detail-empty,
 .thread-detail {
-  line-height: 1.7;
+  line-height: 1.6;
+}
+
+.detail-summary-card {
+  display: grid;
+  gap: 12px;
+}
+
+.detail-summary-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: start;
+}
+
+.detail-summary-title {
+  margin: 0;
+  font-size: 1.15rem;
+  line-height: 1.35;
+}
+
+.detail-summary-meta {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.detail-summary-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.08);
+  color: var(--accent-strong);
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.detail-meta-pills {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.detail-meta-pill {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.detail-meta-pill span {
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.detail-meta-pill strong {
+  color: var(--ink);
+  font-size: 0.95rem;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.detail-more {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.68);
+  padding: 10px 12px;
+}
+
+.detail-more summary {
+  cursor: pointer;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.detail-more[open] summary {
+  margin-bottom: 10px;
 }
 
 .detail-list {
@@ -324,6 +437,10 @@ body[data-boot-state="booting"] .result-links {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 10px;
   margin: 0;
+}
+
+.compact-detail-list {
+  grid-template-columns: 1fr;
 }
 
 .detail-row {
@@ -393,7 +510,6 @@ body[data-boot-state="booting"] .result-links {
 .toggle-row {
   grid-template-columns: auto 1fr;
   align-items: center;
-  margin-bottom: 14px;
   color: var(--ink);
   font-weight: 500;
 }
@@ -401,11 +517,10 @@ body[data-boot-state="booting"] .result-links {
 .action-toolbar {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: 12px;
 }
 
 .input-stack {
-  margin-bottom: 16px;
+  margin-bottom: 14px;
 }
 
 .input-stack textarea {
@@ -444,6 +559,7 @@ body[data-boot-state="booting"] .result-links {
   background: linear-gradient(180deg, #0f172a 0%, #111827 100%);
   color: #e2e8f0;
   overflow-x: auto;
+  max-height: 320px;
 }
 
 .command-preview code {
@@ -503,18 +619,34 @@ button.primary:disabled {
   display: grid;
   gap: 12px;
   margin-top: 12px;
-  min-height: 160px;
+  min-height: 0;
 }
 
 .result-preview-card {
-  padding: 12px 14px;
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
   border: 1px dashed rgba(37, 99, 235, 0.22);
   border-radius: 14px;
   background: rgba(248, 250, 252, 0.92);
 }
 
+.result-preview-lead {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.result-preview-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  display: grid;
+  gap: 8px;
+  line-height: 1.55;
+}
+
 .result-preview-card .result-path-label {
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 
 .result-card {
@@ -616,8 +748,44 @@ button.primary:disabled {
   padding-left: 18px;
 }
 
+.selection-compact-list {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 18px;
+}
+
 .detail-batch .detail-row {
   margin-top: 10px;
+}
+
+.cli-preview-panel {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: rgba(248, 250, 252, 0.84);
+  padding: 12px 14px;
+}
+
+.cli-preview-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  cursor: pointer;
+  list-style: none;
+}
+
+.cli-preview-summary::-webkit-details-marker {
+  display: none;
+}
+
+.cli-preview-summary .muted {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.cli-preview-panel[open] .cli-preview-summary {
+  margin-bottom: 10px;
 }
 
 .ghost-button {
@@ -644,6 +812,9 @@ button.primary:disabled {
 
   .rail-stack {
     position: static;
+    max-height: none;
+    overflow: visible;
+    padding-right: 0;
   }
 
   .workspace-group-head {
@@ -655,6 +826,16 @@ button.primary:disabled {
   }
 
   .ai-summary-control-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .detail-summary-head,
+  .cli-preview-summary {
+    flex-direction: column;
+    align-items: start;
+  }
+
+  .detail-meta-pills {
     grid-template-columns: 1fr;
   }
 }

@@ -12,11 +12,10 @@
         <div class="hero-top">
           <div>
             <p class="eyebrow" id="hero-eyebrow">local-first export cockpit</p>
-            <h1 id="hero-title">Export one Codex thread into your local archive workbench.</h1>
+            <h1 id="hero-title">Export a Codex or Claude session into your local archive workbench.</h1>
             <p class="lead" id="hero-lead">
-              The cockpit auto-discovers your active top-level Codex threads across local
-              workspaces, then exports the selected thread back into its own workspace archive
-              shell.
+              The cockpit helps you pick a local session, export it, then return to the
+              Markdown-first archive workbench for that workspace.
             </p>
             <p class="hero-note" id="hero-note">
               Optional local helper after the CLI quickstart is already clear. The primary public
@@ -50,7 +49,7 @@
             </div>
             <button id="refresh-button" type="button">Refresh</button>
           </div>
-          <p id="detection-status" class="muted">Loading persisted Codex threads…</p>
+          <p id="detection-status" class="muted">Loading active local sessions…</p>
           <div class="search-stack">
             <label class="input-stack" for="thread-search">
               <span class="muted" id="thread-search-label">Search detected threads</span>
@@ -66,11 +65,21 @@
         </section>
 
         <aside class="rail-stack">
-          <section class="panel">
-            <p class="eyebrow" id="action-eyebrow">action</p>
-            <p id="selection-summary" class="muted">No threads selected.</p>
-            <div class="action-toolbar">
-              <button id="clear-selection-button" class="ghost-button" type="button">Clear selection</button>
+          <section class="panel rail-panel rail-control-panel">
+            <div class="panel-head rail-panel-head">
+              <div>
+                <p class="eyebrow" id="action-eyebrow">action</p>
+                <p id="selection-summary" class="muted">No sessions selected.</p>
+              </div>
+              <div class="action-toolbar">
+                <button id="clear-selection-button" class="ghost-button" type="button">Clear selection</button>
+              </div>
+            </div>
+            <div class="detail-shell">
+              <p class="eyebrow" id="selected-thread-eyebrow">selected sessions</p>
+              <div id="thread-detail" class="detail-empty">
+                Select one or more sessions to see export details.
+              </div>
             </div>
             <label class="toggle-row">
               <input id="ai-summary-toggle" type="checkbox" />
@@ -137,31 +146,25 @@
               Export to workbench
             </button>
             <p class="muted" id="action-note">
-              Uses the canonical Codex export path, then publishes the selected thread's workspace
-              shell.
+              Uses the canonical export path, then refreshes the matching workspace shell.
             </p>
           </section>
 
-          <section class="panel">
+          <section class="panel rail-panel rail-output-panel">
             <p class="eyebrow" id="result-eyebrow">result</p>
             <p id="result-status" class="muted">No export has run yet.</p>
             <div id="result-links" class="result-links"></div>
-          </section>
-
-          <section class="panel">
-            <p class="eyebrow" id="selected-thread-eyebrow">selected thread</p>
-            <div id="thread-detail" class="detail-empty">
-              Choose one thread to see export details.
-            </div>
-          </section>
-
-          <section class="panel">
-            <p class="eyebrow" id="cli-eyebrow">cli equivalent</p>
-            <p class="muted" id="cli-note">
-              This cockpit is a local helper, not a hidden execution layer. The command below shows the
-              closest CLI path for the current selection.
-            </p>
-            <pre class="command-preview"><code id="command-preview">Select one thread to preview the equivalent CLI command.</code></pre>
+            <details id="cli-preview-panel" class="cli-preview-panel">
+              <summary class="cli-preview-summary">
+                <span class="eyebrow" id="cli-eyebrow">cli equivalent</span>
+                <span class="muted" id="cli-summary-note">Show the closest CLI path</span>
+              </summary>
+              <p class="muted" id="cli-note">
+                This cockpit is a local helper, not a hidden execution layer. The command below
+                shows the closest CLI path for the current selection.
+              </p>
+              <pre class="command-preview"><code id="command-preview">Select one or more sessions to preview the equivalent CLI command.</code></pre>
+            </details>
           </section>
         </aside>
       </div>
