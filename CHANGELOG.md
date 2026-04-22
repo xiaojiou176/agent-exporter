@@ -6,6 +6,12 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-04-22
+
+### Fixed
+- the Export Cockpit now re-renders its idle result lane when the locale toggle changes, so the right-side result framing no longer mixes English and Chinese during installed-state review
+- locale switching now keeps the result rail and CLI preview copy in the same language contract as the hero and action lane, closing the last repo-side cockpit truth-sync bug from the v0.1.8 cut
+
 ## [0.1.8] - 2026-04-22
 
 ### Fixed
