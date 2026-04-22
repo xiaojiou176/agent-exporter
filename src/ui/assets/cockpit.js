@@ -29,7 +29,7 @@ const STRINGS = {
     "detection.searchLabel": "Search detected threads",
     "detection.searchPlaceholder": "Search by title, workspace, model, or thread id",
     "selection.eyebrow": "selected threads",
-    "selection.empty": "Choose one or more threads to inspect export details.",
+    "selection.empty": "Choose one or more threads to keep this action rail focused.",
     "selection.none": "No threads selected.",
     "selection.single": "1 thread selected.",
     "selection.multi": "{count} threads selected across {workspaceCount} workspaces.",
@@ -38,6 +38,9 @@ const STRINGS = {
     "selection.summaryCount": "Selected count",
     "selection.summaryWorkspaces": "Workspaces",
     "selection.summaryThreads": "Selected threads",
+    "selection.batchLead": "Batch export is ready for the selected threads.",
+    "selection.batchToggle": "Show all selected threads",
+    "selection.detailsToggle": "More context",
     "action.eyebrow": "action",
     "action.aiSummary": "Add optional AI summary",
     "action.aiInstructions": "Optional AI summary instructions",
@@ -56,7 +59,7 @@ const STRINGS = {
     "action.button.single": "Export selected thread",
     "action.button.multi": "Export {count} threads",
     "action.note":
-      "Uses the canonical Codex export path, then publishes archive / reports / evidence shells for each affected workspace.",
+      "Exports through the canonical path, then refreshes archive / reports / evidence shells for affected workspaces.",
     "result.eyebrow": "result",
     "result.empty": "No export has run yet.",
     "result.done": "Exported {count} thread(s) across {workspaceCount} workspace(s).",
@@ -72,6 +75,8 @@ const STRINGS = {
     "result.path": "Path",
     "result.warning": "Warning",
     "result.previewTitle": "After export, this panel will surface three layers of output.",
+    "result.previewLead":
+      "Keep the primary artifact first: Markdown up front, companion surfaces behind it.",
     "result.previewMarkdown": "Markdown transcript parts come first for agents and handoffs.",
     "result.previewHtml": "HTML stays as the browser companion for quick local reading.",
     "result.previewShell": "Archive / reports / evidence shells stay as navigation, not the primary artifact.",
@@ -88,7 +93,8 @@ const STRINGS = {
     "result.stepFailed": "Failed",
     "cli.eyebrow": "cli equivalent",
     "cli.note":
-      "This cockpit is a local helper, not a hidden execution layer. The commands below show the closest CLI path for the current selection.",
+      "Expand only when you need the exact CLI path. The workbench keeps action and result visible first.",
+    "cli.toggle": "Show the closest CLI path",
     "cli.empty": "Select one or more threads to preview the equivalent CLI command.",
     "refresh": "Refresh",
     "renameWorkspace": "Rename",
@@ -143,7 +149,7 @@ const STRINGS = {
     "detection.searchLabel": "搜索已发现的会话",
     "detection.searchPlaceholder": "按标题、工作区、模型或线程 ID 搜索",
     "selection.eyebrow": "已选会话",
-    "selection.empty": "请选择一个或多个会话以查看导出详情。",
+    "selection.empty": "请选择一个或多个会话，让右侧动作面只保留关键导出信息。",
     "selection.none": "当前没有选中任何会话。",
     "selection.single": "当前选中了 1 个会话。",
     "selection.multi": "当前选中了 {count} 个会话，涉及 {workspaceCount} 个工作区。",
@@ -152,6 +158,9 @@ const STRINGS = {
     "selection.summaryCount": "已选数量",
     "selection.summaryWorkspaces": "涉及工作区",
     "selection.summaryThreads": "已选会话",
+    "selection.batchLead": "这批会话已经准备好进入批量导出。",
+    "selection.batchToggle": "展开全部已选会话",
+    "selection.detailsToggle": "更多上下文",
     "action.eyebrow": "动作",
     "action.aiSummary": "添加可选 AI 摘要",
     "action.aiInstructions": "可选 AI 摘要说明",
@@ -170,7 +179,7 @@ const STRINGS = {
     "action.button.single": "导出所选会话",
     "action.button.multi": "导出 {count} 个会话",
     "action.note":
-      "会走 canonical Codex export path，并为每个受影响的 workspace 生成 archive / reports / evidence shell。",
+      "会沿通用导出主链导出，并刷新受影响 workspace 的 archive / reports / evidence shell。",
     "result.eyebrow": "结果",
     "result.empty": "还没有执行任何导出。",
     "result.done": "已导出 {count} 个会话，涉及 {workspaceCount} 个工作区。",
@@ -186,6 +195,7 @@ const STRINGS = {
     "result.path": "路径",
     "result.warning": "警告",
     "result.previewTitle": "导出完成后，这里会按三层结果来展示。",
+    "result.previewLead": "先把主结果留在前面，再补辅助浏览与导航层。",
     "result.previewMarkdown": "第一优先是 Markdown transcript parts，方便 Agent 深读和继续接力。",
     "result.previewHtml": "第二优先是 HTML 辅助稿，适合人在浏览器里快速浏览。",
     "result.previewShell": "archive / reports / evidence shell 继续保留，但只作为导航面。",
@@ -202,7 +212,8 @@ const STRINGS = {
     "result.stepFailed": "失败",
     "cli.eyebrow": "CLI 等效项",
     "cli.note":
-      "这个 cockpit 是本地辅助面，不是隐藏执行层。下面这些命令展示了当前选择最接近的 CLI 路径。",
+      "只有在需要精确命令时再展开。首屏先把动作和结果留出来。",
+    "cli.toggle": "展开最接近的 CLI 路径",
     "cli.empty": "请选择一个或多个会话以预览对应的 CLI 命令。",
     "refresh": "刷新",
     "renameWorkspace": "重命名",
@@ -296,6 +307,36 @@ function positiveIntegerValue(element) {
   if (!text) return null;
   const value = Number.parseInt(text, 10);
   return Number.isFinite(value) && value > 0 ? value : null;
+}
+
+function escapeHtml(value) {
+  const node = document.createElement("div");
+  node.textContent = String(value ?? "");
+  return node.innerHTML;
+}
+
+function compactThreadId(threadId) {
+  if (!threadId) return "(unknown)";
+  if (threadId.length <= 22) return threadId;
+  return `${threadId.slice(0, 8)}…${threadId.slice(-10)}`;
+}
+
+function detailPillHtml(label, value) {
+  return `
+    <div class="detail-meta-pill">
+      <span>${escapeHtml(label)}</span>
+      <strong>${escapeHtml(value)}</strong>
+    </div>
+  `;
+}
+
+function detailRowHtml(label, value) {
+  return `
+    <div class="detail-row">
+      <dt>${escapeHtml(label)}</dt>
+      <dd>${escapeHtml(value)}</dd>
+    </div>
+  `;
 }
 
 function selectedThreads() {
@@ -438,6 +479,7 @@ function applyStaticText() {
   aiSummaryTimeoutSecondsEl.placeholder = t("action.aiTimeoutPlaceholder");
   document.getElementById("result-eyebrow").textContent = t("result.eyebrow");
   document.getElementById("cli-eyebrow").textContent = t("cli.eyebrow");
+  document.getElementById("cli-summary-note").textContent = t("cli.toggle");
   document.getElementById("cli-note").textContent = t("cli.note");
   clearSelectionButtonEl.textContent = t("selection.clear");
   localeToggleEl.textContent = t("locale.toggle");
@@ -775,71 +817,73 @@ function renderSelection() {
   if (selected.length === 1) {
     const thread = selected[0];
     detailEl.className = "thread-detail";
+    const detailMeta = [
+      thread.workspaceLabel ?? "(unknown)",
+      thread.connectorKind ?? "codex",
+      t("thread.updated", { time: formatRelativeTime(thread.updatedAt) }),
+    ];
     detailEl.innerHTML = `
-      <dl class="detail-list">
-        <div class="detail-row">
-          <dt>${t("thread.title")}</dt>
-          <dd>${thread.displayName}</dd>
+      <article class="detail-summary-card">
+        <div class="detail-summary-head">
+          <div>
+            <h3 class="detail-summary-title">${escapeHtml(thread.displayName)}</h3>
+            <p class="detail-summary-meta">${escapeHtml(detailMeta.join(" · "))}</p>
+          </div>
+          <span class="detail-summary-chip">${escapeHtml(thread.modelProvider ?? t("thread.modelUnknown"))}</span>
         </div>
-        <div class="detail-row">
-          <dt>${t("thread.connector")}</dt>
-          <dd>${thread.connectorKind ?? "codex"}</dd>
+        <div class="detail-meta-pills">
+          ${detailPillHtml(t("thread.workspace"), thread.workspaceLabel ?? "(unknown)")}
+          ${detailPillHtml(t("thread.connector"), thread.connectorKind ?? "codex")}
+          ${detailPillHtml(t("thread.id"), compactThreadId(thread.threadId))}
+          ${detailPillHtml(t("thread.discovery"), thread.sourceKind ?? "(unknown)")}
         </div>
-        <div class="detail-row">
-          <dt>${t("thread.id")}</dt>
-          <dd>${thread.threadId}</dd>
-        </div>
-        <div class="detail-row">
-          <dt>${t("thread.workspace")}</dt>
-          <dd>${thread.workspaceLabel ?? "(unknown)"}</dd>
-        </div>
-        <div class="detail-row">
-          <dt>${t("thread.workspacePath")}</dt>
-          <dd>${thread.workspacePath ?? thread.cwd ?? "(none)"}</dd>
-        </div>
-        <div class="detail-row">
-          <dt>${t("thread.model")}</dt>
-          <dd>${thread.modelProvider ?? t("thread.modelUnknown")}</dd>
-        </div>
-        <div class="detail-row">
-          <dt>${t("thread.updatedAt")}</dt>
-          <dd>${formatRelativeTime(thread.updatedAt)}</dd>
-        </div>
-        <div class="detail-row">
-          <dt>${t("thread.artifactPath")}</dt>
-          <dd>${thread.sessionPath ?? thread.rolloutPath ?? "(none)"}</dd>
-        </div>
-        <div class="detail-row">
-          <dt>${t("thread.discovery")}</dt>
-          <dd>${thread.sourceKind}</dd>
-        </div>
-      </dl>
+        <details class="detail-more">
+          <summary>${escapeHtml(t("selection.detailsToggle"))}</summary>
+          <dl class="detail-list compact-detail-list">
+            ${detailRowHtml(t("thread.workspacePath"), thread.workspacePath ?? thread.cwd ?? "(none)")}
+            ${detailRowHtml(t("thread.artifactPath"), thread.sessionPath ?? thread.rolloutPath ?? "(none)")}
+            ${detailRowHtml(t("thread.updatedAt"), formatRelativeTime(thread.updatedAt))}
+            ${detailRowHtml(t("thread.createdAt"), formatRelativeTime(thread.createdAt))}
+            ${thread.cwd ? detailRowHtml(t("thread.cwd"), thread.cwd) : ""}
+            ${detailRowHtml(t("thread.id"), thread.threadId)}
+          </dl>
+        </details>
+      </article>
     `;
   } else {
     const list = selected
-      .slice(0, 8)
-      .map((thread) => `<li>${thread.displayName}</li>`)
+      .slice(0, 4)
+      .map((thread) => `<li>${escapeHtml(thread.displayName)}</li>`)
       .join("");
-    const more = selected.length > 8 ? `<p class="muted">+${selected.length - 8}</p>` : "";
+    const allThreads = selected
+      .map((thread) => `<li>${escapeHtml(thread.displayName)}</li>`)
+      .join("");
     detailEl.className = "thread-detail";
     detailEl.innerHTML = `
-      <div class="detail-batch">
-        <p class="eyebrow">${t("selection.summaryTitle")}</p>
-        <dl class="detail-list">
-          <div class="detail-row">
-            <dt>${t("selection.summaryCount")}</dt>
-            <dd>${selected.length}</dd>
+      <article class="detail-summary-card">
+        <div class="detail-summary-head">
+          <div>
+            <h3 class="detail-summary-title">${escapeHtml(t("selection.summaryTitle"))}</h3>
+            <p class="detail-summary-meta">${escapeHtml(t("selection.batchLead"))}</p>
           </div>
-          <div class="detail-row">
-            <dt>${t("selection.summaryWorkspaces")}</dt>
-            <dd>${workspaceCount}</dd>
-          </div>
-        </dl>
-        <div class="detail-row">
-          <dt>${t("selection.summaryThreads")}</dt>
-          <dd><ul class="selection-list">${list}</ul>${more}</dd>
+          <span class="detail-summary-chip">${selected.length}</span>
         </div>
-      </div>
+        <div class="detail-meta-pills">
+          ${detailPillHtml(t("selection.summaryCount"), selected.length)}
+          ${detailPillHtml(t("selection.summaryWorkspaces"), workspaceCount)}
+        </div>
+        <ul class="selection-compact-list">${list}</ul>
+        ${
+          selected.length > 4
+            ? `
+              <details class="detail-more">
+                <summary>${escapeHtml(t("selection.batchToggle"))}</summary>
+                <ul class="selection-list">${allThreads}</ul>
+              </details>
+            `
+            : ""
+        }
+      </article>
     `;
   }
 
@@ -849,19 +893,27 @@ function renderSelection() {
 function renderIdleResultState() {
   resultStatusEl.textContent = t("result.empty");
   resultLinksEl.innerHTML = "";
-  const titleText = t("result.previewTitle");
+  const card = document.createElement("div");
+  card.className = "result-preview-card";
+
+  const title = document.createElement("div");
+  title.className = "result-path-label";
+  title.textContent = t("result.previewTitle");
+
+  const lead = document.createElement("div");
+  lead.className = "result-preview-lead";
+  lead.textContent = t("result.previewLead");
+
+  const list = document.createElement("ul");
+  list.className = "result-preview-list";
   for (const key of ["result.previewMarkdown", "result.previewHtml", "result.previewShell"]) {
-    const card = document.createElement("div");
-    card.className = "result-preview-card";
-    const title = document.createElement("div");
-    title.className = "result-path-label";
-    title.textContent = titleText;
-    const body = document.createElement("div");
-    body.className = "result-path-value";
-    body.textContent = t(key);
-    card.append(title, body);
-    resultLinksEl.append(card);
+    const item = document.createElement("li");
+    item.textContent = t(key);
+    list.append(item);
   }
+
+  card.append(title, lead, list);
+  resultLinksEl.append(card);
 }
 
 function renderResultLinks(response) {

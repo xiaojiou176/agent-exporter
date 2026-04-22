@@ -45,3 +45,28 @@ fn cockpit_assets_expose_ai_summary_profile_model_provider_controls() {
     assert!(js.contains("connectorKind"));
     assert!(js.contains("sessionPath"));
 }
+
+#[test]
+fn cockpit_action_copy_stays_connector_neutral_in_both_locales() {
+    let html = fs::read_to_string("src/ui/assets/cockpit.html").expect("read cockpit.html");
+    let js = fs::read_to_string("src/ui/assets/cockpit.js").expect("read cockpit.js");
+
+    assert!(html.contains("Export a Codex or Claude session"));
+    assert!(html.contains("selected sessions"));
+    assert!(html.contains("Select one or more sessions"));
+    assert!(html.contains("Loading active local sessions"));
+    assert!(!html.contains("Export one Codex thread"));
+    assert!(!html.contains("selected thread"));
+    assert!(!html.contains("Select one thread"));
+    assert!(!html.contains("Loading persisted Codex threads"));
+    assert!(html.contains("Uses the canonical export path"));
+    assert!(html.contains("matching workspace shell"));
+    assert!(!html.contains("canonical Codex export path"));
+    assert!(js.contains(
+        "\"action.note\":\n      \"Exports through the canonical path, then refreshes archive / reports / evidence shells for affected workspaces.\""
+    ));
+    assert!(js.contains(
+        "\"action.note\":\n      \"会沿通用导出主链导出，并刷新受影响 workspace 的 archive / reports / evidence shell。\""
+    ));
+    assert!(!js.contains("会沿 canonical Codex export path 导出"));
+}

@@ -636,6 +636,55 @@ fn codex_export_ai_summary_handles_noisy_child_output_without_timing_out() {
 }
 
 #[test]
+fn codex_export_ai_summary_recovers_when_output_is_written_before_timeout() {
+    let workspace = tempdir().expect("workspace");
+    let codex_home = tempdir().expect("codex home");
+    let fake_bin = tempdir().expect("fake bin");
+    let log_path = workspace.path().join("fake-codex-log.json");
+    create_local_fixture(
+        codex_home.path(),
+        "ai-summary-timeout-recovery-thread",
+        "sessions/ai-summary-timeout-recovery-thread.jsonl",
+    );
+    install_fake_codex(fake_bin.path(), &log_path);
+
+    build_local_command(workspace.path())
+        .env("PATH", prepend_path(fake_bin.path()))
+        .env("AGENT_EXPORTER_FAKE_CODEX_LOG", &log_path)
+        .env("AGENT_EXPORTER_FAKE_CODEX_DELAY_SECONDS", "2")
+        .arg("--codex-home")
+        .arg(codex_home.path())
+        .arg("--thread-id")
+        .arg("ai-summary-timeout-recovery-thread")
+        .arg("--ai-summary")
+        .arg("--ai-summary-timeout-seconds")
+        .arg("1")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("- AI Summary"));
+
+    let markdown_paths = exported_paths_with_extension(workspace.path(), "md");
+    let html_paths = exported_paths_with_extension(workspace.path(), "html");
+    let json_paths = exported_paths_with_extension(workspace.path(), "json");
+
+    assert!(markdown_paths.iter().any(|path| {
+        path.file_name()
+            .and_then(|name| name.to_str())
+            .is_some_and(|name| name.contains("-ai-summary-rounds-"))
+    }));
+    assert!(html_paths.iter().any(|path| {
+        path.file_name()
+            .and_then(|name| name.to_str())
+            .is_some_and(|name| name.contains("-ai-summary-rounds-"))
+    }));
+    assert!(json_paths.iter().any(|path| {
+        path.file_name()
+            .and_then(|name| name.to_str())
+            .is_some_and(|name| name.contains("-ai-summary-rounds-"))
+    }));
+}
+
+#[test]
 fn claude_export_ai_summary_accepts_profile_model_provider_controls() {
     let workspace = tempdir().expect("workspace");
     let fake_bin = tempdir().expect("fake bin");

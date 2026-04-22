@@ -1426,7 +1426,9 @@ mod tests {
 
     use crate::connectors::state_index::CodexThreadMetadata;
 
-    use super::{COCKPIT_HTML, COCKPIT_JS, CockpitState, discovery, thread_display_name};
+    use super::{
+        COCKPIT_CSS, COCKPIT_HTML, COCKPIT_JS, CockpitState, discovery, thread_display_name,
+    };
 
     #[tokio::test]
     async fn discovery_lists_workspace_relevant_threads() {
@@ -1649,6 +1651,9 @@ mod tests {
         assert!(COCKPIT_HTML.contains("data-boot-state=\"booting\""));
         assert!(COCKPIT_HTML.contains("workbench-layout"));
         assert!(COCKPIT_HTML.contains("rail-stack"));
+        assert!(COCKPIT_HTML.contains("rail-control-panel"));
+        assert!(COCKPIT_HTML.contains("rail-output-panel"));
+        assert!(COCKPIT_HTML.contains("cli-preview-panel"));
         assert!(COCKPIT_HTML.contains("ai-summary-advanced"));
         assert!(
             COCKPIT_HTML.find("id=\"action-eyebrow\"").unwrap()
@@ -1656,9 +1661,14 @@ mod tests {
         );
         assert!(
             COCKPIT_HTML.find("id=\"result-eyebrow\"").unwrap()
-                < COCKPIT_HTML.find("id=\"selected-thread-eyebrow\"").unwrap()
+                < COCKPIT_HTML.find("id=\"cli-preview-panel\"").unwrap()
         );
+        assert!(COCKPIT_CSS.contains("max-height: calc(100vh"));
+        assert!(COCKPIT_CSS.contains(".result-preview-list"));
+        assert!(COCKPIT_CSS.contains(".detail-summary-card"));
         assert!(COCKPIT_JS.contains("renderIdleResultState"));
+        assert!(COCKPIT_JS.contains("result-preview-list"));
+        assert!(COCKPIT_JS.contains("detail-summary-card"));
         assert!(COCKPIT_JS.contains("\"result.previewMarkdown\""));
         assert!(COCKPIT_JS.contains("\"result.previewHtml\""));
         assert!(COCKPIT_JS.contains("\"result.previewShell\""));
