@@ -6,7 +6,7 @@
     <title>agent-exporter Export Cockpit</title>
     <link rel="stylesheet" href="/assets/cockpit.css" />
   </head>
-  <body>
+  <body data-boot-state="booting">
     <main class="cockpit-shell">
       <header class="hero">
         <div class="hero-top">
@@ -41,57 +41,49 @@
         </div>
       </header>
 
-      <section class="panel">
-        <div class="panel-head">
-          <div>
-            <p class="eyebrow" id="detection-eyebrow">detection</p>
-            <h2 id="detection-title">Detected workspaces and threads</h2>
+      <div class="workbench-layout">
+        <section class="panel detection-panel">
+          <div class="panel-head">
+            <div>
+              <p class="eyebrow" id="detection-eyebrow">detection</p>
+              <h2 id="detection-title">Detected workspaces and threads</h2>
+            </div>
+            <button id="refresh-button" type="button">Refresh</button>
           </div>
-          <button id="refresh-button" type="button">Refresh</button>
-        </div>
-        <p id="detection-status" class="muted">Loading persisted Codex threads…</p>
-        <div class="search-stack">
-          <label class="input-stack" for="thread-search">
-            <span class="muted" id="thread-search-label">Search detected threads</span>
-            <input
-              id="thread-search"
-              type="search"
-              placeholder="Search by title, workspace, model, or thread id"
-            />
-          </label>
-          <p id="thread-search-status" class="muted">No threads loaded yet.</p>
-        </div>
-        <div id="thread-list" class="thread-list workspace-groups"></div>
-      </section>
-
-      <section class="grid">
-        <section class="panel">
-          <p class="eyebrow" id="selected-thread-eyebrow">selected thread</p>
-          <div id="thread-detail" class="detail-empty">
-            Choose one thread to see export details.
+          <p id="detection-status" class="muted">Loading persisted Codex threads…</p>
+          <div class="search-stack">
+            <label class="input-stack" for="thread-search">
+              <span class="muted" id="thread-search-label">Search detected threads</span>
+              <input
+                id="thread-search"
+                type="search"
+                placeholder="Search by title, workspace, model, or thread id"
+              />
+            </label>
+            <p id="thread-search-status" class="muted">No threads loaded yet.</p>
           </div>
+          <div id="thread-list" class="thread-list workspace-groups"></div>
         </section>
 
-        <section class="panel">
-          <p class="eyebrow" id="action-eyebrow">action</p>
-          <p id="selection-summary" class="muted">No threads selected.</p>
-          <div class="action-toolbar">
-            <button id="clear-selection-button" class="ghost-button" type="button">Clear selection</button>
-          </div>
-          <label class="toggle-row">
-            <input id="ai-summary-toggle" type="checkbox" />
-            <span id="ai-summary-label">Add optional AI summary</span>
-          </label>
-          <div id="ai-summary-panel" hidden>
-            <div class="ai-summary-control-grid">
-              <label class="input-stack" for="ai-summary-profile">
-                <span class="muted" id="ai-summary-profile-label">Optional AI summary profile</span>
-                <input
-                  id="ai-summary-profile"
-                  type="text"
-                  placeholder="Use a Codex config profile, if needed."
-                />
-              </label>
+        <aside class="rail-stack">
+          <section class="panel">
+            <p class="eyebrow" id="selected-thread-eyebrow">selected thread</p>
+            <div id="thread-detail" class="detail-empty">
+              Choose one thread to see export details.
+            </div>
+          </section>
+
+          <section class="panel">
+            <p class="eyebrow" id="action-eyebrow">action</p>
+            <p id="selection-summary" class="muted">No threads selected.</p>
+            <div class="action-toolbar">
+              <button id="clear-selection-button" class="ghost-button" type="button">Clear selection</button>
+            </div>
+            <label class="toggle-row">
+              <input id="ai-summary-toggle" type="checkbox" />
+              <span id="ai-summary-label">Add optional AI summary</span>
+            </label>
+            <div id="ai-summary-panel" hidden>
               <label class="input-stack" for="ai-summary-preset">
                 <span class="muted" id="ai-summary-preset-label">Optional AI summary preset</span>
                 <input
@@ -100,66 +92,79 @@
                   placeholder="handoff, bug-rca, decision, release..."
                 />
               </label>
-              <label class="input-stack" for="ai-summary-model">
-                <span class="muted" id="ai-summary-model-label">Optional AI summary model</span>
-                <input
-                  id="ai-summary-model"
-                  type="text"
-                  placeholder="Override the model for this summary."
-                />
-              </label>
-              <label class="input-stack" for="ai-summary-provider">
-                <span class="muted" id="ai-summary-provider-label">Optional AI summary provider</span>
-                <input
-                  id="ai-summary-provider"
-                  type="text"
-                  placeholder="Override the model provider for this summary."
-                />
-              </label>
-              <label class="input-stack" for="ai-summary-timeout-seconds">
-                <span class="muted" id="ai-summary-timeout-seconds-label">Optional AI summary timeout (seconds)</span>
-                <input
-                  id="ai-summary-timeout-seconds"
-                  type="number"
-                  min="1"
-                  step="1"
-                  placeholder="Override the timeout budget for this summary."
-                />
+              <details id="ai-summary-advanced" class="advanced-panel">
+                <summary id="ai-summary-advanced-summary">Advanced AI summary overrides</summary>
+                <div class="ai-summary-control-grid">
+                  <label class="input-stack" for="ai-summary-profile">
+                    <span class="muted" id="ai-summary-profile-label">Optional AI summary profile</span>
+                    <input
+                      id="ai-summary-profile"
+                      type="text"
+                      placeholder="Use a Codex config profile, if needed."
+                    />
+                  </label>
+                  <label class="input-stack" for="ai-summary-model">
+                    <span class="muted" id="ai-summary-model-label">Optional AI summary model</span>
+                    <input
+                      id="ai-summary-model"
+                      type="text"
+                      placeholder="Override the model for this summary."
+                    />
+                  </label>
+                  <label class="input-stack" for="ai-summary-provider">
+                    <span class="muted" id="ai-summary-provider-label">Optional AI summary provider</span>
+                    <input
+                      id="ai-summary-provider"
+                      type="text"
+                      placeholder="Override the model provider for this summary."
+                    />
+                  </label>
+                  <label class="input-stack" for="ai-summary-timeout-seconds">
+                    <span class="muted" id="ai-summary-timeout-seconds-label">Optional AI summary timeout (seconds)</span>
+                    <input
+                      id="ai-summary-timeout-seconds"
+                      type="number"
+                      min="1"
+                      step="1"
+                      placeholder="Override the timeout budget for this summary."
+                    />
+                  </label>
+                </div>
+              </details>
+              <label class="input-stack" for="ai-summary-instructions">
+                <span class="muted" id="ai-summary-instructions-label">Optional AI summary instructions</span>
+                <textarea
+                  id="ai-summary-instructions"
+                  rows="4"
+                  placeholder="Extra instructions for the AI synthesis, if needed."
+                ></textarea>
               </label>
             </div>
-            <label class="input-stack" for="ai-summary-instructions">
-              <span class="muted" id="ai-summary-instructions-label">Optional AI summary instructions</span>
-              <textarea
-                id="ai-summary-instructions"
-                rows="4"
-                placeholder="Extra instructions for the AI synthesis, if needed."
-              ></textarea>
-            </label>
-          </div>
-          <button id="export-button" class="primary" type="button" disabled>
-            Export to workbench
-          </button>
-          <p class="muted" id="action-note">
-            Uses the canonical Codex export path, then publishes the selected thread's workspace
-            shell.
-          </p>
-        </section>
-      </section>
+            <button id="export-button" class="primary" type="button" disabled>
+              Export to workbench
+            </button>
+            <p class="muted" id="action-note">
+              Uses the canonical Codex export path, then publishes the selected thread's workspace
+              shell.
+            </p>
+          </section>
 
-      <section class="panel">
-        <p class="eyebrow" id="result-eyebrow">result</p>
-        <p id="result-status" class="muted">No export has run yet.</p>
-        <div id="result-links" class="result-links"></div>
-      </section>
+          <section class="panel">
+            <p class="eyebrow" id="result-eyebrow">result</p>
+            <p id="result-status" class="muted">No export has run yet.</p>
+            <div id="result-links" class="result-links"></div>
+          </section>
 
-      <section class="panel">
-        <p class="eyebrow" id="cli-eyebrow">cli equivalent</p>
-        <p class="muted" id="cli-note">
-          This cockpit is a local helper, not a hidden execution layer. The command below shows the
-          closest CLI path for the current selection.
-        </p>
-        <pre class="command-preview"><code id="command-preview">Select one thread to preview the equivalent CLI command.</code></pre>
-      </section>
+          <section class="panel">
+            <p class="eyebrow" id="cli-eyebrow">cli equivalent</p>
+            <p class="muted" id="cli-note">
+              This cockpit is a local helper, not a hidden execution layer. The command below shows the
+              closest CLI path for the current selection.
+            </p>
+            <pre class="command-preview"><code id="command-preview">Select one thread to preview the equivalent CLI command.</code></pre>
+          </section>
+        </aside>
+      </div>
     </main>
     <script src="/assets/cockpit.js"></script>
   </body>

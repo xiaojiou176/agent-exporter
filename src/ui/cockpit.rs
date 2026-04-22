@@ -1645,6 +1645,19 @@ mod tests {
     }
 
     #[test]
+    fn cockpit_assets_compact_workbench_layout_and_markdown_first_idle_result() {
+        assert!(COCKPIT_HTML.contains("data-boot-state=\"booting\""));
+        assert!(COCKPIT_HTML.contains("workbench-layout"));
+        assert!(COCKPIT_HTML.contains("rail-stack"));
+        assert!(COCKPIT_HTML.contains("ai-summary-advanced"));
+        assert!(COCKPIT_JS.contains("renderIdleResultState"));
+        assert!(COCKPIT_JS.contains("\"result.previewMarkdown\""));
+        assert!(COCKPIT_JS.contains("\"result.previewHtml\""));
+        assert!(COCKPIT_JS.contains("\"result.previewShell\""));
+        assert!(COCKPIT_JS.contains("\"action.aiAdvanced\""));
+    }
+
+    #[test]
     fn thread_display_name_ignores_titles_that_only_repeat_the_first_prompt() {
         let entry = CodexThreadMetadata {
             thread_id: "019dad4b-7cbe-7351-a8c2-931bd140bc90".to_string(),
