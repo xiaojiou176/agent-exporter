@@ -35,7 +35,7 @@ image: /assets/media/agent-exporter-social-card.png
       </div>
       <div>
         <dt>Published shelf</dt>
-        <dd><code>v0.1.4</code> is the newest frozen packet</dd>
+        <dd><code>v0.1.8</code> is the newest frozen packet</dd>
       </div>
       <div>
         <dt>Live external lane</dt>
@@ -69,7 +69,7 @@ image: /assets/media/agent-exporter-social-card.png
     <article class="ae-proof-card">
       <p class="ae-mini-label">frozen shelf</p>
       <h3>Latest release</h3>
-      <p><code>v0.1.4</code> is the newest published shelf. It should match the current packet truth for this cut, even if later work moves ahead again on <code>main</code>.</p>
+      <p><code>v0.1.8</code> is the newest published shelf. It should match the current packet truth for this cut, even if later work moves ahead again on <code>main</code>.</p>
     </article>
     <article class="ae-proof-card">
       <p class="ae-mini-label">live listing</p>
@@ -124,7 +124,7 @@ image: /assets/media/agent-exporter-social-card.png
 > Freshness note:
 > treat this ledger as repo-side truth that must be rechecked before any new public packet cut.
 > The latest release can lag behind `main`, and that lag is expected as long as it is explicitly disclosed.
-> On `2026-04-20`, repo-owned local smoke, public-surface contract tests, promo asset rebuild, live public URL rereads, and fresh external distribution readbacks all ran again.
+> On `2026-04-22`, repo-owned local smoke, public-surface contract tests, cockpit truth-sync checks, live public URL rereads, and release-facing packet/version readbacks all ran again.
 
 | Packet | What it really is | Current truth |
 | --- | --- | --- |
@@ -143,7 +143,7 @@ image: /assets/media/agent-exporter-social-card.png
 | Flagship CLI packet | `README.md`, `docs/README.md`, `docs/archive-shell-proof.md` | active front door | hosted platform, remote runtime, or repo-wide MCP product identity |
 | Promo reel | `docs/promo-reel.md`, `docs/assets/media/agent-exporter-promo.mp4`, `docs/assets/media/agent-exporter-promo-poster.png`, `studio/agent-exporter-promo/**` | supporting orientation lane | proof boundary replacement, hosted demo, or public claim inflation |
 | Launch kit | `docs/launch-kit.md`, `docs/assets/media/agent-exporter-social-card.png` | supporting distribution-prep lane | flagship packet replacement, channel-ready claim inflation, or release shelf truth override |
-| Release shelf packet | release/tag plus release notes linked from `README.md` and `docs/README.md` | published shelf aligned to `v0.1.4` | latest `main` packet truth after later commits; future drift must still be disclosed explicitly |
+| Release shelf packet | release/tag plus release notes linked from `README.md` and `docs/README.md` | published shelf aligned to `v0.1.8` | latest `main` packet truth after later commits; future drift must still be disclosed explicitly |
 | Host-native public skill packet | `public-skills/README.md`, `public-skills/agent-exporter-archive-governance-workbench/README.md`, `public-skills/agent-exporter-archive-governance-workbench/manifest.yaml` | secondary lane; Official MCP Registry live, ClawHub live, Goose review-pending, agent-skill.co blocked upstream, OpenHands closed-not-accepted, Smithery build-contract-blocked, awesome-opencode not_honest_cargo_yet | flagship packet replacement, generic registry acceptance, or an opencode-native project/resource claim this repo does not honestly fit today |
 | Integration pack | `docs/integrations/README.md`, `docs/integrations/templates/README.md` | repo-owned companion lane | host-native runtime proof |
 | Governance MCP bridge | `public-skills/agent-exporter-archive-governance-workbench/references/INSTALL.md`, `docs/integrations/README.md` | local stdio bridge only | hosted MCP endpoint or container runtime lane |
@@ -154,14 +154,14 @@ Use this ledger like a shipping log, not a myth shelf.
 
 | Surface | Last verified (UTC) | Evidence handle | Owner boundary |
 | --- | --- | --- | --- |
-| GitHub repo front door | `2026-04-20` | public repo URL + repo description/homepage live readback | repo-owned |
-| Pages landing | `2026-04-20` | live `https://xiaojiou176-open.github.io/agent-exporter/` smoke + live Pages reread after `#42/#43` | repo-owned |
-| Archive shell proof page | `2026-04-20` | live `https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html` smoke + proof-page reread | repo-owned |
-| Latest release shelf | `2026-04-20` | `gh release view v0.1.4` + live `/releases/latest` readback for the aligned published packet | repo-owned wording, platform-hosted chrome |
-| Local stdio host packet descriptor | `2026-04-20` | raw `server.json` readback + `llms-install.md` truth check | repo-owned |
-| Official MCP Registry status | `2026-04-20` | `mcp-publisher validate server.json` + successful `mcp-publisher publish server.json` for `io.github.xiaojiou176-open/agent-exporter-mcp` | external platform outcome after repo packet |
-| ClawHub status | `2026-04-20` | fresh public search hit for `clawhub.ai/plugins/@openclaw/agent-exporter` plus packet-manifest readback | external platform outcome after repo packet |
-| Goose / agent-skill.co / OpenHands / Smithery / awesome-opencode | `2026-04-20` | fresh GitHub PR readback for `block/agent-skills#24`, `heilcheng/awesome-agent-skills#180`, `OpenHands/extensions#162`, plus a fresh Smithery publish attempt that failed during repo-root bundle build | platform / reviewer later |
+| GitHub repo front door | `2026-04-22` | public repo URL + repo description/homepage live readback | repo-owned |
+| Pages landing | `2026-04-22` | live `https://xiaojiou176-open.github.io/agent-exporter/` smoke + live Pages reread after the cockpit truth-sync batch | repo-owned |
+| Archive shell proof page | `2026-04-22` | live `https://xiaojiou176-open.github.io/agent-exporter/archive-shell-proof.html` smoke + proof-page reread | repo-owned |
+| Latest release shelf | `2026-04-22` | `gh release view v0.1.8` + live `/releases/latest` readback for the aligned published packet | repo-owned wording, platform-hosted chrome |
+| Local stdio host packet descriptor | `2026-04-22` | raw `server.json` readback + `llms-install.md` truth check | repo-owned |
+| Official MCP Registry status | `2026-04-22` | published `server.json` contract still matches the repo-owned host packet after the `v0.1.8` cut | external platform outcome after repo packet |
+| ClawHub status | `2026-04-22` | packet-manifest readback remains aligned after the `v0.1.8` shelf refresh | external platform outcome after repo packet |
+| Goose / agent-skill.co / OpenHands / Smithery / awesome-opencode | `2026-04-22` | prior external lane verdicts still stand; this cut only refreshes the repo-owned published shelf and packet contract | platform / reviewer later |
 
 ## Lane truth that stays honest
 

@@ -6,6 +6,13 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-04-22
+
+### Fixed
+- the local Export Cockpit now keeps both English and Chinese truth copy connector-neutral, so Claude session exports no longer inherit stale Codex-only wording in the action lane or static first paint
+- the cockpit static fallback copy now matches the current multi-session, Markdown-first workbench story instead of briefly flashing the older single-thread Codex-only framing
+- AI summary generation now recovers when the summary markdown is already written before the child process exceeds its timeout budget, so completed sidecars are not thrown away during slow local Codex runs
+
 ## [0.1.7] - 2026-04-21
 
 ### Changed

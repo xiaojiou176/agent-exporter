@@ -176,8 +176,12 @@ fn finalize_ai_summary_outputs(
         );
     }
 
-    let html_output_path =
-        write_html_companion(output_path, request.transcript, request.exported_at, &markdown)?;
+    let html_output_path = write_html_companion(
+        output_path,
+        request.transcript,
+        request.exported_at,
+        &markdown,
+    )?;
     let json_output_path = output_path.with_extension("json");
     let structured_summary = build_structured_summary_document(
         request,
