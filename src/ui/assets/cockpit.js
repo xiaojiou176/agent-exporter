@@ -16,11 +16,11 @@ const state = {
 const STRINGS = {
   en: {
     "hero.eyebrow": "local-first export cockpit",
-    "hero.title": "Select a Codex or Claude session, export it, and open the local workbench.",
+    "hero.title": "Export a Codex or Claude session back into its local archive workbench.",
     "hero.lead":
-      "Live Codex discovery comes first, workspace-local Claude sessions fill the gaps, and every export lands back in its own workspace with Markdown-first results.",
+      "Pick a session, export it, then open the Markdown-first transcript. HTML and workspace shells stay as companion surfaces.",
     "hero.note":
-      "Pick a thread, export it, then open the Markdown transcript, HTML companion, and workspace shells. The public front door still stays with the CLI quickstart.",
+      "Local helper after the CLI path, not a hidden execution layer.",
     "meta.launchRoot": "launch root",
     "meta.codexHome": "codex home",
     "meta.discoveryMode": "discovery mode",
@@ -130,11 +130,11 @@ const STRINGS = {
   },
   zh: {
     "hero.eyebrow": "本地优先导出驾驶舱",
-    "hero.title": "先选会话，再导出，再打开它自己的本地归档工作台。",
+    "hero.title": "把会话导回它自己的本地归档工作台。",
     "hero.lead":
-      "它会优先使用 live Codex thread discovery，再补上 workspace-local Claude session，并把每次导出回写到对应 workspace，主结果优先暴露 Markdown。",
+      "你先选会话，再导出，再打开 Markdown 主结果。HTML 和 workspace shell 继续保留，但只做辅助浏览与导航。",
     "hero.note":
-      "你先选线程，再导出，再从这里打开 Markdown 主文件、HTML 辅助稿和 workspace shell。公开 front door 依然是 CLI quickstart。",
+      "这是 CLI 之后的本地工作面，不是隐藏执行层。",
     "meta.launchRoot": "启动根目录",
     "meta.codexHome": "Codex Home",
     "meta.discoveryMode": "发现模式",
@@ -804,14 +804,6 @@ function renderSelection() {
         <div class="detail-row">
           <dt>${t("thread.updatedAt")}</dt>
           <dd>${formatRelativeTime(thread.updatedAt)}</dd>
-        </div>
-        <div class="detail-row">
-          <dt>${t("thread.createdAt")}</dt>
-          <dd>${formatRelativeTime(thread.createdAt)}</dd>
-        </div>
-        <div class="detail-row">
-          <dt>${t("thread.cwd")}</dt>
-          <dd>${thread.cwd ?? "(none)"}</dd>
         </div>
         <div class="detail-row">
           <dt>${t("thread.artifactPath")}</dt>
