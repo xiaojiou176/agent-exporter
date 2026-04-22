@@ -6,6 +6,12 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-04-22
+
+### Changed
+- the cockpit empty state now promotes the result rail before the action rail, so the Markdown-first output explanation lands earlier in the first viewport
+- the action rail de-emphasizes optional AI summary controls until a session is selected, reducing empty-state noise without hiding the summary workflow itself
+
 ## [0.1.9] - 2026-04-22
 
 ### Fixed

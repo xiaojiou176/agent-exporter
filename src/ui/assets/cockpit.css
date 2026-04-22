@@ -159,6 +159,20 @@ body[data-boot-state="booting"] .result-links {
   gap: 14px;
 }
 
+.rail-stack.is-empty-selection .rail-output-panel {
+  order: -1;
+}
+
+.rail-stack.is-empty-selection .toggle-row,
+.rail-stack.is-empty-selection #action-note {
+  opacity: 0.58;
+}
+
+.rail-stack.is-empty-selection .detail-shell {
+  border-style: dashed;
+  background: rgba(248, 250, 252, 0.62);
+}
+
 .rail-panel-head {
   align-items: center;
 }

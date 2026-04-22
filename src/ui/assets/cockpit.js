@@ -280,6 +280,7 @@ const commandPreviewEl = document.getElementById("command-preview");
 const localeToggleEl = document.getElementById("locale-toggle");
 const selectionSummaryEl = document.getElementById("selection-summary");
 const clearSelectionButtonEl = document.getElementById("clear-selection-button");
+const railStackEl = document.querySelector(".rail-stack");
 
 function locale() {
   return state.prefs.locale === "zh" ? "zh" : "en";
@@ -781,7 +782,9 @@ function renderCommandPreview() {
 
 function renderSelection() {
   const selected = selectedThreads();
+  railStackEl?.classList.toggle("is-empty-selection", selected.length === 0);
   clearSelectionButtonEl.disabled = selected.length === 0;
+  aiSummaryToggleEl.disabled = selected.length === 0;
   aiSummaryPanelEl.hidden = !aiSummaryToggleEl?.checked;
   aiSummaryInstructionsEl.disabled = !aiSummaryToggleEl?.checked;
   aiSummaryProfileEl.disabled = !aiSummaryToggleEl?.checked;
