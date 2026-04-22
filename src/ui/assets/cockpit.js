@@ -49,6 +49,8 @@ const STRINGS = {
     "action.aiModelPlaceholder": "Model override for the AI synthesis",
     "action.aiProvider": "Optional AI summary provider",
     "action.aiProviderPlaceholder": "Provider override for the AI synthesis",
+    "action.aiTimeout": "Optional AI summary timeout (seconds)",
+    "action.aiTimeoutPlaceholder": "Override the timeout budget for this summary.",
     "action.button.single": "Export selected thread",
     "action.button.multi": "Export {count} threads",
     "action.note":
@@ -156,6 +158,8 @@ const STRINGS = {
     "action.aiModelPlaceholder": "用于 AI 摘要的模型覆盖",
     "action.aiProvider": "可选 AI 摘要 Provider",
     "action.aiProviderPlaceholder": "用于 AI 摘要的 provider 覆盖",
+    "action.aiTimeout": "可选 AI 摘要超时（秒）",
+    "action.aiTimeoutPlaceholder": "覆盖本次摘要的超时预算",
     "action.button.single": "导出所选会话",
     "action.button.multi": "导出 {count} 个会话",
     "action.note":
@@ -243,6 +247,7 @@ const aiSummaryProfileEl = document.getElementById("ai-summary-profile");
 const aiSummaryPresetEl = document.getElementById("ai-summary-preset");
 const aiSummaryModelEl = document.getElementById("ai-summary-model");
 const aiSummaryProviderEl = document.getElementById("ai-summary-provider");
+const aiSummaryTimeoutSecondsEl = document.getElementById("ai-summary-timeout-seconds");
 const threadSearchEl = document.getElementById("thread-search");
 const threadSearchStatusEl = document.getElementById("thread-search-status");
 const workspaceRootValueEl = document.getElementById("workspace-root-value");
@@ -273,6 +278,13 @@ function trimmedValue(element) {
 function previewArg(value) {
   const text = String(value ?? "");
   return /[\s"'\\]/.test(text) ? JSON.stringify(text) : text;
+}
+
+function positiveIntegerValue(element) {
+  const text = trimmedValue(element);
+  if (!text) return null;
+  const value = Number.parseInt(text, 10);
+  return Number.isFinite(value) && value > 0 ? value : null;
 }
 
 function selectedThreads() {
@@ -409,6 +421,8 @@ function applyStaticText() {
   aiSummaryModelEl.placeholder = t("action.aiModelPlaceholder");
   document.getElementById("ai-summary-provider-label").textContent = t("action.aiProvider");
   aiSummaryProviderEl.placeholder = t("action.aiProviderPlaceholder");
+  document.getElementById("ai-summary-timeout-seconds-label").textContent = t("action.aiTimeout");
+  aiSummaryTimeoutSecondsEl.placeholder = t("action.aiTimeoutPlaceholder");
   document.getElementById("result-eyebrow").textContent = t("result.eyebrow");
   document.getElementById("cli-eyebrow").textContent = t("cli.eyebrow");
   document.getElementById("cli-note").textContent = t("cli.note");
@@ -441,10 +455,12 @@ async function persistPreferences() {
 function toggleThreadSelection(threadId) {
   if (state.selectedThreadIds.has(threadId)) {
     state.selectedThreadIds.delete(threadId);
+    state.focusedThreadId =
+      state.threads.find((thread) => state.selectedThreadIds.has(thread.threadId))?.threadId ?? null;
   } else {
     state.selectedThreadIds.add(threadId);
+    state.focusedThreadId = threadId;
   }
-  state.focusedThreadId = threadId;
 }
 
 function setAllThreadsInGroup(group, shouldSelect) {
@@ -455,8 +471,11 @@ function setAllThreadsInGroup(group, shouldSelect) {
       state.selectedThreadIds.delete(thread.threadId);
     }
   }
-  if (group.threads[0]) {
+  if (shouldSelect && group.threads[0]) {
     state.focusedThreadId = group.threads[0].threadId;
+  } else {
+    state.focusedThreadId =
+      state.threads.find((thread) => state.selectedThreadIds.has(thread.threadId))?.threadId ?? null;
   }
 }
 
@@ -512,16 +531,19 @@ function renderThreads() {
     return;
   }
 
-  if (!state.focusedThreadId || !visibleThreads.some((thread) => thread.threadId === state.focusedThreadId)) {
-    state.focusedThreadId = visibleThreads[0].threadId;
-  }
-  if (state.selectedThreadIds.size === 0) {
-    state.selectedThreadIds.add(state.focusedThreadId);
+  if (
+    state.focusedThreadId &&
+    !visibleThreads.some((thread) => thread.threadId === state.focusedThreadId)
+  ) {
+    state.focusedThreadId =
+      visibleThreads.find((thread) => state.selectedThreadIds.has(thread.threadId))?.threadId ?? null;
   }
 
-  const focusedGroupKey =
-    visibleThreads.find((thread) => thread.threadId === state.focusedThreadId)?.workspaceKey ??
-    visibleGroups[0]?.workspaceKey;
+  const focusedGroupKey = state.focusedThreadId
+    ? visibleThreads.find((thread) => thread.threadId === state.focusedThreadId)?.workspaceKey
+    : visibleGroups.find((group) =>
+        group.threads.some((thread) => state.selectedThreadIds.has(thread.threadId)),
+      )?.workspaceKey;
   if (focusedGroupKey) {
     state.expandedWorkspaceKeys.add(focusedGroupKey);
   }
@@ -645,6 +667,7 @@ function renderCommandPreview() {
   const aiSummaryPreset = trimmedValue(aiSummaryPresetEl);
   const aiSummaryModel = trimmedValue(aiSummaryModelEl);
   const aiSummaryProvider = trimmedValue(aiSummaryProviderEl);
+  const aiSummaryTimeoutSeconds = positiveIntegerValue(aiSummaryTimeoutSecondsEl);
   const aiSummaryInstructions = trimmedValue(aiSummaryInstructionsEl);
 
   const lines = [
@@ -681,6 +704,9 @@ function renderCommandPreview() {
         if (aiSummaryProvider) {
           lines.push(`  --ai-summary-provider ${previewArg(aiSummaryProvider)} \\`);
         }
+        if (aiSummaryTimeoutSeconds) {
+          lines.push(`  --ai-summary-timeout-seconds ${previewArg(aiSummaryTimeoutSeconds)} \\`);
+        }
         if (aiSummaryInstructions) {
           lines.push(`  --ai-summary-instructions ${previewArg(aiSummaryInstructions)} \\`);
         }
@@ -706,6 +732,7 @@ function renderSelection() {
   if (aiSummaryPresetEl) aiSummaryPresetEl.disabled = !aiSummaryToggleEl?.checked;
   aiSummaryModelEl.disabled = !aiSummaryToggleEl?.checked;
   aiSummaryProviderEl.disabled = !aiSummaryToggleEl?.checked;
+  aiSummaryTimeoutSecondsEl.disabled = !aiSummaryToggleEl?.checked;
 
   if (selected.length === 0) {
     selectionSummaryEl.textContent = t("selection.none");
@@ -1050,6 +1077,7 @@ async function exportSelected() {
   const aiSummaryPreset = trimmedValue(aiSummaryPresetEl);
   const aiSummaryModel = trimmedValue(aiSummaryModelEl);
   const aiSummaryProvider = trimmedValue(aiSummaryProviderEl);
+  const aiSummaryTimeoutSeconds = positiveIntegerValue(aiSummaryTimeoutSecondsEl);
   const aiSummaryInstructions = trimmedValue(aiSummaryInstructionsEl);
 
   exportButtonEl.disabled = true;
@@ -1074,6 +1102,7 @@ async function exportSelected() {
         aiSummaryPreset: aiSummaryPreset || null,
         aiSummaryModel: aiSummaryModel || null,
         aiSummaryProvider: aiSummaryProvider || null,
+        aiSummaryTimeoutSeconds: aiSummaryTimeoutSeconds,
       }),
     });
     const data = await response.json();
@@ -1123,8 +1152,13 @@ aiSummaryProviderEl?.addEventListener("input", () => {
   renderCommandPreview();
 });
 
+aiSummaryTimeoutSecondsEl?.addEventListener("input", () => {
+  renderCommandPreview();
+});
+
 clearSelectionButtonEl?.addEventListener("click", () => {
   state.selectedThreadIds.clear();
+  state.focusedThreadId = null;
   renderThreads();
   renderSelection();
 });

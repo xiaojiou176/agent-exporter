@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use std::thread::sleep;
 use std::time::{Duration, Instant};
+use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{Context, Result, bail};
 use serde_json::{Map, Value};
@@ -19,7 +20,7 @@ use crate::core::workbench::{
 use crate::model::OutputFormat;
 
 const DEFAULT_AI_SUMMARY_COMMAND: &str = "codex";
-const DEFAULT_AI_SUMMARY_TIMEOUT: Duration = Duration::from_secs(120);
+const DEFAULT_AI_SUMMARY_TIMEOUT: Duration = Duration::from_secs(300);
 
 pub struct AiSummaryRequest<'a> {
     pub transcript: &'a ArchiveTranscript,
@@ -53,6 +54,23 @@ pub fn generate_ai_summary_with_options(
     let output_path = allocate_ai_summary_document_path(request.transcript, request.output_target)?;
     let working_root = summary_working_root(request.output_target)?;
     let prompt = build_default_summary_prompt(request, options);
+    let timeout = effective_ai_summary_timeout(request.timeout_seconds, options.timeout_seconds);
+    let (stdout_capture_path, stderr_capture_path) =
+        ai_summary_capture_paths(&request.transcript.thread_id);
+    let stdout_capture = create_ai_summary_capture_file(&stdout_capture_path, "stdout")
+        .with_context(|| {
+            format!(
+                "failed to prepare AI summary stdout capture for transcript `{}`",
+                request.transcript.thread_id
+            )
+        })?;
+    let stderr_capture = create_ai_summary_capture_file(&stderr_capture_path, "stderr")
+        .with_context(|| {
+            format!(
+                "failed to prepare AI summary stderr capture for transcript `{}`",
+                request.transcript.thread_id
+            )
+        })?;
     let mut command = Command::new(DEFAULT_AI_SUMMARY_COMMAND);
     command.args(build_ai_summary_exec_args(
         &working_root,
@@ -61,8 +79,8 @@ pub fn generate_ai_summary_with_options(
     ));
     let mut child = command
         .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
+        .stdout(Stdio::from(stdout_capture))
+        .stderr(Stdio::from(stderr_capture))
         .spawn()
         .with_context(|| {
             format!(
@@ -81,90 +99,98 @@ pub fn generate_ai_summary_with_options(
             .context("failed to send AI summary prompt")?;
     }
 
-    let timeout = Duration::from_secs(
-        request
-            .timeout_seconds
-            .unwrap_or(DEFAULT_AI_SUMMARY_TIMEOUT.as_secs()),
-    );
-    let start = Instant::now();
-    let output = loop {
-        if let Some(status) = child
-            .try_wait()
-            .context("failed while polling AI summary agent")?
-        {
-            let stdout = child
-                .stdout
-                .take()
-                .context("AI summary agent stdout unavailable")?;
-            let stderr = child
-                .stderr
-                .take()
-                .context("AI summary agent stderr unavailable")?;
-            let output = std::process::Output {
-                status,
-                stdout: read_all(stdout).context("failed to read AI summary stdout")?,
-                stderr: read_all(stderr).context("failed to read AI summary stderr")?,
-            };
-            break output;
-        }
+    let result = (|| {
+        let start = Instant::now();
+        let status = loop {
+            if let Some(status) = child
+                .try_wait()
+                .context("failed while polling AI summary agent")?
+            {
+                break status;
+            }
 
-        if start.elapsed() >= timeout {
-            child.kill().ok();
-            child.wait().ok();
+            if start.elapsed() >= timeout {
+                child.kill().ok();
+                child.wait().ok();
+                let stderr = summarize_ai_summary_capture(&stderr_capture_path);
+                bail!(
+                    "AI summary generation timed out after {} seconds; raw transcript export remains on disk, but the AI summary sidecar was not completed{}.{}",
+                    timeout.as_secs(),
+                    if stderr.is_empty() {
+                        String::new()
+                    } else {
+                        " Child stderr captured before timeout:".to_string()
+                    },
+                    stderr
+                );
+            }
+
+            sleep(Duration::from_millis(200));
+        };
+
+        if !status.success() {
+            let stdout = read_ai_summary_capture(&stdout_capture_path);
+            let stderr = read_ai_summary_capture(&stderr_capture_path);
             bail!(
-                "AI summary generation timed out after {} seconds; raw transcript export remains on disk, but the AI summary sidecar was not completed",
-                timeout.as_secs()
+                "AI summary generation failed with status {}.\nstdout:\n{}\nstderr:\n{}",
+                status,
+                stdout,
+                stderr
             );
         }
 
-        sleep(Duration::from_millis(200));
-    };
-    if !output.status.success() {
-        let stdout = String::from_utf8_lossy(&output.stdout);
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        bail!(
-            "AI summary generation failed with status {}.\nstdout:\n{}\nstderr:\n{}",
-            output.status,
-            stdout,
-            stderr
+        if !output_path.exists() {
+            bail!(
+                "AI summary agent reported success, but output file was not written: {}",
+                output_path.display()
+            );
+        }
+
+        let markdown = std::fs::read_to_string(&output_path).with_context(|| {
+            format!(
+                "failed to read AI summary markdown `{}` before generating companions",
+                output_path.display()
+            )
+        })?;
+        let html_output_path = write_html_companion(
+            &output_path,
+            request.transcript,
+            request.exported_at,
+            &markdown,
+        )?;
+        let json_output_path = output_path.with_extension("json");
+        let structured_summary = build_structured_summary_document(
+            request,
+            options,
+            &output_path,
+            &html_output_path,
+            &json_output_path,
+            &markdown,
         );
-    }
+        write_structured_summary_document(&json_output_path, &structured_summary)?;
 
-    if !output_path.exists() {
-        bail!(
-            "AI summary agent reported success, but output file was not written: {}",
-            output_path.display()
-        );
-    }
+        Ok(AiSummaryOutcome {
+            markdown_output_path: output_path,
+            html_output_path,
+            json_output_path,
+        })
+    })();
 
-    let markdown = std::fs::read_to_string(&output_path).with_context(|| {
-        format!(
-            "failed to read AI summary markdown `{}` before generating companions",
-            output_path.display()
-        )
-    })?;
-    let html_output_path = write_html_companion(
-        &output_path,
-        request.transcript,
-        request.exported_at,
-        &markdown,
-    )?;
-    let json_output_path = output_path.with_extension("json");
-    let structured_summary = build_structured_summary_document(
-        request,
-        options,
-        &output_path,
-        &html_output_path,
-        &json_output_path,
-        &markdown,
-    );
-    write_structured_summary_document(&json_output_path, &structured_summary)?;
+    let _ = std::fs::remove_file(&stdout_capture_path);
+    let _ = std::fs::remove_file(&stderr_capture_path);
 
-    Ok(AiSummaryOutcome {
-        markdown_output_path: output_path,
-        html_output_path,
-        json_output_path,
-    })
+    result
+}
+
+fn effective_ai_summary_timeout(
+    request_timeout_seconds: Option<u64>,
+    options_timeout_seconds: Option<u64>,
+) -> Duration {
+    Duration::from_secs(
+        request_timeout_seconds
+            .or(options_timeout_seconds)
+            .unwrap_or(DEFAULT_AI_SUMMARY_TIMEOUT.as_secs()),
+    )
 }
 
 fn build_ai_summary_exec_args(
@@ -190,6 +216,13 @@ fn build_ai_summary_exec_args(
         args.push(format!("model_provider={}", quote_toml_string(provider)));
     }
 
+    if options.profile.is_none() {
+        args.push("-c".to_string());
+        args.push("model_reasoning_effort=\"low\"".to_string());
+        args.push("-c".to_string());
+        args.push("model_verbosity=\"low\"".to_string());
+    }
+
     args.extend([
         "--skip-git-repo-check".to_string(),
         "--sandbox".to_string(),
@@ -206,6 +239,67 @@ fn normalize_option(value: Option<&str>) -> Option<&str> {
     value.map(str::trim).filter(|value| !value.is_empty())
 }
 
+fn ai_summary_capture_paths(thread_id: &str) -> (PathBuf, PathBuf) {
+    let stamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos();
+    let slug = thread_id
+        .chars()
+        .map(|ch| match ch {
+            'a'..='z' | 'A'..='Z' | '0'..='9' => ch,
+            _ => '-',
+        })
+        .collect::<String>();
+    let root = std::env::temp_dir();
+    (
+        root.join(format!(
+            "agent-exporter-ai-summary-{slug}-{stamp}.stdout.log"
+        )),
+        root.join(format!(
+            "agent-exporter-ai-summary-{slug}-{stamp}.stderr.log"
+        )),
+    )
+}
+
+fn create_ai_summary_capture_file(path: &Path, label: &str) -> Result<std::fs::File> {
+    std::fs::OpenOptions::new()
+        .create(true)
+        .write(true)
+        .truncate(true)
+        .open(path)
+        .with_context(|| {
+            format!(
+                "failed to open AI summary {label} capture `{}`",
+                path.display()
+            )
+        })
+}
+
+fn read_ai_summary_capture(path: &Path) -> String {
+    std::fs::read_to_string(path)
+        .unwrap_or_else(|_| format!("(capture unavailable: {})", path.display()))
+}
+
+fn summarize_ai_summary_capture(path: &Path) -> String {
+    let capture = read_ai_summary_capture(path);
+    let trimmed = capture.trim();
+    if trimmed.is_empty() {
+        return String::new();
+    }
+
+    let tail = trimmed
+        .lines()
+        .rev()
+        .take(12)
+        .collect::<Vec<_>>()
+        .into_iter()
+        .rev()
+        .collect::<Vec<_>>()
+        .join("\n");
+    format!("\n{tail}")
+}
+
 fn quote_toml_string(value: &str) -> String {
     format!("{value:?}")
 }
@@ -218,12 +312,6 @@ fn summary_working_root(output_target: &OutputTarget) -> Result<PathBuf> {
             Ok(downloads_dir)
         }
     }
-}
-
-fn read_all<R: std::io::Read>(mut reader: R) -> Result<Vec<u8>> {
-    let mut buffer = Vec::new();
-    std::io::Read::read_to_end(&mut reader, &mut buffer)?;
-    Ok(buffer)
 }
 
 fn write_html_companion(
@@ -702,6 +790,48 @@ mod tests {
         assert!(
             args.windows(2)
                 .any(|pair| pair == ["-c", "model_provider=\"cliproxyapi\""])
+        );
+    }
+
+    #[test]
+    fn ai_summary_exec_args_default_to_low_reasoning_and_verbosity_without_profile() {
+        let args = build_ai_summary_exec_args(
+            std::path::Path::new("/tmp/workspace"),
+            std::path::Path::new("/tmp/out.md"),
+            &AiSummaryOptions {
+                enabled: true,
+                instructions: None,
+                timeout_seconds: Some(30),
+                profile: None,
+                preset: Some("handoff".to_string()),
+                model: None,
+                provider: None,
+            },
+        );
+
+        assert!(
+            args.windows(2)
+                .any(|pair| pair == ["-c", "model_reasoning_effort=\"low\""])
+        );
+        assert!(
+            args.windows(2)
+                .any(|pair| pair == ["-c", "model_verbosity=\"low\""])
+        );
+    }
+
+    #[test]
+    fn effective_ai_summary_timeout_prefers_request_then_options_then_default() {
+        assert_eq!(
+            super::effective_ai_summary_timeout(Some(15), Some(45)).as_secs(),
+            15
+        );
+        assert_eq!(
+            super::effective_ai_summary_timeout(None, Some(45)).as_secs(),
+            45
+        );
+        assert_eq!(
+            super::effective_ai_summary_timeout(None, None).as_secs(),
+            300
         );
     }
 

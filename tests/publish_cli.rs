@@ -64,6 +64,10 @@ fn memory_lane_json_path(workspace_root: &Path) -> PathBuf {
     conversations_dir(workspace_root).join("memory-lane.json")
 }
 
+fn memory_lane_allowlist_path(workspace_root: &Path) -> PathBuf {
+    conversations_dir(workspace_root).join("memory-lane-allowlist.json")
+}
+
 fn share_safe_packet_path(workspace_root: &Path) -> PathBuf {
     conversations_dir(workspace_root).join("share-safe-packet.md")
 }
@@ -993,6 +997,63 @@ fn official_answer_workflow_supports_supersede_resolve_and_unpin_commands() {
 }
 
 #[test]
+fn official_answer_lifecycle_commands_refresh_workbench_outputs_without_manual_publish() {
+    let workspace = tempdir().expect("workspace");
+    build_codex_export_command("complete-thread", workspace.path())
+        .assert()
+        .success();
+    build_publish_command(workspace.path()).assert().success();
+
+    let summary = write_structured_summary_fixture(
+        workspace.path(),
+        SummaryFixtureSpec {
+            file_stem: "refresh-thread-a1b2c3d4-ai-summary-rounds-1-2-2026-04-21_12-00-00",
+            thread_id: "complete-thread",
+            generated_at: "2026-04-21T12:00:00Z",
+            title: "Refresh answer",
+            overview: "Pin lifecycle should refresh the visible workbench outputs.",
+            profile_id: "decision",
+            files_touched: &["src/cli.rs"],
+            tests_run: &["cargo test"],
+            risks: &["workflow drift"],
+            blockers: &[],
+            next_steps: &["rerun publish"],
+            citations: &["refresh-summary"],
+        },
+    );
+
+    build_pin_answer_command(workspace.path(), &summary, "Refresh verdict")
+        .assert()
+        .success();
+    let pinned_index = fs::read_to_string(archive_index_json_path(workspace.path()))
+        .expect("archive index after pin");
+    assert!(
+        pinned_index.contains("Refresh verdict"),
+        "pin-answer should refresh archive index outputs without an extra publish step"
+    );
+
+    build_resolve_answer_command(workspace.path(), "Refresh verdict", Some("accepted"))
+        .assert()
+        .success();
+    let resolved_index = fs::read_to_string(archive_index_json_path(workspace.path()))
+        .expect("archive index after resolve");
+    assert!(
+        resolved_index.contains("\"status\": \"resolved\""),
+        "resolve-answer should refresh archive index outputs without an extra publish step"
+    );
+
+    build_unpin_answer_command(workspace.path(), "Refresh verdict")
+        .assert()
+        .success();
+    let unpinned_index = fs::read_to_string(archive_index_json_path(workspace.path()))
+        .expect("archive index after unpin");
+    assert!(
+        !unpinned_index.contains("Refresh verdict"),
+        "unpin-answer should refresh archive index outputs without an extra publish step"
+    );
+}
+
+#[test]
 fn publish_archive_index_projects_case_view_and_share_safe_packet_tiers() {
     let workspace = tempdir().expect("workspace");
     build_codex_export_command("complete-thread", workspace.path())
@@ -1093,6 +1154,10 @@ fn publish_archive_index_projects_case_view_and_share_safe_packet_tiers() {
     assert!(content.contains("Latest vs pinned answer"));
     assert!(content.contains("share-safe-packet.public.md"));
     assert!(content.contains("Pin as official answer"));
+    assert!(content.contains("cargo run -- publish archive-index --workspace-root /tmp/repo"));
+    assert!(content.contains("public wording drift"));
+    assert!(content.contains("manual review pending"));
+    assert!(content.contains("cut release"));
 }
 
 #[test]
@@ -1262,5 +1327,183 @@ fn publish_archive_index_builds_workspace_memory_lane_from_sibling_workbench_ind
             .as_array()
             .is_some_and(|workspaces| workspaces.len() >= 2),
         "memory lane should aggregate sibling workspaces with published indexes"
+    );
+}
+
+#[test]
+fn publish_archive_index_filters_temporary_fleet_targets_from_workspace_views() {
+    let workspace = tempdir().expect("workspace");
+    let real_target = workspace.path().join("codex-pack");
+    fs::create_dir_all(&real_target).expect("mkdir real target");
+    let temp_target = std::env::temp_dir()
+        .join("agent-exporter-public-smoke-fleet-fixture")
+        .join("codex-pack");
+    fs::create_dir_all(&temp_target).expect("mkdir temp target");
+
+    build_codex_export_command("complete-thread", workspace.path())
+        .assert()
+        .success();
+    build_onboard_report_command(&real_target, workspace.path())
+        .assert()
+        .success();
+    build_onboard_report_command(&temp_target, workspace.path())
+        .assert()
+        .success();
+
+    build_publish_command(workspace.path()).assert().success();
+
+    let fleet_json: Value = serde_json::from_str(
+        &fs::read_to_string(fleet_view_json_path(workspace.path())).expect("fleet json"),
+    )
+    .expect("valid fleet json");
+    let entries = fleet_json["entries"].as_array().expect("fleet entries");
+    assert!(
+        entries.iter().any(|entry| {
+            entry["target"].as_str() == Some(real_target.display().to_string().as_str())
+        }),
+        "non-temporary integration targets should remain visible"
+    );
+    assert!(
+        entries.iter().all(|entry| {
+            entry["target"].as_str() != Some(temp_target.display().to_string().as_str())
+        }),
+        "temporary targets should be filtered from fleet view"
+    );
+
+    let action_packs: Value = serde_json::from_str(
+        &fs::read_to_string(action_packs_index_json_path(workspace.path()))
+            .expect("action packs json"),
+    )
+    .expect("valid action pack json");
+    let temp_target_string = temp_target.display().to_string();
+    assert!(
+        action_packs["packs"]
+            .as_array()
+            .is_some_and(|packs| packs.iter().all(|pack| {
+                !pack["title"]
+                    .as_str()
+                    .is_some_and(|title| title.contains(&temp_target_string))
+            })),
+        "temporary targets should not leak into action bridge outputs"
+    );
+
+    let memory_lane_json: Value = serde_json::from_str(
+        &fs::read_to_string(memory_lane_json_path(workspace.path())).expect("memory lane json"),
+    )
+    .expect("valid memory lane json");
+    let operator = memory_lane_json["roleViews"]
+        .as_array()
+        .and_then(|views| views.iter().find(|view| view["role"] == "operator"))
+        .expect("operator role slice");
+    assert!(
+        operator["summary"]
+            .as_str()
+            .is_some_and(|summary| summary.contains("1 fleet relation")),
+        "operator summary should count only non-temporary fleet relations"
+    );
+}
+
+#[test]
+fn publish_archive_index_generates_summary_driven_action_packs_without_existing_pin() {
+    let workspace = tempdir().expect("workspace");
+    build_codex_export_command("complete-thread", workspace.path())
+        .assert()
+        .success();
+
+    write_structured_summary_fixture(
+        workspace.path(),
+        SummaryFixtureSpec {
+            file_stem: "artifact-thread-a1b2c3d4-ai-summary-rounds-1-2-2026-04-21_12-00-00",
+            thread_id: "complete-thread",
+            generated_at: "2026-04-21T12:00:00Z",
+            title: "Bug RCA packet",
+            overview: "Summarize the root cause and propose the next repair step.",
+            profile_id: "bug-rca",
+            files_touched: &["src/workbench.rs"],
+            tests_run: &["cargo test"],
+            risks: &["regression risk"],
+            blockers: &["need final verification"],
+            next_steps: &["open an issue", "rerun publish"],
+            citations: &["summary-issue-a"],
+        },
+    );
+
+    build_publish_command(workspace.path()).assert().success();
+
+    let packs_json: Value = serde_json::from_str(
+        &fs::read_to_string(action_packs_index_json_path(workspace.path()))
+            .expect("action packs json"),
+    )
+    .expect("valid action pack json");
+    let packs = packs_json["packs"].as_array().expect("packs array");
+    assert!(
+        packs.iter().any(|pack| {
+            pack["sourceKind"] == "structured-summary"
+                && pack["kind"] == "issue draft"
+                && pack["title"].as_str().is_some_and(|title| {
+                    title.contains("complete-thread") || title.contains("Bug RCA")
+                })
+        }),
+        "latest structured summaries should generate action packs even before any official answer is pinned"
+    );
+}
+
+#[test]
+fn publish_archive_index_memory_lane_respects_workspace_allowlist() {
+    let parent = tempdir().expect("parent");
+    let workspace_a = parent.path().join("repo-a");
+    let workspace_b = parent.path().join("repo-b");
+    let workspace_c = parent.path().join("repo-c");
+    fs::create_dir_all(&workspace_a).expect("mkdir repo-a");
+    fs::create_dir_all(&workspace_b).expect("mkdir repo-b");
+    fs::create_dir_all(&workspace_c).expect("mkdir repo-c");
+
+    build_codex_export_command("complete-thread", &workspace_a)
+        .assert()
+        .success();
+    build_publish_command(&workspace_a).assert().success();
+
+    build_codex_export_command("complete-thread", &workspace_b)
+        .assert()
+        .success();
+    build_publish_command(&workspace_b).assert().success();
+
+    build_codex_export_command("complete-thread", &workspace_c)
+        .assert()
+        .success();
+    build_publish_command(&workspace_c).assert().success();
+
+    fs::write(
+        memory_lane_allowlist_path(&workspace_a),
+        serde_json::json!({
+            "workspaceRoots": [workspace_b.display().to_string()]
+        })
+        .to_string(),
+    )
+    .expect("write allowlist");
+
+    build_publish_command(&workspace_a).assert().success();
+
+    let memory_lane_json: Value = serde_json::from_str(
+        &fs::read_to_string(memory_lane_json_path(&workspace_a)).expect("memory lane json"),
+    )
+    .expect("valid memory lane json");
+    let roots = memory_lane_json["workspaces"]
+        .as_array()
+        .expect("workspace list")
+        .iter()
+        .filter_map(|workspace| workspace["workspaceRoot"].as_str())
+        .collect::<Vec<_>>();
+    assert!(
+        roots.contains(&workspace_a.display().to_string().as_str()),
+        "current workspace should always stay visible"
+    );
+    assert!(
+        roots.contains(&workspace_b.display().to_string().as_str()),
+        "allowlisted workspace should stay visible"
+    );
+    assert!(
+        !roots.contains(&workspace_c.display().to_string().as_str()),
+        "non-allowlisted sibling workspace should be filtered out"
     );
 }

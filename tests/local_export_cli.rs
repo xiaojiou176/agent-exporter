@@ -109,9 +109,12 @@ import json
 import os
 import pathlib
 import sys
+import time
 
 args = sys.argv[1:]
 prompt = sys.stdin.read()
+delay_seconds = float(os.environ.get("AGENT_EXPORTER_FAKE_CODEX_DELAY_SECONDS", "0"))
+stdout_bytes = int(os.environ.get("AGENT_EXPORTER_FAKE_CODEX_STDOUT_BYTES", "0"))
 output_path = None
 for index, value in enumerate(args):
     if value == "-o" and index + 1 < len(args):
@@ -127,6 +130,11 @@ pathlib.Path(os.environ["AGENT_EXPORTER_FAKE_CODEX_LOG"]).write_text(
     encoding="utf-8",
 )
 output_path.write_text("# AI 梳理\n\nfake summary\n", encoding="utf-8")
+if delay_seconds:
+    time.sleep(delay_seconds)
+if stdout_bytes:
+    sys.stdout.write("x" * stdout_bytes)
+    sys.stdout.flush()
 "##,
     )
     .expect("fake codex script");
@@ -596,6 +604,35 @@ fn codex_export_ai_summary_accepts_profile_model_provider_controls() {
             .and_then(|name| name.to_str())
             .expect("summary json file name")
     );
+}
+
+#[test]
+fn codex_export_ai_summary_handles_noisy_child_output_without_timing_out() {
+    let workspace = tempdir().expect("workspace");
+    let codex_home = tempdir().expect("codex home");
+    let fake_bin = tempdir().expect("fake bin");
+    let log_path = workspace.path().join("fake-codex-log.json");
+    create_local_fixture(
+        codex_home.path(),
+        "ai-summary-noisy-thread",
+        "sessions/ai-summary-noisy-thread.jsonl",
+    );
+    install_fake_codex(fake_bin.path(), &log_path);
+
+    build_local_command(workspace.path())
+        .env("PATH", prepend_path(fake_bin.path()))
+        .env("AGENT_EXPORTER_FAKE_CODEX_LOG", &log_path)
+        .env("AGENT_EXPORTER_FAKE_CODEX_STDOUT_BYTES", "1048576")
+        .arg("--codex-home")
+        .arg(codex_home.path())
+        .arg("--thread-id")
+        .arg("ai-summary-noisy-thread")
+        .arg("--ai-summary")
+        .arg("--ai-summary-timeout-seconds")
+        .arg("2")
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("- AI Summary"));
 }
 
 #[test]

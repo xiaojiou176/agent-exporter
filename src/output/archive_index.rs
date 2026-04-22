@@ -700,6 +700,38 @@ fn render_thread_families(families: &[ThreadFamilySummary]) -> String {
                                 escape_html(&diff.new_files_touched.join(", "))
                             )
                         };
+                        let new_tests = if diff.new_tests_run.is_empty() {
+                            String::new()
+                        } else {
+                            format!(
+                                "<p>new tests: {}</p>",
+                                escape_html(&diff.new_tests_run.join(", "))
+                            )
+                        };
+                        let new_risks = if diff.new_risks.is_empty() {
+                            String::new()
+                        } else {
+                            format!(
+                                "<p>new risks: {}</p>",
+                                escape_html(&diff.new_risks.join(", "))
+                            )
+                        };
+                        let new_blockers = if diff.new_blockers.is_empty() {
+                            String::new()
+                        } else {
+                            format!(
+                                "<p>new blockers: {}</p>",
+                                escape_html(&diff.new_blockers.join(", "))
+                            )
+                        };
+                        let new_next_steps = if diff.new_next_steps.is_empty() {
+                            String::new()
+                        } else {
+                            format!(
+                                "<p>new next steps: {}</p>",
+                                escape_html(&diff.new_next_steps.join(", "))
+                            )
+                        };
                         format!(
                             concat!(
                                 "<section class=\"nested-card\">",
@@ -707,11 +739,19 @@ fn render_thread_families(families: &[ThreadFamilySummary]) -> String {
                                 "<h3>{status}</h3>",
                                 "<p>{summary}</p>",
                                 "{new_files}",
+                                "{new_tests}",
+                                "{new_risks}",
+                                "{new_blockers}",
+                                "{new_next_steps}",
                                 "</section>"
                             ),
                             status = escape_html(&diff.status),
                             summary = escape_html(&diff.summary),
                             new_files = new_files,
+                            new_tests = new_tests,
+                            new_risks = new_risks,
+                            new_blockers = new_blockers,
+                            new_next_steps = new_next_steps,
                         )
                     })
                     .unwrap_or_default();
