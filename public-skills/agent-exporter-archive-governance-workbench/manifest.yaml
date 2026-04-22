@@ -36,7 +36,7 @@ registry_targets:
 
 boundaries:
   product_identity: Local-first archive and governance workbench packet for agent-exporter.
-  canonical_repo_version: 0.1.9
+  canonical_repo_version: 0.1.10
   listing_state_summary: Official MCP Registry published; ClawHub listed-live; Goose review-pending; agent-skill.co blocked by external Vercel authorization; OpenHands/extensions closed-not-accepted; Smithery repo-root publish currently build-contract-blocked; awesome-opencode exact_blocker_with_fresh_evidence.
   not_claimed:
     - Official MCP Registry publication does not turn the repo into a hosted platform or replace the CLI-first flagship packet

@@ -1664,9 +1664,14 @@ mod tests {
                 < COCKPIT_HTML.find("id=\"cli-preview-panel\"").unwrap()
         );
         assert!(COCKPIT_CSS.contains("max-height: calc(100vh"));
+        assert!(COCKPIT_CSS.contains(".rail-stack.is-empty-selection .rail-output-panel"));
+        assert!(COCKPIT_CSS.contains("order: -1"));
+        assert!(COCKPIT_CSS.contains(".rail-stack.is-empty-selection .toggle-row"));
         assert!(COCKPIT_CSS.contains(".result-preview-list"));
         assert!(COCKPIT_CSS.contains(".detail-summary-card"));
         assert!(COCKPIT_JS.contains("renderIdleResultState"));
+        assert!(COCKPIT_JS.contains("railStackEl?.classList.toggle(\"is-empty-selection\""));
+        assert!(COCKPIT_JS.contains("aiSummaryToggleEl.disabled = selected.length === 0"));
         assert!(COCKPIT_JS.contains("result-preview-list"));
         assert!(COCKPIT_JS.contains("detail-summary-card"));
         assert!(COCKPIT_JS.contains("\"result.previewMarkdown\""));
