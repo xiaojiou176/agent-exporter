@@ -205,6 +205,10 @@ while True:
 with open(stdin_log, "wb") as handle:
     handle.write(b"".join(chunks))
 
+delay_seconds = float(os.environ.get("FAKE_CODEX_DELAY_SECONDS", "0"))
+if delay_seconds:
+    time.sleep(delay_seconds)
+
 output_path = ""
 previous = None
 for arg in sys.argv[1:]:
@@ -407,7 +411,8 @@ fn cockpit_ai_summary_controls_reach_backend_summary_command() -> Result<()> {
             "aiSummaryInstructions": "请特别关注 blocker。",
             "aiSummaryProfile": "workbench",
             "aiSummaryModel": "gpt-5",
-            "aiSummaryProvider": "openai"
+            "aiSummaryProvider": "openai",
+            "aiSummaryTimeoutSeconds": 45
         }),
     );
 
@@ -424,6 +429,60 @@ fn cockpit_ai_summary_controls_reach_backend_summary_command() -> Result<()> {
 
     let prompt = fs::read_to_string(&fake_stdin_log).context("read fake codex prompt")?;
     assert!(prompt.contains("请特别关注 blocker。"));
+
+    Ok(())
+}
+
+#[test]
+fn cockpit_ai_summary_timeout_is_configurable() -> Result<()> {
+    let workspace = tempdir().context("workspace tempdir")?;
+    let codex_home = tempdir().context("codex tempdir")?;
+    seed_codex_state(codex_home.path(), workspace.path());
+
+    let bin_dir = workspace.path().join("bin");
+    fs::create_dir_all(&bin_dir).context("create bin dir")?;
+    write_fake_codex(&bin_dir.join("codex"));
+    let fake_args_log = workspace.path().join("fake-codex-args.log");
+    let fake_stdin_log = workspace.path().join("fake-codex-stdin.log");
+
+    let log_path = workspace.path().join("cockpit-ai-summary-timeout.log");
+    let _child = ChildGuard(spawn_cockpit(
+        workspace.path(),
+        codex_home.path(),
+        &log_path,
+        Some(&bin_dir),
+        &[
+            ("FAKE_CODEX_ARGS_LOG", fake_args_log.as_path()),
+            ("FAKE_CODEX_STDIN_LOG", fake_stdin_log.as_path()),
+            ("FAKE_CODEX_DELAY_SECONDS", Path::new("2")),
+        ],
+    ));
+    let url = wait_for_url(&log_path)?.trim_end_matches('/').to_string();
+
+    let fixture = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests")
+        .join("fixtures")
+        .join("mock_codex_app_server.py");
+    let export = post_json(
+        &format!("{url}/api/export"),
+        &serde_json::json!({
+            "selections": [{
+                "threadId": "thread-1",
+                "workspacePath": workspace.path().display().to_string(),
+                "workspaceLabel": "workspace"
+            }],
+            "appServerCommand": std::env::var("PYTHON").unwrap_or_else(|_| "python3".to_string()),
+            "appServerArgs": [fixture.display().to_string()],
+            "aiSummary": true,
+            "aiSummaryTimeoutSeconds": 1
+        }),
+    );
+
+    assert_eq!(export["status"], "started");
+    let job = wait_for_job(&url, export["jobId"].as_str().expect("job id"));
+    assert_eq!(job["status"], "completed_with_warnings");
+    let warning = job["warnings"][0].as_str().expect("warning");
+    assert!(warning.contains("timed out after 1 seconds"));
 
     Ok(())
 }

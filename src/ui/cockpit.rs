@@ -98,6 +98,7 @@ struct ExportRequestBody {
     app_server_args: Option<Vec<String>>,
     ai_summary: Option<bool>,
     ai_summary_instructions: Option<String>,
+    ai_summary_timeout_seconds: Option<u64>,
     ai_summary_profile: Option<String>,
     ai_summary_preset: Option<String>,
     ai_summary_model: Option<String>,
@@ -108,6 +109,7 @@ struct ExportRequestBody {
 struct AiSummaryJobOptions {
     enabled: bool,
     instructions: Option<String>,
+    timeout_seconds: Option<u64>,
     profile: Option<String>,
     preset: Option<String>,
     model: Option<String>,
@@ -830,6 +832,7 @@ async fn export(
     let ai_summary_options = AiSummaryJobOptions {
         enabled: body.ai_summary.unwrap_or(false),
         instructions: body.ai_summary_instructions.clone(),
+        timeout_seconds: body.ai_summary_timeout_seconds,
         profile: body.ai_summary_profile.clone(),
         preset: body.ai_summary_preset.clone(),
         model: body.ai_summary_model.clone(),
@@ -1012,12 +1015,12 @@ fn execute_export_job(
                     exported_at: &thread_result.exported_at,
                     exported_paths: &thread_result.output.output_paths,
                     extra_instructions: ai_summary_options.instructions.as_deref(),
-                    timeout_seconds: None,
+                    timeout_seconds: ai_summary_options.timeout_seconds,
                 },
                 &AiSummaryOptions {
                     enabled: true,
                     instructions: ai_summary_options.instructions.clone(),
-                    timeout_seconds: None,
+                    timeout_seconds: ai_summary_options.timeout_seconds,
                     profile: ai_summary_options.profile.clone(),
                     preset: ai_summary_options.preset.clone(),
                     model: ai_summary_options.model.clone(),
