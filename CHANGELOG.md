@@ -6,6 +6,18 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-04-21
+
+### Added
+- workspace timeline, thread family case views, official-answer lifecycle views, share-safe packet tiers, fleet view, action packs, and team/org memory lane outputs inside the local archive workbench
+- stronger local workbench refresh contracts, including refresh manifests, stale-answer handling, and richer archive-index JSON projections
+
+### Changed
+- the published shelf now catches up to the current `main` branch after landing `#49` and `#50`
+- the local Export Cockpit now uses a more compact installed-state layout, keeps discovery and actions in the same working viewport, groups advanced AI summary overrides under one expandable section, and makes the Markdown-first output contract explicit even before the first export
+- workspace-local Claude discovery stays constrained to canonicalized files inside the selected workspace instead of following symlinked paths outside it
+- cockpit boot/loading states now reserve more stable layout space so first-load CLS stays low while keeping the result lane honest about Markdown-first transcripts, HTML companions, and shell navigation roles
+
 ## [0.1.5] - 2026-04-21
 
 ### Added

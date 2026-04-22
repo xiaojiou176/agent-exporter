@@ -10,16 +10,17 @@ const state = {
     locale: "en",
     workspaceLabels: {},
   },
+  hasRenderedResult: false,
 };
 
 const STRINGS = {
   en: {
     "hero.eyebrow": "local-first export cockpit",
-    "hero.title": "Export Codex threads or workspace-local Claude sessions into local archive workbenches.",
+    "hero.title": "Select a Codex or Claude session, export it, and open the local workbench.",
     "hero.lead":
-      "The cockpit prefers live Codex thread discovery, augments it with workspace-local Claude sessions, groups them by workspace, and exports each selected session back into its own workspace shell.",
+      "Live Codex discovery comes first, workspace-local Claude sessions fill the gaps, and every export lands back in its own workspace with Markdown-first results.",
     "hero.note":
-      "This is still a local helper after the CLI path. The public front door remains the CLI quickstart.",
+      "Pick a thread, export it, then open the Markdown transcript, HTML companion, and workspace shells. The public front door still stays with the CLI quickstart.",
     "meta.launchRoot": "launch root",
     "meta.codexHome": "codex home",
     "meta.discoveryMode": "discovery mode",
@@ -45,6 +46,7 @@ const STRINGS = {
     "action.aiProfilePlaceholder": "Codex profile for the AI synthesis",
     "action.aiPreset": "Optional AI summary preset",
     "action.aiPresetPlaceholder": "handoff, bug-rca, decision, release...",
+    "action.aiAdvanced": "Advanced AI summary overrides",
     "action.aiModel": "Optional AI summary model",
     "action.aiModelPlaceholder": "Model override for the AI synthesis",
     "action.aiProvider": "Optional AI summary provider",
@@ -69,6 +71,10 @@ const STRINGS = {
     "result.copyPath": "Copy path",
     "result.path": "Path",
     "result.warning": "Warning",
+    "result.previewTitle": "After export, this panel will surface three layers of output.",
+    "result.previewMarkdown": "Markdown transcript parts come first for agents and handoffs.",
+    "result.previewHtml": "HTML stays as the browser companion for quick local reading.",
+    "result.previewShell": "Archive / reports / evidence shells stay as navigation, not the primary artifact.",
     "result.progress": "Export progress",
     "result.running": "Running {phase} for {elapsed}",
     "result.phaseQueued": "queued",
@@ -124,11 +130,11 @@ const STRINGS = {
   },
   zh: {
     "hero.eyebrow": "本地优先导出驾驶舱",
-    "hero.title": "把 Codex 对话或工作区内的 Claude session 导出到本地归档工作台。",
+    "hero.title": "先选会话，再导出，再打开它自己的本地归档工作台。",
     "hero.lead":
-      "这个 cockpit 会优先使用 live Codex thread discovery，再补上 workspace-local Claude session，按 workspace 分组，并把每个选中的 session 导回它自己的 workspace shell。",
+      "它会优先使用 live Codex thread discovery，再补上 workspace-local Claude session，并把每次导出回写到对应 workspace，主结果优先暴露 Markdown。",
     "hero.note":
-      "它仍然是 CLI 之后的本地辅助面，不是隐藏执行层。公开 front door 依然是 CLI quickstart。",
+      "你先选线程，再导出，再从这里打开 Markdown 主文件、HTML 辅助稿和 workspace shell。公开 front door 依然是 CLI quickstart。",
     "meta.launchRoot": "启动根目录",
     "meta.codexHome": "Codex Home",
     "meta.discoveryMode": "发现模式",
@@ -154,6 +160,7 @@ const STRINGS = {
     "action.aiProfilePlaceholder": "用于 AI 摘要的 Codex profile",
     "action.aiPreset": "可选 AI 摘要 Preset",
     "action.aiPresetPlaceholder": "handoff、bug-rca、decision、release 等",
+    "action.aiAdvanced": "高级 AI 摘要覆盖项",
     "action.aiModel": "可选 AI 摘要模型",
     "action.aiModelPlaceholder": "用于 AI 摘要的模型覆盖",
     "action.aiProvider": "可选 AI 摘要 Provider",
@@ -178,6 +185,10 @@ const STRINGS = {
     "result.copyPath": "复制路径",
     "result.path": "路径",
     "result.warning": "警告",
+    "result.previewTitle": "导出完成后，这里会按三层结果来展示。",
+    "result.previewMarkdown": "第一优先是 Markdown transcript parts，方便 Agent 深读和继续接力。",
+    "result.previewHtml": "第二优先是 HTML 辅助稿，适合人在浏览器里快速浏览。",
+    "result.previewShell": "archive / reports / evidence shell 继续保留，但只作为导航面。",
     "result.progress": "导出进度",
     "result.running": "正在进行 {phase}，已持续 {elapsed}",
     "result.phaseQueued": "排队中",
@@ -417,6 +428,8 @@ function applyStaticText() {
     document.getElementById("ai-summary-preset-label").textContent = t("action.aiPreset");
     aiSummaryPresetEl.placeholder = t("action.aiPresetPlaceholder");
   }
+  const advancedSummaryEl = document.getElementById("ai-summary-advanced-summary");
+  if (advancedSummaryEl) advancedSummaryEl.textContent = t("action.aiAdvanced");
   document.getElementById("ai-summary-model-label").textContent = t("action.aiModel");
   aiSummaryModelEl.placeholder = t("action.aiModelPlaceholder");
   document.getElementById("ai-summary-provider-label").textContent = t("action.aiProvider");
@@ -741,6 +754,9 @@ function renderSelection() {
     exportButtonEl.disabled = true;
     exportButtonEl.textContent = t("action.button.single");
     renderCommandPreview();
+    if (!state.hasRenderedResult) {
+      renderIdleResultState();
+    }
     return;
   }
 
@@ -838,7 +854,26 @@ function renderSelection() {
   renderCommandPreview();
 }
 
+function renderIdleResultState() {
+  resultStatusEl.textContent = t("result.empty");
+  resultLinksEl.innerHTML = "";
+  const titleText = t("result.previewTitle");
+  for (const key of ["result.previewMarkdown", "result.previewHtml", "result.previewShell"]) {
+    const card = document.createElement("div");
+    card.className = "result-preview-card";
+    const title = document.createElement("div");
+    title.className = "result-path-label";
+    title.textContent = titleText;
+    const body = document.createElement("div");
+    body.className = "result-path-value";
+    body.textContent = t(key);
+    card.append(title, body);
+    resultLinksEl.append(card);
+  }
+}
+
 function renderResultLinks(response) {
+  state.hasRenderedResult = true;
   resultLinksEl.innerHTML = "";
   for (const workspace of response.workspaces ?? []) {
     const card = document.createElement("div");
@@ -955,6 +990,7 @@ function buildResultPathRow(label, targetPath) {
 }
 
 function renderExportJob(job) {
+  state.hasRenderedResult = true;
   const elapsed = formatDurationSince(job.startedAt);
   resultStatusEl.textContent =
     job.status === "failed"
@@ -1178,5 +1214,9 @@ exportButtonEl.addEventListener("click", () => {
 void (async function bootstrap() {
   await loadPreferences();
   applyStaticText();
+  renderSelection();
+  renderIdleResultState();
   await loadThreads();
+  renderIdleResultState();
+  document.body.dataset.bootState = "ready";
 })();
