@@ -6,6 +6,13 @@ The format is based on Keep a Changelog.
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-04-21
+
+### Changed
+- the Export Cockpit now puts actions and result guidance ahead of long thread details, so the installed-state workflow keeps `select -> export -> read result` visible in one tighter working rail
+- the cockpit hero and metadata cards are more compact, reducing first-load vertical pressure while keeping the launch root / codex home / discovery mode truth visible
+- idle result guidance now appears earlier and stays Markdown-first by default, while advanced AI summary overrides remain grouped behind an expandable section
+
 ## [0.1.6] - 2026-04-21
 
 ### Added

@@ -1650,6 +1650,14 @@ mod tests {
         assert!(COCKPIT_HTML.contains("workbench-layout"));
         assert!(COCKPIT_HTML.contains("rail-stack"));
         assert!(COCKPIT_HTML.contains("ai-summary-advanced"));
+        assert!(
+            COCKPIT_HTML.find("id=\"action-eyebrow\"").unwrap()
+                < COCKPIT_HTML.find("id=\"selected-thread-eyebrow\"").unwrap()
+        );
+        assert!(
+            COCKPIT_HTML.find("id=\"result-eyebrow\"").unwrap()
+                < COCKPIT_HTML.find("id=\"selected-thread-eyebrow\"").unwrap()
+        );
         assert!(COCKPIT_JS.contains("renderIdleResultState"));
         assert!(COCKPIT_JS.contains("\"result.previewMarkdown\""));
         assert!(COCKPIT_JS.contains("\"result.previewHtml\""));
