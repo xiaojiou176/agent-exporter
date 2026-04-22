@@ -69,4 +69,10 @@ fn cockpit_action_copy_stays_connector_neutral_in_both_locales() {
         "\"action.note\":\n      \"会沿通用导出主链导出，并刷新受影响 workspace 的 archive / reports / evidence shell。\""
     ));
     assert!(!js.contains("会沿 canonical Codex export path 导出"));
+    assert!(js.contains("resultView"));
+    assert!(js.contains("rerenderResultView"));
+    assert!(js.contains("setResultView(\"idle\""));
+    assert!(js.contains("setResultView(\"error\""));
+    assert!(js.contains("setResultView(\"job\""));
+    assert!(js.contains("setResultView(\"success\""));
 }

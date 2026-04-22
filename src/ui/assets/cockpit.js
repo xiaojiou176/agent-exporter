@@ -6,6 +6,7 @@ const state = {
   discoveryMeta: null,
   activeExportJobId: null,
   exportPollTimer: null,
+  resultView: { kind: "idle", payload: null },
   prefs: {
     locale: "en",
     workspaceLabels: {},
@@ -890,7 +891,24 @@ function renderSelection() {
   renderCommandPreview();
 }
 
-function renderIdleResultState() {
+function setResultView(kind, payload = null) {
+  state.resultView = { kind, payload };
+}
+
+function renderErrorResultState(errorMessage, updateState = true) {
+  if (updateState) {
+    setResultView("error", { errorMessage });
+  }
+  resultStatusEl.textContent = t("status.exportFailed", {
+    error: errorMessage ?? "unknown",
+  });
+  resultLinksEl.innerHTML = "";
+}
+
+function renderIdleResultState(updateState = true) {
+  if (updateState) {
+    setResultView("idle");
+  }
   resultStatusEl.textContent = t("result.empty");
   resultLinksEl.innerHTML = "";
   const card = document.createElement("div");
@@ -916,8 +934,11 @@ function renderIdleResultState() {
   resultLinksEl.append(card);
 }
 
-function renderResultLinks(response) {
+function renderResultLinks(response, updateState = true) {
   state.hasRenderedResult = true;
+  if (updateState) {
+    setResultView("success", response);
+  }
   resultLinksEl.innerHTML = "";
   for (const workspace of response.workspaces ?? []) {
     const card = document.createElement("div");
@@ -1033,8 +1054,11 @@ function buildResultPathRow(label, targetPath) {
   return row;
 }
 
-function renderExportJob(job) {
+function renderExportJob(job, updateState = true) {
   state.hasRenderedResult = true;
+  if (updateState) {
+    setResultView("job", job);
+  }
   const elapsed = formatDurationSince(job.startedAt);
   resultStatusEl.textContent =
     job.status === "failed"
@@ -1090,6 +1114,24 @@ function renderExportJob(job) {
       card.append(title, body);
       resultLinksEl.append(card);
     }
+  }
+}
+
+function rerenderResultView() {
+  const view = state.resultView ?? { kind: "idle", payload: null };
+  switch (view.kind) {
+    case "success":
+      renderResultLinks(view.payload, false);
+      return;
+    case "job":
+      renderExportJob(view.payload, false);
+      return;
+    case "error":
+      renderErrorResultState(view.payload?.errorMessage, false);
+      return;
+    case "idle":
+    default:
+      renderIdleResultState(false);
   }
 }
 
@@ -1161,6 +1203,15 @@ async function exportSelected() {
   const aiSummaryInstructions = trimmedValue(aiSummaryInstructionsEl);
 
   exportButtonEl.disabled = true;
+  setResultView("job", {
+    status: "running",
+    startedAt: new Date().toISOString(),
+    currentPhase: "queued",
+    exportedCount: 0,
+    workspaceCount: 0,
+    warnings: [],
+    steps: [],
+  });
   resultStatusEl.textContent = t("status.exportStarting");
   resultLinksEl.innerHTML = "";
 
@@ -1191,7 +1242,7 @@ async function exportSelected() {
     }
     await pollExportJob(data.jobId);
   } catch (error) {
-    resultStatusEl.textContent = t("status.exportFailed", { error: String(error) });
+    renderErrorResultState(String(error));
   } finally {
     if (!state.exportPollTimer) {
       exportButtonEl.disabled = selectedThreads().length === 0;
@@ -1249,6 +1300,7 @@ localeToggleEl?.addEventListener("click", async () => {
   applyStaticText();
   renderThreads();
   renderSelection();
+  rerenderResultView();
 });
 
 exportButtonEl.addEventListener("click", () => {
